@@ -56,13 +56,27 @@ const onPageChange = () => {
         elementTablePrintersWorkplace.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 }
+const onRowSelect = (event) => {
+    actions.show(event.data.id);
+};
 
 const title = 'Принтеры';
 
 const actions = {
     create: () => Inertia.get(urls.printers.create()),
-    show: (event) => Inertia.get(urls.printers.show(event.data.id)),
+    show: (id) => Inertia.get(urls.printers.show(id)),
 };
+
+const showConsumables = ref({});
+const toggleConsumable = (id) => {   
+    if (showConsumables.value[id] == true) {
+        showConsumables.value[id] = false;
+    }
+    else {
+        showConsumables.value[id] = true;
+    }
+}
+
 </script>
 <template>
     
@@ -82,9 +96,9 @@ const actions = {
             :metaKeySelection="false"
             class="w-full" 
             tableStyle="min-width: 50rem" 
-            selectionMode="single"
-            @rowSelect="actions.show"
+            selectionMode="single"            
             @page="onPageChange"
+            @rowSelect="onRowSelect"
         >
             <template #header>
                 <TableTitle class="border-b border-gray-200 pb-2">{{ title }}</TableTitle>
@@ -104,7 +118,7 @@ const actions = {
                     {{ slotProps.index + 1 }}
                 </template>
             </Column>
-            <Column field="printer.vendor" :header="printerWorkplaceLabels.id_printer" sortable>
+            <Column field="printer.vendor" :header="printerWorkplaceLabels.id_printer" @click="columnClick(false)" sortable>
                 <template #body="{ data }">
                     <div class="flex align-items-center gap-2">                       
                         <span>{{ `${data.printer.vendor} ${data.printer.model}` }}</span>         
@@ -131,9 +145,18 @@ const actions = {
                 </template>
             </Column>      
             <Column header="Расходные материалы">
-                <template #body="{ data }">
-                    <div class="grid gap-y-2 divide-y divide-slate-300 divide-dashed text-sm">
-                        <div class="flex flex-row gap-2 pt-2" v-for="consumable in data?.printer?.consumables_deep">
+                <template #body="{ data }"> 
+                    <Button size="small" severity="secondary" @click="toggleConsumable(data.id)" outlined>
+                        <template v-if="showConsumables[data.id] !== true">
+                            <i class="pi pi-angle-double-down"></i>&nbsp;Развернуть
+                        </template>
+                        <template v-else>
+                            <i class="pi pi-angle-double-up"></i>&nbsp;Свернуть
+                        </template>
+                    </Button>
+                    
+                    <div v-if="showConsumables[data.id]" class="grid gap-y-2 divide-y divide-slate-300 divide-dashed text-sm mt-4">
+                        <div class="flex flex-row gap-1 pt-1" v-for="consumable in data?.printer?.consumables_deep">
                             <div class="grid content-center">
                                 <div v-if="consumable.consumable_count != undefined">
                                     <Badge 
@@ -166,7 +189,7 @@ const actions = {
                                 </div>
                             </div>                        
                         </div> 
-                    </div>
+                    </div> 
                 </template>
             </Column>  
             <Column field="location" :header="printerWorkplaceLabels.location" sortable />
@@ -185,11 +208,12 @@ const actions = {
                         </div>
                     </div>
                 </template>
-            </Column>
+            </Column>            
             
             <template #empty> Нет данных </template>
 
-        </DataTable>       
+        </DataTable>    
+        
     </div>        
     
 </template>
