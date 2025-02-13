@@ -48,6 +48,15 @@ watch(
     { deep: true }
 )
 
+const refTablePrintersWorkplace = ref(null);
+
+const onPageChange = () => {    
+    const elementTablePrintersWorkplace = refTablePrintersWorkplace.value.$el;
+    if (elementTablePrintersWorkplace) {
+        elementTablePrintersWorkplace.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+}
+
 const title = 'Принтеры';
 
 const actions = {
@@ -64,11 +73,18 @@ const actions = {
     ]" />
 
     <div class="flex justify-stretch bg-white rounded-md shadow overflow-hidden mt-4">
-        <DataTable :value="printersWorkplace"
-            paginator :rows="10" v-model:selection="selectedRow"
-            dataKey="id" :metaKeySelection="false"
-            class="w-full" tableStyle="min-width: 50rem" selectionMode="single"
+        <DataTable 
+            :value="printersWorkplace"
+            ref="refTablePrintersWorkplace"
+            paginator :rows="10" 
+            v-model:selection="selectedRow"
+            dataKey="id" 
+            :metaKeySelection="false"
+            class="w-full" 
+            tableStyle="min-width: 50rem" 
+            selectionMode="single"
             @rowSelect="actions.show"
+            @page="onPageChange"
         >
             <template #header>
                 <TableTitle class="border-b border-gray-200 pb-2">{{ title }}</TableTitle>

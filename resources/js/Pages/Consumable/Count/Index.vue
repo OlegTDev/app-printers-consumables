@@ -1,5 +1,5 @@
 <script setup>
-import { computed, inject, reactive, watch } from 'vue';
+import { computed, inject, reactive, ref, watch } from 'vue';
 import { Head } from '@inertiajs/inertia-vue3'
 import Layout from '@/Shared/Layout'
 import InputText from 'primevue/inputtext'
@@ -61,6 +61,15 @@ const actions = {
     show: (event) => Inertia.get(urls.consumables.counts.show(event.data.id)),
 };
 
+const refTableConsumableCount = ref(null);
+
+const onPageChange = () => {    
+    const elementTableConsumableCount = refTableConsumableCount.value.$el;
+    if (elementTableConsumableCount) {
+        elementTableConsumableCount.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+}
+
 </script>
 <template>
 
@@ -73,6 +82,7 @@ const actions = {
     <div class="flex justify-stretch bg-white rounded-md shadow overflow-hidden mt-4">
         
         <DataTable :value="consumablesCounts"
+            ref="refTableConsumableCount"
             paginator 
             :rows="10" 
             dataKey="id" 
@@ -80,7 +90,8 @@ const actions = {
             class="w-full" 
             tableStyle="min-width: 50rem" 
             selectionMode="single"
-            @rowSelect="actions.show"     
+            @rowSelect="actions.show"    
+            @page="onPageChange"
         >
             <template #header>
                 <TableTitle class="border-b border-gray-200 pb-2">{{ title }}</TableTitle>

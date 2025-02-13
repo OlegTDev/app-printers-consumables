@@ -57,6 +57,15 @@ const onRowSelect = (event) => {
     Inertia.get(urls.users.edit(event.data.id))
 }
 
+const refTableUsers = ref(null);
+
+const onPageChange = () => {    
+    const elementTableUsers = refTableUsers.value.$el;
+    if (elementTableUsers) {
+        elementTableUsers.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+}
+
 const title = 'Пользователи'
 
 </script>
@@ -70,11 +79,13 @@ const title = 'Пользователи'
 
         <div class="flex justify-stretch bg-white rounded-md shadow overflow-hidden mt-4">
             <DataTable 
+                ref="refTableUsers"
                 :value="users"
                 paginator :rows="10"
                 dataKey="id" :metaKeySelection="false"
                 class="w-full" tableStyle="min-width: 50rem" selectionMode="single"
                 @rowSelect="onRowSelect"
+                @page="onPageChange"
             >
                 <template #header>
                     <div class="flex justify-between">

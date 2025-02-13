@@ -50,6 +50,15 @@ const onRowSelect = (event) => {
     Inertia.get(urls.dictionary.consumables.show(event.data.id));
 };
 
+const refTableConsumablesDic = ref(null);
+
+const onPageChange = () => {    
+    const elementTableConsumablesDic = refTableConsumablesDic.value.$el;
+    if (elementTableConsumablesDic) {
+        elementTableConsumablesDic.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+}
+
 </script>
 <template>
     
@@ -60,11 +69,19 @@ const onRowSelect = (event) => {
     ]" />
 
     <div class="flex justify-stretch bg-white rounded-md shadow overflow-hidden mt-4">
-        <DataTable :value="consumables"
-            paginator :rows="10" v-model:selection="selectedRow"
-            dataKey="id" :metaKeySelection="false"
-            class="w-full" tableStyle="min-width: 50rem" selectionMode="single"
+        <DataTable 
+            :value="consumables"
+            ref="refTableConsumablesDic"
+            paginator 
+            :rows="10" 
+            v-model:selection="selectedRow"
+            dataKey="id" 
+            :metaKeySelection="false"
+            class="w-full" 
+            tableStyle="min-width: 50rem" 
+            selectionMode="single"
             @rowSelect="onRowSelect"
+            @page="onPageChange"
         >
             <template #header>
                 <TableTitle class="border-b border-gray-200 pb-2">{{ title }}</TableTitle>

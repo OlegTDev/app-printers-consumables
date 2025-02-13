@@ -45,6 +45,16 @@ const onRowSelect = (event) => {
     Inertia.get(urls.dictionary.printers.show(event.data.id));
 };
 
+const refTablePrintersDic = ref(null);
+
+const onPageChange = () => {    
+    const elementTablePrintersDic = refTablePrintersDic.value.$el;
+    if (elementTablePrintersDic) {
+        elementTablePrintersDic.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+}
+
+
 </script>
 <template>
     
@@ -55,11 +65,19 @@ const onRowSelect = (event) => {
     ]" />
 
     <div class="flex justify-stretch bg-white rounded-md shadow overflow-hidden mt-4">
-        <DataTable :value="printers"
-            paginator :rows="10" v-model:selection="selectedRow"
-            dataKey="id" :metaKeySelection="false"
-            class="w-full" tableStyle="min-width: 50rem" selectionMode="single"
+        <DataTable 
+            :value="printers"
+            ref="refTablePrintersDic"
+            paginator 
+            :rows="10" 
+            v-model:selection="selectedRow"
+            dataKey="id" 
+            :metaKeySelection="false"
+            class="w-full" 
+            tableStyle="min-width: 50rem" 
+            selectionMode="single"
             @rowSelect="onRowSelect"
+            @page="onPageChange"
         >
             <template #header>
                 <TableTitle class="border-b border-gray-200 pb-2">{{ title }}</TableTitle>
