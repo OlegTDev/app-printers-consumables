@@ -116,7 +116,7 @@ const deleteRelation = (id) => {
                     </th>
                     <td class="px-6 py-4">
                         <div>                            
-                            {{ printer.author.fio ?? printer.author.name }}
+                            {{ printer.author?.fio ?? printer.author?.name }}
                         </div> 
                     </td>
                 </tr>

@@ -115,7 +115,7 @@ class Printer extends Model
      */
     public function author(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'id_author');
+        return $this->belongsTo(User::class, 'id_author')->withTrashed();
     }    
 
     /**
