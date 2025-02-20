@@ -41,4 +41,18 @@ class CartridgeColors
         return self::$_colors;
     }
 
+    /**
+     * Описание (name) цвета по его наименованию (color)
+     * @param string $color
+     * @return string|null
+     */
+    public static function getNameByColor(string|null $color)
+    {
+        if (empty($color)) {
+            return null;
+        }
+        $item = array_filter(self::$_colors, fn($val) => $val['color'] == $color);
+        return $item[$color]['name'] ?? null;
+    }
+
 }
