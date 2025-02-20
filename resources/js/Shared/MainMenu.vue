@@ -80,6 +80,13 @@ const classLink = `flex items-center p-2 rounded-lg hover:bg-white hover:text-in
                 </ul>
             </li>
 
+            <li>
+                <Link :href="urls.reports.index()" :class="[isUrl(urls.reports.index()) ? classIsActive : classIsInactive, classLink]">
+                    <i class="far fa-file-excel me-3 w-5 h-5"></i>
+                    Отчеты
+                </Link>
+            </li>
+
             
         </ul>
     </div>

@@ -8,6 +8,7 @@ use App\Http\Controllers\ConsumablesCountsInstalledController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ImagesController;
 use App\Http\Controllers\PrintersWorkplaceController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\UsersController;
 use App\Http\Controllers\UsersOrganizationsController;
 use Illuminate\Support\Facades\Route;
@@ -79,6 +80,11 @@ Route::middleware('auth')->group(function() {
     Route::get('chart/last', [ChartController::class, 'last']);
     Route::get('chart/last-added', [ChartController::class, 'lastAdded']);
     Route::get('chart/last-installed', [ChartController::class, 'lastInstalled']);
+
+    // Reports
+    Route::get('reports', [ReportController::class, 'index']);
+    Route::post('reports/export-printers-workplace', [ReportController::class, 'exportPrintersWorkplace']);
+    Route::post('reports/export-consumable-count', [ReportController::class, 'exportConsumableCount']);
 
     // Images
     Route::get('/img/{path}', [ImagesController::class, 'show'])

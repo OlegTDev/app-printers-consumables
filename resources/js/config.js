@@ -277,8 +277,19 @@ export const urls = {
             edit(id) { return `${this.base}/${id}/edit` },           
             update(id) { return this.show(id) },
             delete(id) { return this.show(id) },
-        },
+        },        
 
+    },
+
+    // отчеты
+    reports: {
+        // @uses @\Pages\Reports\...
+
+        base: `${rootUrl}reports`,
+
+        index() { return this.base },
+        exportPrintersWorkplace() { return `${this.base}/export-printers-workplace` },
+        exportConsumableCount() { return `${this.base}/export-consumable-count` },
     },
 
     // статистика
