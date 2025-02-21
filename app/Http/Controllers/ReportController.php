@@ -44,7 +44,7 @@ class ReportController extends Controller
             messages: [
                 'required' => 'Поле ":attribute" является обязательным для заполнения.',            
             ],
-            customAttributes: [
+            attributes: [
                 'selectedOrganizations' => 'Список организаций',            
             ],
         );                
@@ -72,7 +72,7 @@ class ReportController extends Controller
             messages: [
                 'required' => 'Поле ":attribute" является обязательным для заполнения.',          
             ],
-            customAttributes: [
+            attributes: [
                 'selectedOrganizations' => 'Список организаций',            
             ]
         );                
