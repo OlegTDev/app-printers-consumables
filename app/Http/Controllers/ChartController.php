@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\DB;
  * График
  */
 class ChartController extends Controller
-{    
+{
 
 
     /**
@@ -30,7 +30,7 @@ class ChartController extends Controller
                 AND "consumables_counts_organizations"."org_code" = :org
         )
         GROUP BY date("consumables_counts_added"."created_at")
-        ORDER BY date("consumables_counts_added"."created_at")
+        ORDER BY date("consumables_counts_added"."created_at") DESC
         LIMIT :limit
         SQL;
 
@@ -55,7 +55,7 @@ class ChartController extends Controller
                 AND "printers_workplace"."org_code" = :org
         )
         GROUP BY date("consumables_counts_installed"."created_at")
-        ORDER BY date("consumables_counts_installed"."created_at")
+        ORDER BY date("consumables_counts_installed"."created_at") DESC
         LIMIT :limit
         SQL;
 
@@ -65,7 +65,7 @@ class ChartController extends Controller
         ]);
     }
 
-    
+
 
 
     /**
@@ -76,7 +76,7 @@ class ChartController extends Controller
      * @return array
      */
     public function last(int $limit = 30)
-    {        
+    {
         $query = <<<SQL
 SELECT 
     "t"."date",
