@@ -21,7 +21,7 @@ const urls = inject('urls');
 <template>
     <Head :title="appName" />   
 
-    <div class="grid grid-cols-4 gap-4 flex items-stretch">
+    <div class="gap-4 flex items-stretch">
                 
         <LastOperationsInstalled :auth="auth" class="col-span-4" />
         
