@@ -290,6 +290,7 @@ export const urls = {
         index() { return this.base },
         exportPrintersWorkplace() { return `${this.base}/export-printers-workplace` },
         exportConsumableCount() { return `${this.base}/export-consumable-count` },
+        exportConsumableInstalledCount() { return `${this.base}/export-consumable-installed-count` },
     },
 
     // статистика

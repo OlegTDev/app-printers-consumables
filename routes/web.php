@@ -39,7 +39,7 @@ Route::delete('logout', [AuthenticatedSessionController::class, 'destroy'])
 
 
 // Authenticate middleware
-Route::middleware('auth')->group(function() {
+Route::middleware('auth')->group(function () {
 
     // Dashboard
     Route::get('/', [DashboardController::class, 'index'])
@@ -60,7 +60,7 @@ Route::middleware('auth')->group(function() {
     Route::get('printers/workplace/all', [PrintersWorkplaceController::class, 'all']);
     Route::resource('printers/workplace', PrintersWorkplaceController::class);
     Route::get('printers/workplace/list/{consumable}', [PrintersWorkplaceController::class, 'list']);
-    
+
     // ConsumableCount    
     Route::resource('consumables/counts', ConsumablesCountsController::class)->only(['index', 'create', 'store', 'show', 'update']);
     Route::post('consumables/counts/validate', [ConsumablesCountsController::class, 'validateConsumableCount']);
@@ -70,7 +70,7 @@ Route::middleware('auth')->group(function() {
     Route::get('consumables/counts/{count}/journal-added', [ConsumablesCountsController::class, 'journalAdded']);
     Route::get('consumables/counts/{count}/journal-installed', [ConsumablesCountsController::class, 'journalInstalled']);
     Route::get('consumables/counts/list-by-printer/{printer}', [ConsumablesCountsController::class, 'listByPrinter']);
-    
+
     Route::resource('consumables.counts.added', ConsumablesCountsAddedController::class)->only(['index', 'destroy']);
     Route::resource('consumables.counts.installed', ConsumablesCountsInstalledController::class)->only(['index', 'store', 'destroy']);
     Route::get('consumables/counts/installed/last', [ConsumablesCountsInstalledController::class, 'last']);
@@ -85,6 +85,7 @@ Route::middleware('auth')->group(function() {
     Route::get('reports', [ReportController::class, 'index']);
     Route::post('reports/export-printers-workplace', [ReportController::class, 'exportPrintersWorkplace']);
     Route::post('reports/export-consumable-count', [ReportController::class, 'exportConsumableCount']);
+    Route::post('reports/export-consumable-installed-count', [ReportController::class, 'exportConsumableInstalledCount']);
 
     // Images
     Route::get('/img/{path}', [ImagesController::class, 'show'])
