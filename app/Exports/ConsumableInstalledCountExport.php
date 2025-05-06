@@ -2,18 +2,23 @@
 
 namespace App\Exports;
 
+use App\Models\Consumable\CartridgeColors;
+use App\Models\Consumable\ConsumableTypesEnum;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\FromQuery;
-use Maatwebsite\Excel\Concerns\WithColumnFormatting;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithStrictNullComparison;
 use Maatwebsite\Excel\Concerns\WithStyles;
-use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 
-class ConsumableInstalledCountExport implements FromQuery, WithMapping, WithHeadings, ShouldAutoSize, WithStyles, WithColumnFormatting, WithStrictNullComparison
+
+class ConsumableInstalledCountExport implements FromQuery, WithMapping, WithHeadings, ShouldAutoSize, WithStyles, WithStrictNullComparison
 {
+    /**
+     * Порядковый номер
+     * @var int
+     */
     private $indexRow = 0;
 
     /**
@@ -33,22 +38,23 @@ class ConsumableInstalledCountExport implements FromQuery, WithMapping, WithHead
      */
     public function query()
     {
-        $subQueryCountInstalled = DB::table('consumables_counts_installed AS cci')
+        $subQueryCountInstalled = DB::table('consumables_counts_installed AS cci_sub')
+            ->leftJoin('consumables_counts AS cc_sub', 'cc_sub.id', '=', 'cci_sub.id_consumable_count')
             ->leftJoin(
                 'consumables_counts_organizations AS cco_sub',
                 'cco_sub.id_consumable_count',
                 '=',
-                'cci.id_consumable_count'
+                'cci_sub.id_consumable_count'
             )
-            ->select(DB::raw('COALESCE(SUM(cci.count), 0)'))
-            ->whereRaw('cco.org_code = cco_sub.org_code');
+            ->select(DB::raw('COALESCE(SUM(cci_sub.count), 0)'))
+            ->whereRaw('cco.org_code = cco_sub.org_code AND cc_sub.id_consumable = c.id');
         if (!$this->withoutPeriod) {
-            $subQueryCountInstalled->where(DB::raw('DATE(cci.created_at)'), '>=', $this->dateFrom);
-            $subQueryCountInstalled->where(DB::raw('DATE(cci.created_at)'), '<=', $this->dateTo);
+            $subQueryCountInstalled->where(DB::raw('DATE(cci_sub.created_at)'), '>=', $this->dateFrom);
+            $subQueryCountInstalled->where(DB::raw('DATE(cci_sub.created_at)'), '<=', $this->dateTo);
         }
 
-
-        $query = DB::table('consumables_counts AS cc')
+        $query = DB::table('consumables AS c')
+            ->leftJoin('consumables_counts AS cc', 'c.id', '=', 'cc.id_consumable')
             ->leftJoin(
                 'consumables_counts_organizations AS cco',
                 'cco.id_consumable_count',
@@ -56,10 +62,12 @@ class ConsumableInstalledCountExport implements FromQuery, WithMapping, WithHead
                 'cc.id'
             )
             ->whereIn('org_code', $this->organizations)
-            ->select('cco.org_code', DB::raw('SUM(cc.count) AS count_now'))
+            ->select('cco.org_code', 'c.type', 'c.name', 'c.color', 'c.description', DB::raw('SUM(cc.count) AS count_now'))
             ->selectSub($subQueryCountInstalled, 'sub_query')
-            ->groupBy('cco.org_code')
-            ->orderBy('cco.org_code');
+            ->groupBy('cco.org_code', 'c.id', 'c.type', 'c.name', 'c.color', 'c.description')
+            ->orderBy('cco.org_code')
+            ->orderBy('c.type')
+            ->orderBy('c.name');
 
         return $query;
     }
@@ -73,9 +81,31 @@ class ConsumableInstalledCountExport implements FromQuery, WithMapping, WithHead
         return [
             ++$this->indexRow,
             $row->org_code,
+            $this->getConsumableType($row->type),
+            $row->name,
+            $this->getNameByColor($row->color),
             $row->sub_query,
             $row->count_now,
+            $row->description,
         ];
+    }
+
+    /**
+     * @param string|null $color
+     * @return string|null
+     */
+    private function getNameByColor($color)
+    {
+        return CartridgeColors::getNameByColor($color);
+    }
+
+    /**
+     * @param string $type
+     * @return string
+     */
+    private function getConsumableType($type)
+    {
+        return ConsumableTypesEnum::getValueByName($type);
     }
 
     /**
@@ -87,20 +117,12 @@ class ConsumableInstalledCountExport implements FromQuery, WithMapping, WithHead
         return [
             '#', // A
             'Код организации', // B
-            'Количество установленных расходных материалов', // C
-            'Количество оставшихся расходных материалов', // D            
-        ];
-    }
-
-    /**
-     * Формат колонок
-     * @return array
-     */
-    public function columnFormats(): array
-    {
-        return [
-            // 'C' => NumberFormat::FORMAT_NUMBER,
-            // 'D' => NumberFormat::FORMAT_NUMBER,
+            'Тип', // C
+            'Наименование', // D
+            'Цветная печать', // E
+            'Количество установленных расходных материалов', // F
+            'Количество оставшихся расходных материалов', // G
+            'Описание', // H       
         ];
     }
 
@@ -125,7 +147,7 @@ class ConsumableInstalledCountExport implements FromQuery, WithMapping, WithHead
         ];
 
         // первая строка
-        $rangeHeaderRow = 'A1:D1';
+        $rangeHeaderRow = 'A1:H1';
         // применение стиля
         $sheet->getStyle($rangeHeaderRow)->applyFromArray($styleArray);
         // фильтр
