@@ -39,21 +39,25 @@ class ConsumableInstalledCountExport implements FromQuery, WithMapping, WithHead
     public function query()
     {
         $subQueryCountInstalled = DB::table('consumables_counts_installed AS cci_sub')
-            ->leftJoin('consumables_counts AS cc_sub', 'cc_sub.id', '=', 'cci_sub.id_consumable_count')
-            ->leftJoin(
-                'consumables_counts_organizations AS cco_sub',
-                'cco_sub.id_consumable_count',
-                '=',
-                'cci_sub.id_consumable_count'
-            )
             ->select(DB::raw('COALESCE(SUM(cci_sub.count), 0)'))
-            ->whereRaw('cco.org_code = cco_sub.org_code AND cc_sub.id_consumable = c.id');
+            ->whereRaw('cci_sub.id_consumable_count = cc.id');
         if (!$this->withoutPeriod) {
             $subQueryCountInstalled->where(DB::raw('DATE(cci_sub.created_at)'), '>=', $this->dateFrom);
             $subQueryCountInstalled->where(DB::raw('DATE(cci_sub.created_at)'), '<=', $this->dateTo);
         }
 
         $query = DB::table('consumables AS c')
+            ->select(
+                DB::raw('STRING_AGG(DISTINCT "cco"."org_code", \',\') AS org_code'),
+                'c.id',
+                'c.type',
+                'c.name',
+                'c.color',
+                'c.description',
+                'cc.id',
+                DB::raw('(cc.count) AS count_now'),
+            )
+            ->selectSub($subQueryCountInstalled, 'sub_query')
             ->leftJoin('consumables_counts AS cc', 'c.id', '=', 'cc.id_consumable')
             ->leftJoin(
                 'consumables_counts_organizations AS cco',
@@ -62,10 +66,8 @@ class ConsumableInstalledCountExport implements FromQuery, WithMapping, WithHead
                 'cc.id'
             )
             ->whereIn('org_code', $this->organizations)
-            ->select('cco.org_code', 'c.type', 'c.name', 'c.color', 'c.description', DB::raw('SUM(cc.count) AS count_now'))
-            ->selectSub($subQueryCountInstalled, 'sub_query')
-            ->groupBy('cco.org_code', 'c.id', 'c.type', 'c.name', 'c.color', 'c.description')
-            ->orderBy('cco.org_code')
+            ->groupBy('c.id', 'c.type', 'c.name', 'c.color', 'c.description', 'cc.id')
+            ->orderBy(DB::raw('STRING_AGG(DISTINCT "cco"."org_code", \',\')'))
             ->orderBy('c.type')
             ->orderBy('c.name');
 
