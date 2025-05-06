@@ -6,7 +6,7 @@ import Chart from './Chart.vue';
 import { inject } from 'vue';
 
 defineOptions({
-    layout: Layout,    
+    layout: Layout,
 })
 
 const props = defineProps({
@@ -19,25 +19,18 @@ const urls = inject('urls');
 
 </script>
 <template>
-    <Head :title="appName" />   
 
-    <div class="gap-4 flex items-stretch">
-                
+    <Head :title="appName" />
+
+    <div class="grid grid-cols-4 gap-4 items-stretch">
+
         <LastOperationsInstalled :auth="auth" class="col-span-4" />
-        
-        <Chart class="col-span-2" 
-            :url="urls.chart.lastInstalled()" 
-            header="Динамика установки расходных материалов" 
-            chartTitle="Установлено расходных материалов" 
-            chartBgColor="#ef4444" 
-        />
 
-        <Chart class="col-span-2" 
-            :url="urls.chart.lastAdded()" 
-            header="Динамика добавления расходных материалов" 
-            chartTitle="Добавлено расходных материалов" 
-            chartBgColor="#22c55e" 
-        />       
-        
+        <Chart class="col-span-2" :url="urls.chart.lastInstalled()" header="Динамика установки расходных материалов"
+            chartTitle="Установлено расходных материалов" chartBgColor="#ef4444" />
+
+        <Chart class="col-span-2" :url="urls.chart.lastAdded()" header="Динамика добавления расходных материалов"
+            chartTitle="Добавлено расходных материалов" chartBgColor="#22c55e" />
+
     </div>
 </template>
