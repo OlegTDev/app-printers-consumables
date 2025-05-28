@@ -53,7 +53,7 @@ class LdapAuthenticate
     private function getAuthUserName(Request $request)
     {
         $serverAttr = env('LDAP_SERVER_ATTRIBUTE', 'AUTH_USER');
-        $authUser = $request->server->get($serverAttr, 'DMZ\8600-90-331');
+        $authUser = $request->server->get($serverAttr);
         if (empty($authUser)) {
             Log::error("Параметр сервера $serverAttr пустой или не задан. Убедитесь, что на веб-сервере включена аутентификация через LDAP!");
             abort(401, 'Не удалось определить имя пользователя (см. лог)');
