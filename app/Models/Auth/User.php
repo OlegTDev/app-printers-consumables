@@ -80,13 +80,13 @@ class User extends Authenticatable
     /**
      * @return string
      */
-    public function getOrgCode(): string
+    public static function getOrgCodeFromUsername(string $username, string $defaultCode = '0000'): string
     {
-        if (preg_match('/^n?\d{4}/i', $this->name, $matches) && isset($matches[0])) {
+        if (preg_match('/^n?\d{4}/i', $username, $matches) && isset($matches[0])) {
             return $matches[0];
         }
-        return '0000';
-    }    
+        return $defaultCode;
+    }
 
     /**
      * @param Builder $query

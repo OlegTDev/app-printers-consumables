@@ -17,11 +17,7 @@ class AuthenticatedSessionController extends Controller
      * @return \Inertia\Response
      */
     public function create(Request $request)
-    {       
-        if ((new AuthenticatedLdap())->login($request)) {
-            return redirect()->intended(RouteServiceProvider::HOME);
-        }
-
+    {
         return Inertia::render('Auth/Login');
     }
 
