@@ -18,6 +18,8 @@ class DatabaseSeeder extends Seeder
             OrganizationSeeder::class,
             UsersSeeder::class,
             DictionarySeeder::class,
+            PrinterWorkplaceSeeder::class,
+            ConsumablesCountSeeder::class,
         ]);        
     }
 }
