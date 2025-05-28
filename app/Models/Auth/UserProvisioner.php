@@ -98,7 +98,7 @@ class UserProvisioner
      */
     private function generateUserPassword(): string
     {
-        return Hash::make(Str::random(16));
+        return Str::password(16);
     }
 
 }
