@@ -4,6 +4,7 @@ namespace App\Exports;
 
 use App\Models\Consumable\CartridgeColors;
 use App\Models\Consumable\ConsumableTypesEnum;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\FromQuery;
@@ -38,38 +39,44 @@ class ConsumableInstalledCountExport implements FromQuery, WithMapping, WithHead
      */
     public function query()
     {
-        $subQueryCountInstalled = DB::table('consumables_counts_installed AS cci_sub')
-            ->select(DB::raw('COALESCE(SUM(cci_sub.count), 0)'))
-            ->whereRaw('cci_sub.id_consumable_count = cc.id');
-        if (!$this->withoutPeriod) {
-            $subQueryCountInstalled->where(DB::raw('DATE(cci_sub.created_at)'), '>=', $this->dateFrom);
-            $subQueryCountInstalled->where(DB::raw('DATE(cci_sub.created_at)'), '<=', $this->dateTo);
-        }
+        $query = DB::table('consumables_counts AS cons_counts')
+            // SELECT
+            ->select([
+                'cons.id',
+                'cons.type',
+                'cons.name',
+                'cons.color',
+                'cons.description',
+                DB::raw('STRING_AGG(DISTINCT cons_counts_org.org_code, \',\') AS org_code'),
+                DB::raw('COALESCE(SUM(cons_counts_inst.count), 0) AS count_installed'),
+                DB::raw('cons_counts.count AS count_now'),
+            ])
+            // JOINS
+            ->rightJoin('consumables AS cons', 'cons.id', '=', 'cons_counts.id_consumable')
+            ->leftJoin('consumables_counts_organizations AS cons_counts_org', 'cons_counts_org.id_consumable_count', '=', 'cons_counts.id')
+            ->leftJoin('consumables_counts_installed AS cons_counts_inst', 'cons_counts_inst.id_consumable_count', '=', 'cons_counts.id')
+            ->leftJoin('printers_workplace AS pr_wrk', 'pr_wrk.id', '=', 'cons_counts_inst.id_printer_workplace')
+            // WHERE
+            ->whereIn('cons_counts_org.org_code', $this->organizations)
+            ->whereRaw('(pr_wrk.id IS NULL OR pr_wrk.org_code = cons_counts_org.org_code)')
+            // GROUP BY
+            ->groupBy(['cons.id', 'cons.type', 'cons.name', 'cons.color', 'cons.description', 'cons_counts.count'])
+            // ORDER BY
+            ->orderBy(DB::raw('STRING_AGG(DISTINCT cons_counts_org.org_code, \',\')'))
+            ->orderBy('cons.type')
+            ->orderBy('cons.name');
 
-        $query = DB::table('consumables AS c')
-            ->select(
-                DB::raw('STRING_AGG(DISTINCT "cco"."org_code", \',\') AS org_code'),
-                'c.id',
-                'c.type',
-                'c.name',
-                'c.color',
-                'c.description',
-                'cc.id',
-                DB::raw('(cc.count) AS count_now'),
-            )
-            ->selectSub($subQueryCountInstalled, 'sub_query')
-            ->leftJoin('consumables_counts AS cc', 'c.id', '=', 'cc.id_consumable')
-            ->leftJoin(
-                'consumables_counts_organizations AS cco',
-                'cco.id_consumable_count',
-                '=',
-                'cc.id'
-            )
-            ->whereIn('org_code', $this->organizations)
-            ->groupBy('c.id', 'c.type', 'c.name', 'c.color', 'c.description', 'cc.id')
-            ->orderBy(DB::raw('STRING_AGG(DISTINCT "cco"."org_code", \',\')'))
-            ->orderBy('c.type')
-            ->orderBy('c.name');
+
+        // Фильтрация по дате
+        if (!$this->withoutPeriod) {
+            $query->where(function (Builder $query) {
+                $query->whereRaw('cons_counts_inst.id IS NULL');
+                $query->orWhere(function (Builder $query) {
+                    $query->where(DB::raw('DATE(cons_counts_inst.created_at)'), '>=', $this->dateFrom);
+                    $query->where(DB::raw('DATE(cons_counts_inst.created_at)'), '<=', $this->dateTo);
+                });
+            });
+        }
 
         return $query;
     }
@@ -86,7 +93,7 @@ class ConsumableInstalledCountExport implements FromQuery, WithMapping, WithHead
             $this->getConsumableType($row->type),
             $row->name,
             $this->getNameByColor($row->color),
-            $row->sub_query,
+            $row->count_installed,
             $row->count_now,
             $row->description,
         ];

@@ -54,7 +54,7 @@ const downloadFile = (data, fileName) => {
                     @downloadFile="downloadFile" />
             </TabPanel>
 
-            <TabPanel header="Общее количество установленных расходных материалов">
+            <TabPanel header="Количество установленных расходных материалов">
                 <TabConsumableCountInstalled :url="urls.reports.exportConsumableInstalledCount()"
                     :organizations="organizations" @downloadFile="downloadFile" />
             </TabPanel>
