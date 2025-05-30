@@ -9,12 +9,15 @@ use App\Models\Consumable\ConsumableCount;
 use App\Models\Consumable\ConsumableTypesEnum;
 use App\Models\Printer\Printer;
 use App\Models\Printer\PrinterWorkplace;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Request;
 use Inertia\Inertia;
 
 /**
  * Принтеры на рабочих местах
+ * 
  */
 class PrintersWorkplaceController extends Controller
 {
@@ -45,9 +48,9 @@ class PrintersWorkplaceController extends Controller
             ->transform(fn(Printer $printer) => [
                 'id' => $printer->id,
                 'name' => "$printer->vendor $printer->model",
-        ]);
+            ]);
     }
-    
+
     /**
      * Список принтеров на рабочих местах,
      * привязанных к организации, которая установлена у пользователя
@@ -57,7 +60,7 @@ class PrintersWorkplaceController extends Controller
     {
         return Inertia::render('Printers/Index', [
             'filters' => Request::all(['search']),
-            'printersWorkplace' => PrinterWorkplace::filter(Request::only(['search']))->get(), 
+            'printersWorkplace' => PrinterWorkplace::filter(Request::only(['search']))->get(),
             'printerWorkplaceLabels' => PrinterWorkplace::labels(),
             'cartridgeColors' => CartridgeColors::get(),
             'consumableTypes' => ConsumableTypesEnum::array(),
@@ -67,6 +70,7 @@ class PrintersWorkplaceController extends Controller
     /**
      * Список принтеров на рабочих местах для выпадающего списка
      * привязанных к расходному материалу $consumable и к текущей организации
+     * @route GET /printers/workplace/list/{consumable}
      * @param Consumable $consumable
      * @return \Illuminate\Support\Collection
      */
@@ -78,6 +82,7 @@ class PrintersWorkplaceController extends Controller
     /**
      * Список всех принтеров на рабочих местах для выпадающего списка
      * привязанных к текущей организации
+     * @route GET /printers/workplace/all
      * @return \Illuminate\Support\Collection
      */
     public function all()
@@ -87,24 +92,27 @@ class PrintersWorkplaceController extends Controller
 
     /**
      * Добавление принтера
+     * @route GET /printers/workplace/create
      * @return \Inertia\Response
      */
     public function create()
     {
         return Inertia::render('Printers/Create', [
-            'labels' => PrinterWorkplace::labels(),      
+            'labels' => PrinterWorkplace::labels(),
             'printers' => $this->allPrinters(),
             'organizations' => Auth::user()->availableOrganizations(),
-        ]); 
+        ]);
     }
 
     /**
      * Сохранение нового принтера
+     * @route POST /printers/workplace
      * @param PrinterWorkplaceRequest $request
      * @return \Illuminate\Http\RedirectResponse
      */
     public function store(PrinterWorkplaceRequest $request)
     {
+        /** @var \Illuminate\Http\Request $request для исключения ошибки в IDE */
         $printerWorkplace = PrinterWorkplace::create($request->only(['id_printer', 'location', 'serial_number', 'inventory_number', 'org_code']));
         if (!$printerWorkplace) {
             return redirect()->back();
@@ -114,17 +122,19 @@ class PrintersWorkplaceController extends Controller
     }
 
     /**
-     * Детальная информация о принтере @param PrinterWorkplace $workplace
+     * Детальная информация о принтере 
+     * @route GET /printers/workplace/{workplace}
+     * @param PrinterWorkplace $workplace
      * @return \Inertia\Response
      */
     public function show(PrinterWorkplace $workplace)
-    {                
-        return Inertia::render('Printers/Show', [
+    {
+        return Inertia::render('Printers/Show/Show', [
             'printerWorkplace' => $workplace,
-            'printerWorkplace.printer' => $workplace->printer,            
+            'printerWorkplace.printer' => $workplace->printer,
             'printerWorkplace.author' => $workplace->author,
             'printerLabels' => Printer::labels(),
-            'printerWorkplaceLabels' => PrinterWorkplace::labels(),        
+            'printerWorkplaceLabels' => PrinterWorkplace::labels(),
             'organization' => $workplace->organization,
 
             'consumables' => $workplace->printer->consumablesDeep,
@@ -136,7 +146,9 @@ class PrintersWorkplaceController extends Controller
     }
 
     /**
-     * Редактирование принтера @param PrinterWorkplace $workplace
+     * Редактирование принтера 
+     * @route GET /printers/workplace/{workplace}/edit
+     * @param PrinterWorkplace $workplace
      * @return \Inertia\Response
      */
     public function edit(PrinterWorkplace $workplace)
@@ -151,13 +163,16 @@ class PrintersWorkplaceController extends Controller
     }
 
     /**
-     * Сохранение отредактированного принтера @param PrinterWorkplace $workplace
+     * Сохранение отредактированного принтера 
+     * @route PUT /printers/workplace/{workplace}
+     * @param PrinterWorkplace $workplace
      * @param PrinterWorkplaceRequest $request
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function update(PrinterWorkplaceRequest $request, PrinterWorkplace $workplace)
+    public function update(PrinterWorkplaceRequest $request, PrinterWorkplace $workplace): RedirectResponse
     {
-        $workplaceUpdate = $workplace->update($request->only(['id_printer', 'location', 'serial_number', 'inventory_number', 'org_code']));        
+        /** @var \Illuminate\Http\Request $request для исключения ошибки в IDE */
+        $workplaceUpdate = $workplace->update($request->only(['id_printer', 'location', 'serial_number', 'inventory_number', 'org_code']));
         if (!$workplaceUpdate) {
             return redirect()->back();
         }
@@ -166,13 +181,26 @@ class PrintersWorkplaceController extends Controller
     }
 
     /**
-     * Удаление принтера @param PrinterWorkplace $workplace
+     * Удаление принтера 
+     * @route DELETE /printers/workplace/{workplace}
+     * @param PrinterWorkplace $workplace
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function destroy(PrinterWorkplace $workplace)
+    public function destroy(PrinterWorkplace $workplace): RedirectResponse
     {
         $workplace->delete();
         return redirect()->route('workplace.index')
             ->with('success', 'Запись успешно удалена!');
+    }
+
+    /**
+     * Установленные расходные материалы для принтера $workplace
+     * @route GET /printers/workplace/consumables-installed/{workplace}
+     * @param \App\Models\Printer\PrinterWorkplace $workplace
+     * @return \Illuminate\Support\Collection
+     */
+    public function consumablesInstalled(PrinterWorkplace $workplace): Collection
+    {
+        return $workplace->consumablesInstalled();
     }
 }

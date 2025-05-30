@@ -98,6 +98,16 @@ export const urls = {
          * @uses @\Pages\Consumable\InstalledDialog.vue
          */
         all() { return `${this.base}/all` },
+
+        /**
+         * расходные материалы, установленные на принтер
+         * @uses @\Pages\Printers\Show\TabConsumablesInstall
+         * @param {*} id 
+         * @returns 
+         */
+        consumablesInstalled(id) {
+            return `${this.base}/consumables-installed/${id}`;
+        }
     },
 
     // расходные материалы

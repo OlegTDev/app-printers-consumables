@@ -8,7 +8,9 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Принтер (на рабочем месте)
@@ -128,6 +130,27 @@ class PrinterWorkplace extends Model
             })
             ->orderByDesc('created_at')
             ->orderByDesc('updated_at');
+    }
+
+    /**
+     * Установленные расходные материалы для текущего принтера
+     * @return \Illuminate\Support\Collection
+     */
+    public function consumablesInstalled(): Collection
+    {
+        $query = DB::table('consumables_counts_installed AS cci')
+            ->select([
+                'c.type', 'c.name', 'c.color', 'c.description', 
+                'u.name AS user_name', 'u.fio AS user_fio', 'u.department AS user_department', 'u.post AS user_post',
+                'cci.created_at AS date_installed', 'cci.id', 'cci.count',
+            ])
+            ->rightJoin('consumables_counts AS cc', 'cc.id', '=', 'cci.id_consumable_count')
+            ->rightJoin('consumables AS c', 'c.id', '=', 'cc.id_consumable')            
+            ->leftJoin('users AS u', 'u.id', '=', 'cci.id_author')
+            ->where('id_printer_workplace', $this->id)
+            ->orderByDesc('cci.created_at')
+            ->get();
+        return $query;
     }
 
 }

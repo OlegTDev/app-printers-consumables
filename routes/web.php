@@ -60,6 +60,7 @@ Route::middleware('auth')->group(function () {
     Route::get('printers/workplace/all', [PrintersWorkplaceController::class, 'all']);
     Route::resource('printers/workplace', PrintersWorkplaceController::class);
     Route::get('printers/workplace/list/{consumable}', [PrintersWorkplaceController::class, 'list']);
+    Route::get('printers/workplace/consumables-installed/{workplace}', [PrintersWorkplaceController::class, 'consumablesInstalled']);
 
     // ConsumableCount    
     Route::resource('consumables/counts', ConsumablesCountsController::class)->only(['index', 'create', 'store', 'show', 'update']);
