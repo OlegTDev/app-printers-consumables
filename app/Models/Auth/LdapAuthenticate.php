@@ -8,8 +8,14 @@ use Log;
 class LdapAuthenticate
 {
 
-    private UserProvisioner $userProvisioner = new UserProvisioner();
-    private Ldap $ldap = new Ldap();
+    private UserProvisioner $userProvisioner;
+    private Ldap $ldap;
+
+    public function __construct()
+    {
+        $this->userProvisioner = new UserProvisioner();
+        $this->ldap = new Ldap();
+    }
     
     
     /**
@@ -53,7 +59,7 @@ class LdapAuthenticate
         if (empty($authUser)) {
             Log::error("Параметр сервера $serverAttr пустой или не задан. Убедитесь, что на веб-сервере включена аутентификация через LDAP!");
             abort(401, 'Не удалось определить имя пользователя (см. лог)');
-        }
+        }        
         return $authUser;
     }
 

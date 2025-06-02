@@ -14,8 +14,14 @@ namespace App\Models\Auth;
 class LdapUser
 {
     
-    private UserProvisioner $userProvisioner = new UserProvisioner();
-    private Ldap $ldap = new Ldap();    
+    private UserProvisioner $userProvisioner;
+    private Ldap $ldap;
+
+    public function __construct()
+    {
+        $this->userProvisioner = new UserProvisioner();
+        $this->ldap = new Ldap();
+    }
 
 
     public function findOrCreate(string $username, string $domain)
