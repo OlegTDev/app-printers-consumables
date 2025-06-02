@@ -13,10 +13,15 @@ defineOptions({
     layout: Layout
 })
 
+const props = defineProps({
+    domainName: String,
+})
+
 const urls = inject('urls')
 
 const form = useForm({
     name: null,   
+    domain: props.domainName,
 })
 
 const LogActions = inject('LogActions');
@@ -27,6 +32,7 @@ const save = () => {
         onSuccess: () => {
             LogActions.save(url, 'POST', 'Добавление пользователя', {
                 name: form.name,
+                domain: form.domain,
             });
         },
     })
@@ -52,6 +58,18 @@ const save = () => {
                     <div class="max-w-2xl">
                         <div class="grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
                             <div class="sm:col-span-4">                                        
+                                <Label for="domain">Домен</Label>
+                                <InputText
+                                    class="w-full"
+                                    v-model="form.domain" 
+                                    placeholder="DOMAIN" 
+                                    :invalid="form.errors?.domain?.length > 0"
+                                />
+                                <InlineMessage v-if="form.errors?.domain" class="mt-2" severity="error">{{ form.errors?.domain }}</InlineMessage>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
+                            <div class="sm:col-span-4">                                        
                                 <Label for="name">Учетная запись</Label>
                                 <InputText
                                     class="w-full"
@@ -61,7 +79,7 @@ const save = () => {
                                 />
                                 <InlineMessage v-if="form.errors?.name" class="mt-2" severity="error">{{ form.errors?.name }}</InlineMessage>
                             </div>
-                        </div>
+                        </div>                        
                     </div>
                 <template #footer>
                     <loading-button :loading="form.processing" class="font-bold" type="submit">Сохранить</loading-button>

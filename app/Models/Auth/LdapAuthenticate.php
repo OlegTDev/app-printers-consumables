@@ -1,7 +1,6 @@
 <?php
 namespace App\Models\Auth;
 
-use App\Models\Auth\LdapFinder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Log;
@@ -9,12 +8,10 @@ use Log;
 class LdapAuthenticate
 {
 
-    /**
-     * Аттрибуты, которые будут извлечены из LDAP
-     * ['attribute1', 'attribute2:array']
-     */
-    CONST USER_LDAP_ATTRIBUTES = ['userPrincipalName', 'cn', 'title', 'department', 'mail', 'memberOf:array', 'telephoneNumber', 'company'];
-
+    private UserProvisioner $userProvisioner = new UserProvisioner();
+    private Ldap $ldap = new Ldap();
+    
+    
     /**
      * Ldap аутентификация
      * @param Request $request
@@ -26,15 +23,14 @@ class LdapAuthenticate
         $authUser = $this->getAuthUserName( $request );        
         
         // разделение этого имени на имя и домен (Domain\Name -> [Name, Domain])
-        list($username, $domain) = $this->splitDomainAndUser($authUser);
+        [$username, $domain] = $this->splitDomainAndUser($authUser);
         
         // поиск пользователя в LDAP и извлечение данных согласно аттрибутам (self::USER_LDAP_ATTRIBUTES)
-        $userAttributes = $this->getLdapData($username);
-
-        // поиск/создание пользователя в БД
-        $userProvisioner = new UserProvisioner($username, $domain, $userAttributes);
-        $userModel = $userProvisioner->get();                
+        $userLdap = $this->ldap->find($username);
         
+        // // поиск/создание пользователя в БД
+        $userModel = $this->userProvisioner->get($username, $domain, $userLdap);
+
         // пользователь заблокирован (удален)
         if ($userModel->deleted_at) {
             abort(401, 'Пользователь заблокирован или удален');
@@ -62,45 +58,6 @@ class LdapAuthenticate
     }
 
     /**
-     * Поиск пользователя в LDAP и извлечение его данных
-     * @param string $username имя пользователя
-     * @return array|array{username: string}
-     */
-    private function getLdapData(string $username)
-    {
-        $ldapFinder = new LdapFinder(
-            host: env('LDAP_SERVER_NAME'),
-            port: env('LDAP_SERVER_PORT'),
-            dn: env('LDAP_BASE_DN'),
-            username: env('LDAP_BIND_USERNAME'),
-            password: env('LDAP_BIND_PASSWORD'),
-        );
-
-        $dataLdap = $ldapFinder->query('(sAMAccountName=' . $username . ')');
-
-        if (empty($dataLdap)) {
-            Log::error("Пользователь '$username' не найден. Проверьте настройки к LDAP и убедитесь, что пользователь присутствует в LDAP!");
-            abort(401, 'Не удалось найти пользователя в LDAP (см. лог)');
-        }
-
-        $userAttributes = ['username' => $username];
-        
-        foreach(self::USER_LDAP_ATTRIBUTES as $attribute) {
-            $attributeExplode = explode(':', $attribute);
-            // array
-            if (!empty($attributeExplode[1]) && strtolower($attributeExplode[1]) === 'array') {
-                $userAttributes[$attributeExplode[0]] = $dataLdap->getAttribute($attributeExplode[0]) ?? [];
-            } 
-            // string
-            else {
-                $userAttributes[$attributeExplode[0]] = $dataLdap->getAttribute($attributeExplode[0])[0] ?? null;
-            }
-        }
-        return $userAttributes;
-    }    
-
-
-    /**
      * Разбор имени пользователя и домена из полного имени пользователя
      * @param string $fullUsername полное имя пользователя с доменом
      * @return array
@@ -113,4 +70,5 @@ class LdapAuthenticate
             $splitUsername[0] ?? '.',
         ];        
     }
+    
 }

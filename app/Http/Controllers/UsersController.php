@@ -3,10 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\UserRequest;
-use App\Models\Auth\LdapFinder;
+use App\Models\Auth\LdapUser;
 use App\Models\Auth\Role;
 use App\Models\Auth\User;
-use App\Models\Auth\UserFactory;
 use App\Models\Organization;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Request;
@@ -41,7 +40,7 @@ class UsersController extends Controller
             'name' => $role->name,
             'description' => $role->description,
         ]);
-    }    
+    }
 
     /**
      * Все организации
@@ -51,7 +50,7 @@ class UsersController extends Controller
     {
         $items = Organization::where('parent', '=',  $parent)->get();
         $result = [];
-        foreach($items as $item) {
+        foreach ($items as $item) {
             $result[] = [
                 'code' => $item->code,
                 'name' => $item->name,
@@ -68,7 +67,7 @@ class UsersController extends Controller
     private function transformUser()
     {
         return fn(User $user) => [
-            'id'=> $user->id,
+            'id' => $user->id,
             'name' => $user->name,
             'email' => $user->email,
             'org_code' => $user->org_code,
@@ -82,20 +81,20 @@ class UsersController extends Controller
             'deleted_at' => $user->deleted_at,
             'organizations' => $user->organizations,
         ];
-    }   
+    }
 
     /**
      * Список пользователей
      * @return \Inertia\Response
      */
     public function index()
-    {        
+    {
         return Inertia::render('Users/Index', [
             'filters' => Request::all(['search', 'role']),
-            'users' => User::filter(Request::only(['search', 'role']))                
+            'users' => User::filter(Request::only(['search', 'role']))
                 ->get()
                 ->transform($this->transformUser()),
-            'roles' => $this->roles(),            
+            'roles' => $this->roles(),
         ]);
     }
 
@@ -105,7 +104,9 @@ class UsersController extends Controller
      */
     public function create()
     {
-        return Inertia::render('Users/Create');
+        return Inertia::render('Users/Create', [
+            'domainName' => env('DOMAIN_NAME'),
+        ]);
     }
 
     /**
@@ -115,17 +116,14 @@ class UsersController extends Controller
      */
     public function store(UserRequest $request)
     {
-        $userFactory = new UserFactory(new LdapFinder(
-            host: env('LDAP_SERVER_NAME'),
-            port: env('LDAP_SERVER_PORT'),
-            dn: env('LDAP_BASE_DN'),
-            username: env('LDAP_BIND_USERNAME'),
-            password: env('LDAP_BIND_PASSWORD')
-        ));
-        if ($userFactory->checkUser($request->name) == null) {
-            return Session::flash('error', "Пользователь {$request->name} не найден в ЕСК!");
+        $ldapUser = new LdapUser();
+        
+        $username = $request->name;
+        $domain = $request->domain;
+        
+        if (!$user = $ldapUser->findOrCreate($username, $domain)) {
+            return Session::flash('error', "Пользователь {$request->name} не найден!");
         }
-        $user = $userFactory->findOrCreate("$request->name", '.');
 
         return redirect()->route('users.edit', [$user])
             ->with('success', 'Пользователь успешно создан!');
@@ -164,8 +162,8 @@ class UsersController extends Controller
                 'telephone' => $user->telephone,
                 'lotus_mail' => $user->lotus_mail,
             ],
-            'roles' => $this->roles(),             
-            'organizations' => $this->getOrganizationsTree(),               
+            'roles' => $this->roles(),
+            'organizations' => $this->getOrganizationsTree(),
         ]);
     }
 
@@ -174,9 +172,9 @@ class UsersController extends Controller
      * @return \Illuminate\Http\RedirectResponse
      */
     public function update(User $user)
-    {        
+    {
         // валидация
-        Request::validate([         
+        Request::validate([
             'photo' => ['nullable', 'image'],
         ]);
 
@@ -186,7 +184,7 @@ class UsersController extends Controller
         }
         // изменение прав доступа
         if (Auth::user()->hasRole('admin')) {
-            $user->updateRoles(Request::get('selectedRoles'));           
+            $user->updateRoles(Request::get('selectedRoles'));
             $user->updateOrganizations(Request::get('selectedOrganizations'));
         }
 
@@ -198,7 +196,7 @@ class UsersController extends Controller
      * @return \Illuminate\Http\RedirectResponse
      */
     public function destroy(User $user)
-    {        
+    {
         $user->delete();
         return redirect()->back()->with('success', 'Пользователь удален.');
     }
@@ -211,6 +209,5 @@ class UsersController extends Controller
     {
         $user->restore();
         return redirect()->back()->with('success', 'Пользователь восстановлен.');
-    }    
-    
+    }
 }
