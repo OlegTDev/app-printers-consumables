@@ -42,20 +42,29 @@ class ReportController extends Controller
             data: $request->all(),
             rules: [
                 'selectedOrganizations' => 'required|array',
+                'dateFrom' => 'required_if:withoutPeriod,false',
+                'dateTo' => 'required_if:withoutPeriod,false',
             ],
             messages: [
                 'required' => 'Поле ":attribute" является обязательным для заполнения.',
+                'required_if' => 'Поле ":attribute" является обязательным для заполнения, если не выбрано поле ":other".',
             ],
             attributes: [
                 'selectedOrganizations' => 'Список организаций',
+                'dateFrom' => 'Дата начала',
+                'dateTo' => 'Дата окончания',
+                'withoutPeriod' => 'Без учета периода',
             ],
         );
         $validator->validate();
         $organizations = $request->post('selectedOrganizations');
+        $withoutPeriod = $request->post('withoutPeriod', false);
+        $dateFrom = $request->post('dateFrom');
+        $dateTo = $request->post('dateTo');
 
         // формирование отчета
         return Excel::download(
-            new PrintersWorkplaceExport($organizations),
+            new PrintersWorkplaceExport($organizations, $withoutPeriod === true, $dateFrom, $dateTo),
             'printers-workplace.xlsx'
         );
     }
