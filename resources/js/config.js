@@ -139,6 +139,11 @@ export const urls = {
             update(id) { return this.show(id) }, 
 
             /**
+             * @uses @\Pages\Consumable\Count\Dialogs\Correct.vue
+             */
+            correct(id) { return `${this.show(id)}/correct` }, 
+
+            /**
              * @uses 
              */
             add(id) { return `${this.base}/${id}/add` },
