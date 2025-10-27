@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ConsumableCountCorrectRequest;
 use App\Http\Requests\ConsumableCountRequest;
 use App\Http\Requests\ConsumableCountRequestValidate;
 use App\Models\Consumable\CartridgeColors;
@@ -111,7 +112,7 @@ class ConsumablesCountsController extends Controller
      * 
      * В случае, если запись найдена и указано о необходимости обновления списка организаций (changeOrganization == true),
      * то список организаций будет заменен на selectedOrganizations
-     * 
+     * @param ConsumableCountRequest|mixed $request
      * @return \Illuminate\Http\RedirectResponse
      */
     public function store(ConsumableCountRequest $request)
@@ -214,14 +215,14 @@ class ConsumablesCountsController extends Controller
 
     /**
      * Прибавление количества (поступление расходных материалов)
-     * @param ConsumableCountRequest $request
+     * @param ConsumableCountRequest|mixed $request
      * @param ConsumableCount $count общее количество
      * @return \Illuminate\Http\RedirectResponse
      */
     public function update(ConsumableCountRequest $request, ConsumableCount $count)
     {       
         DB::beginTransaction();
-       
+
         // создание модели ConsumableCountAdded с добавляемым количеством count
         $consumableCountAdded = new ConsumableCountAdded([
             'id_consumable_count' => $count->id,
@@ -243,8 +244,23 @@ class ConsumablesCountsController extends Controller
     }
 
     /**
+     * Корректировка количества
+     * @param \App\Http\Requests\ConsumableCountCorrectRequest|mixed $request
+     * @param \App\Models\Consumable\ConsumableCount $count
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function correctCount(ConsumableCountCorrectRequest $request, ConsumableCount $count)
+    {
+        $count->count = $request->get('count', 0);
+        $count->save();
+
+        return redirect()->route('counts.show', [$count])
+            ->with('success', 'Данные успешно сохранены!');
+    }
+
+    /**
      * Изменение списка привязанных организаций
-     * @param ConsumableCountRequest $request
+     * @param ConsumableCountRequest|mixed $request
      * @param ConsumableCount $count общее количество
      * @return \Illuminate\Http\RedirectResponse
      */
