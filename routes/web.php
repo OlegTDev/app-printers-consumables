@@ -64,7 +64,7 @@ Route::middleware('auth')->group(function () {
 
     // ConsumableCount    
     Route::resource('consumables/counts', ConsumablesCountsController::class)->only(['index', 'create', 'store', 'show', 'update']);
-    Route::post('consumables/counts/{count}/correct', [ConsumablesCountsController::class, 'correctCount'])->middleware('role:admin');
+    Route::post('consumables/counts/{count}/correct', [ConsumablesCountsController::class, 'correctCount'])->middleware('role:admin,subtract-consumable');
     Route::post('consumables/counts/validate', [ConsumablesCountsController::class, 'validateConsumableCount']);
     Route::post('consumables/counts/check-exists', [ConsumablesCountsController::class, 'checkExists']);
     Route::put('consumables/counts/{count}/update-organizations', [ConsumablesCountsController::class, 'updateOrganizations'])

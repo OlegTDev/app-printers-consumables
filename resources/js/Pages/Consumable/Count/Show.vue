@@ -160,7 +160,7 @@ const saveOrganizations = () => {
                 <Button v-if="authenticate.can('admin', 'subtract-consumable') && consumableCount.count > 0" text
                     rounded icon="pi pi-minus" class="font-bold" @click="actions.subtract" severity="danger"
                     v-tooltip="`Вычесть`" />
-                <Button v-if="authenticate.can('admin')" text rounded icon="pi pi-pencil" class="font-bold"
+                <Button v-if="authenticate.can('admin', 'subtract-consumable')" text rounded icon="pi pi-pencil" class="font-bold"
                     @click="actions.correct" severity="info" v-tooltip="`Корректировка`" />
             </Chip>
 
