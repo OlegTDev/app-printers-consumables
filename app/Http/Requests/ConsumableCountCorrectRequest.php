@@ -31,7 +31,7 @@ class ConsumableCountCorrectRequest extends FormRequest
             'count' => [
                 'required',
                 'integer',
-                'min:1',
+                'min:0',
             ],
         ];        
     }
