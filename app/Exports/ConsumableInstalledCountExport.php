@@ -50,6 +50,7 @@ class ConsumableInstalledCountExport implements FromQuery, WithMapping, WithHead
                 DB::raw('STRING_AGG(DISTINCT cons_counts_org.org_code, \',\') AS org_code'),
                 DB::raw('COALESCE(SUM(cons_counts_inst.count), 0) AS count_installed'),
                 DB::raw('cons_counts.count AS count_now'),
+                DB::raw('cons_counts.id AS count_id'),
             ])
             // JOINS
             ->rightJoin('consumables AS cons', 'cons.id', '=', 'cons_counts.id_consumable')
@@ -60,7 +61,7 @@ class ConsumableInstalledCountExport implements FromQuery, WithMapping, WithHead
             ->whereIn('cons_counts_org.org_code', $this->organizations)
             ->whereRaw('(pr_wrk.id IS NULL OR pr_wrk.org_code = cons_counts_org.org_code)')
             // GROUP BY
-            ->groupBy(['cons.id', 'cons.type', 'cons.name', 'cons.color', 'cons.description', 'cons_counts.count'])
+            ->groupBy(['cons.id', 'cons.type', 'cons.name', 'cons.color', 'cons.description', 'cons_counts.count', 'cons_counts.id'])
             // ORDER BY
             ->orderBy(DB::raw('STRING_AGG(DISTINCT cons_counts_org.org_code, \',\')'))
             ->orderBy('cons.type')
