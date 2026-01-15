@@ -11,6 +11,8 @@ use Illuminate\Validation\Rules\RequiredIf;
 
 /**
  * Расходный материал
+ * @property mixed $type
+ * @property mixed $name
  */
 class ConsumableRequest extends FormRequest
 {

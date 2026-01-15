@@ -71,6 +71,12 @@ const classLink = `flex items-center p-2 rounded-lg hover:bg-white hover:text-in
                             Расходные материалы
                         </Link>
                     </li>
+                    <li>
+                        <Link :href="urls.dictionary.spareParts.index()" :class="[isUrl(urls.dictionary.spareParts.index()) ? classIsActive : classIsInactive, classLink, 'pl-11']">
+                            <i class="fas fa-puzzle-piece me-3 w-5 h-5"></i>
+                            Запчасти
+                        </Link>
+                    </li>
                     <li v-if="auth.can('admin')">
                         <Link :href="urls.dictionary.organizations.index()" :class="[isUrl(urls.dictionary.organizations.index()) ? classIsActive : classIsInactive, classLink, 'pl-11']">
                             <i class="fa-solid fa-sitemap me-3 w-5 h-5"></i>

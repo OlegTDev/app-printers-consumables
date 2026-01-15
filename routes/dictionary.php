@@ -5,6 +5,7 @@ use App\Http\Controllers\Dictionary\ConsumablesPrintersController;
 use App\Http\Controllers\Dictionary\PrintersConsumablesController;
 use App\Http\Controllers\Dictionary\PrintersController;
 use App\Http\Controllers\Dictionary\OrganizationsController;
+use App\Http\Controllers\Dictionary\SparePartsController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('dictionary')->name('dictionary.')->group(function() {
@@ -25,5 +26,9 @@ Route::prefix('dictionary')->name('dictionary.')->group(function() {
 
     // Организации
     Route::resource('organizations', OrganizationsController::class)->middleware('role:admin');
+
+    
+    // SpareParts
+    Route::resource('spare-parts', SparePartsController::class);
 
 });

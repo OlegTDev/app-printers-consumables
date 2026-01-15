@@ -294,6 +294,21 @@ export const urls = {
             delete(id) { return this.show(id) },
         },        
 
+        // запчасти
+        spareParts: {
+            base: `${rootUrl}dictionary/spare-parts`,
+
+            index() { return this.base },
+            
+            create() { return `${this.base}/create` },
+            store() { return `${this.base}` },
+
+            edit(id) { return `${this.base}/${id}/edit` },
+            update(id) { return `${this.base}/${id}` },
+
+            delete(id) { return `${this.base}/${id}` },            
+        },
+
     },
 
     // отчеты
