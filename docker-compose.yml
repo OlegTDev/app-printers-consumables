@@ -1,0 +1,45 @@
+services:
+  
+  nginx:    
+    build: ./docker/nginx
+    volumes:
+      - ./:/app
+      - ./docker/nginx/conf.d/default.conf:/etc/nginx/conf.d/default.conf
+    ports:
+      - 8080:80
+    depends_on:
+      - php-fpm
+  
+  php-fpm:
+    build: ./docker/php-fpm
+    volumes:
+      - ./:/app
+    depends_on:
+      - postgres
+  
+  php-cli:
+    build: ./docker/php-cli
+    volumes:
+      - ./:/app
+    tty: true
+  
+  node:
+    image: node:25-alpine
+    container_name: node
+    volumes:
+      - ./:/app
+    working_dir: /app
+    tty: true
+
+  postgres:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_DB: test_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: secret
+    ports:
+      - 5432:5432
+    volumes:
+      - ./storage/pgsql:/var/lib/postgresql/data
+  
+
