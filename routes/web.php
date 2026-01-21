@@ -7,6 +7,7 @@ use App\Http\Controllers\ConsumablesCountsController;
 use App\Http\Controllers\ConsumablesCountsInstalledController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ImagesController;
+use App\Http\Controllers\Order\OrderSparePartDetailsController;
 use App\Http\Controllers\PrintersWorkplaceController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\UsersController;
@@ -88,6 +89,9 @@ Route::middleware('auth')->group(function () {
     Route::post('reports/export-printers-workplace', [ReportController::class, 'exportPrintersWorkplace']);
     Route::post('reports/export-consumable-count', [ReportController::class, 'exportConsumableCount']);
     Route::post('reports/export-consumable-installed-count', [ReportController::class, 'exportConsumableInstalledCount']);
+
+    // Orders
+    Route::resource('orders/spare-parts', OrderSparePartDetailsController::class)->withTrashed(['edit']);
 
     // Images
     Route::get('/img/{path}', [ImagesController::class, 'show'])

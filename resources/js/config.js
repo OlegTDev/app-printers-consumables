@@ -323,6 +323,24 @@ export const urls = {
         exportConsumableInstalledCount() { return `${this.base}/export-consumable-installed-count` },
     },
 
+    orders: {
+        
+        spareParts: {
+            base: `${rootUrl}orders/spare-parts`,
+
+            index() { return this.base },
+            
+            create() { return `${this.base}/create` },
+            store() { return `${this.base}` },
+            
+            edit(id) { return `${this.base}/${id}/edit` },
+            update(id) { return `${this.base}/${id}` },
+
+            show(id) { return `${this.base}/${id}` },
+        }
+
+    },
+
     // статистика
     logActions: {
         // сохранение
