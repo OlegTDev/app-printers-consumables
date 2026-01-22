@@ -13,19 +13,21 @@ return new class extends Migration {
         # заказы
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
-            $table->enum('status', ['draft', 'submitted', 'rejected', 'in_progress', 'completed', 'cancelled']);
+            $table->string('org_code', 5);
+            $table->enum('status', ['draft', 'pending', 'rejected', 'in_progress', 'completed', 'cancelled']);
             $table->text('comment')->nullable();
             $table->integer('requested_by');
             $table->timestamps();
 
             $table->foreign('requested_by')->references('id')->on('users');
+            $table->foreign('org_code')->references('code')->on('organizations');
         });
 
         # история изменения статусов заказа
         Schema::create('order_status_history', function (Blueprint $table) {
             $table->id();
             $table->integer('id_order');
-            $table->enum('status', ['draft', 'submitted', 'rejected', 'in_progress', 'completed', 'cancelled']);
+            $table->enum('status', ['draft', 'pending', 'rejected', 'in_progress', 'completed', 'cancelled']);
             $table->text('comment')->nullable();
             $table->integer('id_author');
             $table->timestamp('created_at');
@@ -34,25 +36,7 @@ return new class extends Migration {
             $table->foreign('id_author')->references('id')->on('users');
         });
 
-        # типы заказов (cartridge, spare_part, misc)
-        Schema::create('order_types', function (Blueprint $table) {
-            $table->id();
-            $table->string('name', 50);
-            $table->text('description');
-        });
-
-        # для связки заказов с типами
-        Schema::create('order_type_assignments', function (Blueprint $table) {
-            $table->integer('id_order');
-            $table->integer('id_type');
-            $table->primary(['id_order', 'id_type']);
-
-            $table->foreign('id_order')->references('id')->on('orders');
-            $table->foreign('id_type')->references('id')->on('order_types');
-        });
-
-
-
+        
         # справочник виды запчастей для принтера
         Schema::create('spare_parts', function (Blueprint $table) {
             $table->id();
@@ -128,8 +112,6 @@ return new class extends Migration {
         Schema::dropIfExists('order_spare_part_details_files');
         Schema::dropIfExists('order_spare_part_details');
         Schema::dropIfExists('spare_parts');
-        Schema::dropIfExists('order_type_assignments');
-        Schema::dropIfExists('order_types');
         Schema::dropIfExists('order_status_history');
         Schema::dropIfExists('orders');
     }
