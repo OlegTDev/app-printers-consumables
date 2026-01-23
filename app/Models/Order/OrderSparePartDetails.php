@@ -15,12 +15,16 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $id_printers_workplace
  * @property int $id_spare_part
  * @property bool $call_specialist
+ * 
+ * @property Order $order
+ * @property PrinterWorkplace $printerWorkplace
+ * @property SpareParts $sparePart
  */
 class OrderSparePartDetails extends Model
 {
-    use HasFactory;
+    use HasFactory, OrderOrgCodeFilterable;
     
-    public $timestamps = false;
+    public $timestamps = false;    
 
     protected $table = 'order_spare_part_details';
 
@@ -47,12 +51,12 @@ class OrderSparePartDetails extends Model
 
     public function printerWorkplace()
     {
-        return $this->hasOne(PrinterWorkplace::class, 'id_printer_workplace');
+        return $this->hasOne(PrinterWorkplace::class, 'id', 'id_printers_workplace');
     }
 
     public function sparePart()
     {
-        return $this->hasOne(SpareParts::class, 'id_spare_part');
+        return $this->hasOne(SpareParts::class, 'id', 'id_spare_part');
     }
 
 }

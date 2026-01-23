@@ -12,12 +12,16 @@ class OrderSparePartDetailRequest extends SubOrder
     }
 
     public function rules(): array
-    {
+    {        
         return [
             ...parent::rules(),
             'id_printers_workplace' => 'required',
             'call_specialist' => 'boolean',
             'id_spare_part' => 'required_if:call_specialist,false',
+            'files' => 'required|array|max:5',
+            'files.*' => [
+                'max:30720',
+            ],
         ];
     }
 

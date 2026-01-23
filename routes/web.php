@@ -6,7 +6,7 @@ use App\Http\Controllers\ConsumablesCountsAddedController;
 use App\Http\Controllers\ConsumablesCountsController;
 use App\Http\Controllers\ConsumablesCountsInstalledController;
 use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\ImagesController;
+use App\Http\Controllers\FilesController;
 use App\Http\Controllers\Order\OrderSparePartDetailsController;
 use App\Http\Controllers\PrintersWorkplaceController;
 use App\Http\Controllers\ReportController;
@@ -91,12 +91,15 @@ Route::middleware('auth')->group(function () {
     Route::post('reports/export-consumable-installed-count', [ReportController::class, 'exportConsumableInstalledCount']);
 
     // Orders
-    Route::resource('orders/spare-parts', OrderSparePartDetailsController::class)->withTrashed(['edit']);
+    Route::resource('orders/spare-parts', OrderSparePartDetailsController::class)
+        ->parameters([
+            'spare-parts' => 'orderSparePartDetails',
+        ]);
 
-    // Images
-    Route::get('/img/{path}', [ImagesController::class, 'show'])
+    // Download
+    Route::get('/download/{path}', [FilesController::class, 'download'])
         ->where('path', '.*')
-        ->name('image');
+        ->name('download');
 
 });
 

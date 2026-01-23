@@ -4,7 +4,6 @@ namespace App\Observers;
 
 use App\Models\Order\Order;
 use App\Models\Order\OrderStatusHistory;
-use Illuminate\Support\Facades\Auth;
 
 class OrderObserver
 {
@@ -17,7 +16,7 @@ class OrderObserver
         $orderStatusHistory = new OrderStatusHistory([
             'status' => $order->status,
             'comment' => $order->comment,
-            'id_author' => Auth::id(),
+            'id_author' => auth()->user()->id,
         ]);
         $orderStatusHistory->order()->associate($order);
         $orderStatusHistory->save();        
