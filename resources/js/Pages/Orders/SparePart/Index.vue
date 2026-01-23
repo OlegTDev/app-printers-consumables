@@ -34,10 +34,6 @@ const actions = {
     show: (id) => Inertia.get(urls.orders.spareParts.show(id)),
 };
 
-const onPageChange = (event) => {
-
-}
-
 const onRowSelect = (event) => {
     Inertia.get(urls.orders.spareParts.show(event.data.id));
 }
@@ -63,8 +59,7 @@ const title = 'Заказ запчастей';
             :metaKeySelection="false" 
             class="w-full"
             tableStyle="min-width: 50rem" 
-            selectionMode="single" 
-            @page="onPageChange" 
+            selectionMode="single"
             @rowSelect="onRowSelect"
         >
             <template #header>

@@ -1,6 +1,6 @@
 <script setup>
 import Layout from '@/Shared/Layout';
-import { inject } from 'vue';
+import { defineAsyncComponent, inject } from 'vue';
 import { Head } from '@inertiajs/vue3';
 import Breadcrumbs from '@/Shared/Breadcrumbs';
 import Card from 'primevue/card';
@@ -9,6 +9,7 @@ import OrderStatus from '../Shared/OrderStatus';
 import Author from '@/Shared/DataTable/Author';
 import Button from 'primevue/button';
 import { Inertia } from '@inertiajs/inertia';
+import { useDialog } from 'primevue/usedialog';
 
 
 defineOptions({
@@ -18,11 +19,16 @@ defineOptions({
 const urls = inject('urls');
 const moment = inject('moment');
 const auth = inject('auth');
+const dialog = useDialog();
 
 const props = defineProps({
     orderSparePartDetail: Object,
     labels: Object,
+    orderStatusPending: String,
+    orderStatusInProgress: String,
 });
+
+const ConfirmDialog = defineAsyncComponent(() => import('../Shared/ConfirmDialog.vue'));
 
 const orderSparePartDetail = props.orderSparePartDetail.data;
 
@@ -30,10 +36,74 @@ const title = `Заказ № ${orderSparePartDetail.order.id} от ${moment(ord
 
 const actions = {
     edit: () => {
-        Inertia.get(urls.orders.spareParts.edit(orderSparePartDetail.id));
+        Inertia.get(urls.orders.spareParts.edit(orderSparePartDetail.id));        
     },
     delete: () => {
 
+    },
+    approve: () => {        
+        dialog.open(ConfirmDialog, {
+            props: {
+                header: 'Согласование',
+                style: {
+                    width: '50vw',
+                },
+                breakpoints: {
+                    '960px': '75vw',
+                    '640px': '90vw'
+                },
+                modal: true,
+            },
+            data: {
+                idOrder: orderSparePartDetail.order.id,
+                message: props.labels.order.comment,
+                url: urls.orders.approve(orderSparePartDetail.id),
+                buttonLabel: 'Согласовать',
+            }
+        });
+    },
+    reject: () => {
+        dialog.open(ConfirmDialog, {
+            props: {
+                header: 'Откзать в согласовании',
+                style: {
+                    width: '50vw',
+                },
+                breakpoints: {
+                    '960px': '75vw',
+                    '640px': '90vw'
+                },
+                modal: true,
+            },
+            data: {
+                idOrder: orderSparePartDetail.order.id,
+                message: props.labels.order.comment,
+                url: urls.orders.reject(orderSparePartDetail.id),
+                buttonLabel: 'Отказать',
+                btnSeverity: 'danger',
+            }
+        });
+    },
+    completed: () => {
+        dialog.open(ConfirmDialog, {
+            props: {
+                header: 'Исполнено',
+                style: {
+                    width: '50vw',
+                },
+                breakpoints: {
+                    '960px': '75vw',
+                    '640px': '90vw'
+                },
+                modal: true,
+            },
+            data: {
+                idOrder: orderSparePartDetail.order.id,
+                message: props.labels.order.comment,
+                url: urls.orders.completed(orderSparePartDetail.id),
+                buttonLabel: 'Исполнено',
+            }
+        });
     },
 }
 
@@ -94,10 +164,16 @@ const actions = {
             </table>
 
             <div class="flex justify-between mt-10" v-if="auth.can('admin', 'editor-dictionary')">
-                <div class="flex gap-2">
-                    <Button class="font-bold" @click="actions.edit">Согласовать</Button>
-                    <Button severity="danger" class="font-bold" @click="actions.delete">Отказать в согласовании</Button>
+                
+                <div class="flex gap-2" v-if="orderSparePartDetail.order.status == orderStatusPending">
+                    <Button severity="info" class="font-bold" @click="actions.approve">Согласовать</Button>
+                    <Button severity="danger" class="font-bold" @click="actions.reject">Отказать в согласовании</Button>
                 </div>
+                
+                <div class="flex gap-2" v-if="orderSparePartDetail.order.status == orderStatusInProgress">
+                    <Button severity="info" class="font-bold" @click="actions.completed">Исполнено</Button>
+                </div>
+
                 <div class="flex gap-2">
                     <Button class="font-bold" @click="actions.edit">Редактировать</Button>
                     <Button severity="danger" class="font-bold" @click="actions.delete">Удалить</Button>

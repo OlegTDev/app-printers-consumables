@@ -324,6 +324,19 @@ export const urls = {
     },
 
     orders: {
+
+        base: `${rootUrl}orders`,
+
+        approve(id_order) {
+            return `${this.base}/${id_order}/approve`;
+        },
+        reject(id_order) {
+            return `${this.base}/${id_order}/reject`;
+        },
+        completed(id_order) {
+            return `${this.base}/${id_order}/completed`;
+        },
+
         
         spareParts: {
             base: `${rootUrl}orders/spare-parts`,
