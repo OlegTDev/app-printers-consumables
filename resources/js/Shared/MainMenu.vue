@@ -73,7 +73,7 @@ const classLink = `flex items-center p-2 rounded-lg hover:bg-white hover:text-in
                     </li>
                     <li>
                         <Link :href="urls.dictionary.spareParts.index()" :class="[isUrl(urls.dictionary.spareParts.index()) ? classIsActive : classIsInactive, classLink, 'pl-11']">
-                            <i class="fas fa-puzzle-piece me-3 w-5 h-5"></i>
+                            <i class="fas fa-screwdriver-wrench me-3 w-5 h-5"></i>
                             Запчасти
                         </Link>
                     </li>
@@ -88,7 +88,7 @@ const classLink = `flex items-center p-2 rounded-lg hover:bg-white hover:text-in
 
             <li>                
                 <button type="button" :class="[`w-full text-indigo-300 transition duration-75`, classLink]" aria-controls="dropdown-menu-orders" data-collapse-toggle="dropdown-menu-orders">                  
-                    <i class="fas fa-cube me-3 w-5 h-5"></i>
+                    <i class="fas fa-dolly me-3 w-5 h-5"></i>
                     <span class="flex-1 text-left rtl:text-right whitespace-nowrap">Заказы</span>
                     <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 4 4 4-4"/>
@@ -97,7 +97,7 @@ const classLink = `flex items-center p-2 rounded-lg hover:bg-white hover:text-in
                 <ul id="dropdown-menu-orders" class="hidden py-2 space-y-2">
                     <li>
                         <Link :href="urls.orders.spareParts.index()" :class="[isUrl(urls.orders.spareParts.index()) ? classIsActive : classIsInactive, classLink, 'pl-11']">
-                            <i class="fas fa-print me-3 w-5 h-5"></i>
+                            <i class="fas fa-gears me-3 w-5 h-5"></i>
                             Запчасти для принтера
                         </Link>
                     </li>

@@ -33,8 +33,8 @@ defineProps({
         </div>
     </div>
     <div v-if="location" class="mt-2">
-        <i class="fas fa-door-open me-2"></i>
-        {{ location }}
+        <i class="fas fa-location-dot me-2"></i>
+        {{ location }} каб.
     </div>
     <div v-if="inventory_number || serial_number" class="mt-2">
         <i class="fas fa-hashtag me-2"></i>

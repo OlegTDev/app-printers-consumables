@@ -10,6 +10,8 @@ import IconColorPrint from '@/Shared/IconColorPrint';
 import InputSwitch from 'primevue/inputswitch';
 import Button from 'primevue/button';
 import TextArea from 'primevue/textarea';
+import ProgressBar from 'primevue/progressbar';
+
 
 const props = defineProps({
     isNew: Boolean,
@@ -31,6 +33,7 @@ const form = useForm({
     id_spare_part: props.orderSparePart?.id_spare_part,
     call_specialist: props.orderSparePart?.call_specialist ?? false,
     comment: props.orderSparePart?.comment,
+    files: null,
 })
 const toast = reactive(useToast());
 
@@ -107,6 +110,8 @@ const save = () => {
         form.put(urls.orders.spareParts.update(form.id));
     }
 };
+
+console.log(form.progress?.percentage);
 
 </script>
 <template>
@@ -189,7 +194,7 @@ const save = () => {
                     </div>
                 </div>
 
-                <div class="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6" v-if="!form.call_specialist">
+                <div class="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
                     <div class="sm:col-span-4">
                         <Label for="comment">{{ labels.comment }}</Label>
                         <TextArea v-model="form.comment" class="w-full" rows="5" />
@@ -198,7 +203,25 @@ const save = () => {
                     </div>
                 </div>
 
+                <div class="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
+                    <div class="sm:col-span-4">
+                        <Label for="files">{{ labels.files }}</Label>
+                        <input type="file" @input="form.files = $event.target.files" multiple class="w-full" />
+                        <InlineMessage v-if="form.errors?.files" class="mt-2" severity="error">
+                            {{ form.errors?.files }}</InlineMessage>
+                    </div>
+                </div>
+
             </template>
+            
+            <div v-if="form.progress" class="w-full bg-gray-100 rounded-full mt-4">
+                <div 
+                    class="bg-primary-500 text-xs font-medium text-white text-center p-0.5 leading-none rounded-full h-4 flex items-center justify-center" 
+                    :style="{width: (form.progress?.percentage ?? 0) + '%'}"
+                >
+                    {{form.progress?.percentage ?? 0}}%
+                </div>
+            </div>            
 
         </div>
 
