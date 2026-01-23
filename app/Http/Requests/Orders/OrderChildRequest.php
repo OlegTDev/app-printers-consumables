@@ -3,7 +3,7 @@ namespace App\Http\Requests\Orders;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class SubOrder extends FormRequest
+class OrderChildRequest extends FormRequest
 {
     public function rules(): array
     {        

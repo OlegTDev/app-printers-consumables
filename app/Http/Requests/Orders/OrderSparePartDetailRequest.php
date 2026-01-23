@@ -3,7 +3,7 @@ namespace App\Http\Requests\Orders;
 
 use App\Models\Order\OrderSparePartDetails;
 
-class OrderSparePartDetailRequest extends SubOrder
+class OrderSparePartDetailRequest extends OrderChildRequest
 {
 
     public function authorize()
