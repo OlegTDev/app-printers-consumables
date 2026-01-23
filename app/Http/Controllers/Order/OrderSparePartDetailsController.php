@@ -90,6 +90,8 @@ class OrderSparePartDetailsController extends Controller
     {        
         return Inertia::render('Orders/SparePart/Show', [
             'orderSparePartDetail' => new OrderSparePartResource($orderSparePartDetails),
+            'orderStatusPending' => Order::STATUS_PENDING,
+            'orderStatusInProgress' => Order::STATUS_IN_PROGRESS,
 
             'labels' => [
                 'order' => config('labels.order'),

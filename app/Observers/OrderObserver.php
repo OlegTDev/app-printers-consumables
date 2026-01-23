@@ -12,14 +12,7 @@ class OrderObserver
      */
     public function created(Order $order): void
     {
-        //
-        $orderStatusHistory = new OrderStatusHistory([
-            'status' => $order->status,
-            'comment' => $order->comment,
-            'id_author' => auth()->user()->id,
-        ]);
-        $orderStatusHistory->order()->associate($order);
-        $orderStatusHistory->save();        
+        $this->createStatusHistory($order);
     }
 
     /**
@@ -28,29 +21,20 @@ class OrderObserver
     public function updated(Order $order): void
     {
         $orderOriginal = $order->getOriginal();
+
+        if ($orderOriginal['status'] != $order->status) {
+            $this->createStatusHistory($order);
+        }
     }
 
-    /**
-     * Handle the Order "deleted" event.
-     */
-    public function deleted(Order $order): void
+    private function createStatusHistory(Order $order): void
     {
-        //
-    }
-
-    /**
-     * Handle the Order "restored" event.
-     */
-    public function restored(Order $order): void
-    {
-        //
-    }
-
-    /**
-     * Handle the Order "force deleted" event.
-     */
-    public function forceDeleted(Order $order): void
-    {
-        //
+        $orderStatusHistory = new OrderStatusHistory([
+            'status' => $order->status,
+            'comment' => $order->comment,
+            'id_author' => auth()->user()->id,
+        ]);
+        $orderStatusHistory->order()->associate($order);
+        $orderStatusHistory->save();  
     }
 }

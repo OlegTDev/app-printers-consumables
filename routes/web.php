@@ -7,6 +7,7 @@ use App\Http\Controllers\ConsumablesCountsController;
 use App\Http\Controllers\ConsumablesCountsInstalledController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FilesController;
+use App\Http\Controllers\Order\OrderController;
 use App\Http\Controllers\Order\OrderSparePartDetailsController;
 use App\Http\Controllers\PrintersWorkplaceController;
 use App\Http\Controllers\ReportController;
@@ -90,7 +91,12 @@ Route::middleware('auth')->group(function () {
     Route::post('reports/export-consumable-count', [ReportController::class, 'exportConsumableCount']);
     Route::post('reports/export-consumable-installed-count', [ReportController::class, 'exportConsumableInstalledCount']);
 
-    // Orders
+    // Order
+    Route::put('orders/{order}/approve', [OrderController::class, 'approve']);
+    Route::put('orders/{order}/reject', [OrderController::class, 'reject']);
+    Route::put('orders/{order}/completed', [OrderController::class, 'completed']);
+
+    // OrderSpareParts
     Route::resource('orders/spare-parts', OrderSparePartDetailsController::class)
         ->parameters([
             'spare-parts' => 'orderSparePartDetails',
