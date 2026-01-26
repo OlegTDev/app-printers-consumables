@@ -26,7 +26,8 @@ import Tooltip from 'primevue/tooltip';
 import VueApexCharts from "vue3-apexcharts";
 import 'primeicons/primeicons.css';
 import moment from 'moment/moment';
-import { urls, config } from '@/config';
+import { config } from '@/config/config';
+import { urls } from '@/config/urls';
 import { Auth } from '@/auth';
 import { LogActions } from './logActions';
 
@@ -41,34 +42,34 @@ dom.watch();
 InertiaProgress.init();
 
 createInertiaApp({
-    resolve: name => require(`./Pages/${name}`),
-    title: title => title,
-    setup({ el, App, props, plugin }) {
-        createApp({ render: () => h(App, props) })
-            .component('font-awesome-icon', FontAwesomeIcon)
-            .component('circle-icon', CircleIcon)            
-            .use(plugin)            
-            .use(PrimeVue, {
-                unstyled: true,
-                pt: Lara,
-                ripple: true,
-                locale: {
-                    accept: 'OK',
-                    reject: 'Отмена',
-                },
-            })
-            .use(ToastService)
-            .use(DialogService)   
-            .use(ConfirmationService)
-            .use(VueApexCharts)            
-            .component('DynamicDialog', DynamicDialog)       
-            .component('ConfirmDialog', ConfirmDialog)       
-            .directive('tooltip', Tooltip)
-            .provide('moment', moment)            
-            .provide('urls', urls) 
-            .provide('config', config)      
-            .provide('auth', new Auth(props.initialPage.props?.auth?.user?.roles ?? []))
-            .provide('LogActions', new LogActions(props.initialPage.props?.auth?.user))       
-            .mount(el)
-    },
+  resolve: name => require(`./Pages/${name}`),
+  title: title => title,
+  setup({ el, App, props, plugin }) {
+    createApp({ render: () => h(App, props) })
+      .component('font-awesome-icon', FontAwesomeIcon)
+      .component('circle-icon', CircleIcon)
+      .use(plugin)
+      .use(PrimeVue, {
+        unstyled: true,
+        pt: Lara,
+        ripple: true,
+        locale: {
+          accept: 'OK',
+          reject: 'Отмена',
+        },
+      })
+      .use(ToastService)
+      .use(DialogService)
+      .use(ConfirmationService)
+      .use(VueApexCharts)
+      .component('DynamicDialog', DynamicDialog)
+      .component('ConfirmDialog', ConfirmDialog)
+      .directive('tooltip', Tooltip)
+      .provide('moment', moment)
+      .provide('urls', urls)
+      .provide('config', config)
+      .provide('auth', new Auth(props.initialPage.props?.auth?.user?.roles ?? []))
+      .provide('LogActions', new LogActions(props.initialPage.props?.auth?.user))
+      .mount(el)
+  },
 })
