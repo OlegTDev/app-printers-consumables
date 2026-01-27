@@ -53,3 +53,11 @@ export const urls = {
   },
 
 }
+
+export const createUrlWithParams = (path, params) => {
+  let url = new URL(path, window.location.origin);
+  Object.entries(params).forEach(([key, value]) => {
+    url.searchParams.set(key, value);
+  })
+  return url;
+}
