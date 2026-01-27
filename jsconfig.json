@@ -1,11 +1,22 @@
 {
   "compilerOptions": {
-    "module": "CommonJS",
-    "target": "ES6",
-    "baseUrl": "./",
+    "baseUrl": ".",
     "paths": {
-      "@/*": ["resources/js"],
+      "~/*": ["./resources/js/*"],
+      "@/*": ["./resources/js/*"],      
     }
   },
-  "exclude": ["node_modules", "**/node_modules/*"],
+  "exclude": [
+    "node_modules",
+    "public",
+    "storage",
+    "vendor",
+    ".github",
+    ".idea",
+    ".vscode"
+  ],
+  "include": [
+    "resources/js/**/*",
+    "resources/views/**/*.blade.php"
+  ]
 }

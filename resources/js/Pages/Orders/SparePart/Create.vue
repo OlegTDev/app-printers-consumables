@@ -2,7 +2,7 @@
 import Layout from '@/Shared/Layout';
 import { Head } from '@inertiajs/vue3';
 import Breadcrumbs from '@/Shared/Breadcrumbs';
-import { inject } from 'vue';
+import { computed, inject } from 'vue';
 import Form from './Form.vue';
 
 defineOptions({
@@ -12,10 +12,11 @@ defineOptions({
 const urls = inject('urls');
 
 const props = defineProps({    
-    spareParts: Array,
+    spareParts: Object,
     labels: Object,
 });
 
+const sparePartsData = computed(() => props.spareParts?.data || []);
 const title = 'Оформление заказа';
 
 </script>
@@ -29,7 +30,7 @@ const title = 'Оформление заказа';
 
     <div class="flex justify-stretch bg-white rounded-md shadow overflow-hidden mt-4">
         
-        <Form :isNew="true" :spareParts="spareParts" :labels="labels" />
+        <Form :isNew="true" :spareParts="sparePartsData" :labels="labels" />
 
     </div>
 </template>
