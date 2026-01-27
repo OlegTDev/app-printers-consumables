@@ -10,4 +10,9 @@ class FilesController extends Controller
     {        
         return Storage::download($path);
     }
+
+    public function preview($path)
+    {        
+        return response()->file(Storage::path($path));
+    }
 }
