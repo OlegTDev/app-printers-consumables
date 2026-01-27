@@ -97,12 +97,12 @@ final class Order extends Model
         });
     }
 
-    public function getStatusLabelAttribute(): string
+    public static function getStatusLabelByStatus(string $status): string
     {
-        return self::$statusLabels[$this->status] ?? $this->status;
-    }
+        return self::$statusLabels[$status] ?? $status;
+    }    
 
-    public function getStatuseOptions()
+    public static function statusLabels(): array
     {
         return self::$statusLabels;
     }
@@ -114,6 +114,13 @@ final class Order extends Model
             return $lastAuthor->author;
         }
         return null;
+    }
+
+    public function setStatus(string $status, string $comment = null)
+    {
+        $this->status = $status;
+        $this->comment = $comment;
+        $this->save();
     }
 
 }

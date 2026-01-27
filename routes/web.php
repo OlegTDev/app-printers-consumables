@@ -9,6 +9,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FilesController;
 use App\Http\Controllers\Order\OrderController;
 use App\Http\Controllers\Order\OrderSparePartDetailsController;
+use App\Http\Controllers\Order\OrderStatusHistoryController;
 use App\Http\Controllers\PrintersWorkplaceController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\UsersController;
@@ -95,6 +96,8 @@ Route::middleware('auth')->group(function () {
     Route::put('orders/{order}/approve', [OrderController::class, 'approve']);
     Route::put('orders/{order}/reject', [OrderController::class, 'reject']);
     Route::put('orders/{order}/completed', [OrderController::class, 'completed']);
+    Route::put('orders/{order}/cancel', [OrderController::class, 'cancel']);
+    Route::delete('orders/{order}', [OrderController::class, 'destroy']);
 
     // OrderSpareParts
     Route::resource('orders/spare-parts', OrderSparePartDetailsController::class)
@@ -102,8 +105,11 @@ Route::middleware('auth')->group(function () {
             'spare-parts' => 'orderSparePartDetails',
         ]);
 
+    // OrderStatusHistory
+    Route::get('/orders/{order}/status-history', [OrderStatusHistoryController::class, 'index']);
+
     // Download
-    Route::get('/download/{path}', [FilesController::class, 'download'])
+    Route::get('/download/{path}', [FilesController::class, 'preview'])
         ->where('path', '.*')
         ->name('download');
 

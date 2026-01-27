@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Order;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Orders\OrderSparePartDetailRequest;
 use App\Http\Resources\OrderSparePartResource;
+use App\Http\Resources\SparePartsResource;
 use App\Models\Consumable\CartridgeColors;
 use App\Models\Consumable\ConsumableTypesEnum;
 use App\Models\Order\Order;
@@ -21,25 +22,24 @@ class OrderSparePartDetailsController extends Controller
 
     public function __construct()
     {
-        $this->middleware('role:admin,editor-dictionary')
-            ->only(['create', 'store', 'edit', 'update', 'destroy']);
+        $this->middleware('role:admin,order-approver')->only(['create', 'store', 'cancel']);
+        $this->middleware('role:admin')->only(['edit', 'update', 'destroy']);
     }
 
     /**
-     * @route GET orders/spare-part-details
+     * @route GET orders/spare-parts
      */
     public function index(Request $request)
     {
-        // $page = $request->input('page',1);
-        // $limit = $request->input('limit',10);        
-
-        $orders = OrderSparePartDetails::queryWithFilterByOrgCode()->get();
+        $orders = OrderSparePartDetails::queryWithFilterByOrgCode()            
+            ->filter(Request::only(['search', 'status', 'organizations']))->get();
 
         return Inertia::render('Orders/SparePart/Index', [
-            'filters' => Request::all(['search']),
+            'filters' => Request::all(['search', 'status', 'organizations']),
             'orders' =>  OrderSparePartResource::collection($orders),
             'cartridgeColors' => CartridgeColors::get(),
             'consumableTypes' => ConsumableTypesEnum::array(),
+            'statuses' => Order::statusLabels(),
             
             'labels' => [
                 'order' => config('labels.order'),
@@ -49,20 +49,23 @@ class OrderSparePartDetailsController extends Controller
         ]);
     }
 
-    
+    /**
+     * @route GET orders/spare-parts/create
+     */
     public function create()
     {
         return Inertia::render('Orders/SparePart/Create', [
-            'spareParts' => SpareParts::get()->transform(fn(SpareParts $item) => [
-                'id' => $item->id,
-                'name' => $item->name,
-                'description' => $item->description,
-            ]),
-            'labels' => OrderSparePartDetails::labels(),
+            'spareParts' => SparePartsResource::collection(SpareParts::get()),           
+            'labels' => array_merge([
+                'order' => config('labels.order'),
+            ], config('labels.order_spare_part')),
         ]);
     }
 
 
+    /**
+     * @route POST orders/spare-parts
+     */
     public function store(OrderSparePartDetailRequest $request)
     {
         DB::transaction(function () use ($request) {
@@ -85,13 +88,17 @@ class OrderSparePartDetailsController extends Controller
             ->with('success', 'Заявка успешно добавлена!');
     }
 
-    
+    /**
+     * @route GET orders/spare-parts/{orderSparePartDetails}
+     */
     public function show(OrderSparePartDetails $orderSparePartDetails)
     {        
         return Inertia::render('Orders/SparePart/Show', [
             'orderSparePartDetail' => new OrderSparePartResource($orderSparePartDetails),
             'orderStatusPending' => Order::STATUS_PENDING,
             'orderStatusInProgress' => Order::STATUS_IN_PROGRESS,
+            'orderStatusCancelled' => Order::STATUS_CANCELLED,
+            'isAuthor' => $orderSparePartDetails->order->requested_by === auth()->user()->id,
 
             'labels' => [
                 'order' => config('labels.order'),
@@ -102,26 +109,29 @@ class OrderSparePartDetailsController extends Controller
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * @route GET orders/spare-parts/{orderSparePartDetails}/edit
      */
     public function edit(OrderSparePartDetails $orderSparePartDetails)
     {
-        //
+        return Inertia::render('Orders/SparePart/Edit', [
+            'orderSparePartDetail' => new OrderSparePartResource($orderSparePartDetails),
+            'spareParts' => SparePartsResource::collection(SpareParts::get()),
+            'labels' => array_merge([
+                'order' => config('labels.order'),
+            ], config('labels.order_spare_part')),
+        ]);
     }
 
     /**
-     * Update the specified resource in storage.
+     * @route PUT orders/spare-parts/{orderSparePartDetails}
      */
-    public function update(Request $request, OrderSparePartDetails $orderSparePartDetails)
+    public function update(OrderSparePartDetailRequest $request, OrderSparePartDetails $orderSparePartDetails)
     {
-        //
+        $orderSparePartDetails->update($request->only(['id_printers_workplace', 'call_specialist', 'id_spare_part']));
+        return redirect()->route('spare-parts.show', ['orderSparePartDetails' => $orderSparePartDetails])
+            ->with('success', 'Изменения сохранены!');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(OrderSparePartDetails $orderSparePartDetails)
-    {
-        //
-    }
+    
+
 }

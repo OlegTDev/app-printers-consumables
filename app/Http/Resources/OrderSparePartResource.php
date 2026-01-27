@@ -17,12 +17,15 @@ class OrderSparePartResource extends JsonResource
         /** @var \App\Models\Order\OrderSparePartDetails $this */
         return [
             'id' => $this->id,
-            'id_order' => $this->id_order,            
+            'id_order' => $this->id_order,
+            'id_printers_workplace' => $this->id_printers_workplace,
+            'id_spare_part' => $this->id_spare_part,
             'call_specialist' => $this->call_specialist,
 
             'sparePart' => new SparePartsResource($this->sparePart),
-            'printerWorkplace'=> new PrinterWorkplaceResource($this->printerWorkplace),
+            'printerWorkplace' => new PrinterWorkplaceResource($this->printerWorkplace),
             'order' => new OrderResource($this->order),
+            'files' => OrderSparePartFileResource::collection($this->files),
         ];
     }
 }

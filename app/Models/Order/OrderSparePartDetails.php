@@ -4,6 +4,7 @@ namespace App\Models\Order;
 
 use App\Models\Printer\PrinterWorkplace;
 use App\Models\SpareParts;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -19,30 +20,21 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property Order $order
  * @property PrinterWorkplace $printerWorkplace
  * @property SpareParts $sparePart
+ * @property OrderSparePartDetailsFile $files
  */
 class OrderSparePartDetails extends Model
 {
     use HasFactory, OrderOrgCodeFilterable;
-    
-    public $timestamps = false;    
+
+    public $timestamps = false;
 
     protected $table = 'order_spare_part_details';
 
     protected $fillable = [
-        'id_printers_workplace',      
-        'id_spare_part',      
+        'id_printers_workplace',
+        'id_spare_part',
         'call_specialist',
     ];
-
-    public static function labels()
-    {
-        return [
-            'id_printers_workplace' => 'Принтер',      
-            'id_spare_part' => 'Запчасть',
-            'call_specialist' => 'Необходимость вызова специалиста', 
-            'comment' => 'Комментарий',
-        ];
-    }
 
     public function order(): BelongsTo
     {
@@ -57,6 +49,42 @@ class OrderSparePartDetails extends Model
     public function sparePart()
     {
         return $this->hasOne(SpareParts::class, 'id', 'id_spare_part');
+    }
+
+    public function files()
+    {
+        return $this->hasMany(OrderSparePartDetailsFile::class, 'id_spare_part_order_detail');
+    }
+
+    public function scopeFilter(Builder $query, array $filters)
+    {
+        $query->when($filters['search'] ?? null, function (Builder $query, $search) {
+            $searchTerm = "%$search%";
+
+            $query->with(['sparePart', 'printerWorkplace'])
+                ->where(function ($query) use ($searchTerm) {
+                    $query
+                        ->whereHas('sparePart', function ($q) use ($searchTerm) {
+                            $q->whereAny(['name', 'description'], 'ILIKE', $searchTerm);
+                        })
+                        ->orWhereHas('printerWorkplace', function ($q) use ($searchTerm) {
+                            $q->whereAny(['location', 'serial_number', 'inventory_number'], 'ILIKE', $searchTerm)
+                                ->orWhereHas('printer', function ($p) use ($searchTerm) {
+                                    $p->whereAny(['vendor', 'model'], 'ILIKE', $searchTerm);
+                                });
+                        });
+                });
+        });
+        $query->when($filters['status'] ?? null, function (Builder $query, $status) {
+            $query->whereHas('order', function (Builder $query) use ($status) {
+                $query->where('status', $status);
+            });
+        });
+        $query->when($filters['organizations'] ?? [], function (Builder $query, $organizations) {
+            $query->whereHas('order', function (Builder $query) use ($organizations) {
+                $query->whereIn('org_code', $organizations);
+            });
+        });
     }
 
 }
