@@ -10,6 +10,10 @@ import IconColorPrint from '@/Shared/IconColorPrint';
 import InputSwitch from 'primevue/inputswitch';
 import Button from 'primevue/button';
 import TextArea from 'primevue/textarea';
+import Panel from 'primevue/panel';
+import { useConfirm } from 'primevue/useconfirm';
+import { Inertia } from '@inertiajs/inertia';
+import ProgressBar from 'primevue/progressbar';
 
 
 const props = defineProps({
@@ -20,6 +24,7 @@ const props = defineProps({
 });
 const urls = inject('urls');
 const config = inject('config');
+const confirm = useConfirm();
 
 const loadingPrinters = ref(false);
 const printersWorkplacesData = ref();
@@ -33,7 +38,10 @@ const form = useForm({
   call_specialist: props.orderSparePart?.call_specialist ?? false,
   comment: props.orderSparePart?.comment,
   files: [],
-  is_new: props.isNew, 
+  is_new: props.isNew,
+});
+const formUploadFile = useForm({
+  files: [],
 });
 const toast = reactive(useToast());
 
@@ -103,11 +111,30 @@ const save = () => {
   }
 };
 
+const uploadFile = () => {
+  formUploadFile.post(urls.orders.spareParts.uploadFile(props.orderSparePart.id), {
+    onFinish: () => {
+      formUploadFile.files = [];
+    },
+    preserveScroll: true,
+  });
+}
+
+const deleteFile = (idFile) => {
+  confirm.require({
+    message: 'Вы уверены, что хотите удалить файл?',
+    header: 'Отмена заказа',
+    accept: () => {
+      const url = urls.orders.spareParts.deleteFile(props.orderSparePart.id, idFile);
+      Inertia.delete(url);
+    },
+  });
+};
+
 </script>
 <template>
 
   <form @submit.prevent="save" class="w-full">
-
     <div class="p-10">
       <div class="grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
         <div class="sm:col-span-4">
@@ -195,7 +222,37 @@ const save = () => {
         <div class="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
           <div class="sm:col-span-4">
             <Label for="files">{{ labels.files }}</Label>
-            <input type="file" @input="form.files = $event.target.files" multiple class="w-full" />
+            <div v-if="form.is_new">
+              <input type="file" @input="form.files = $event.target.files" multiple class="w-full" />
+            </div>
+
+            <Panel header="Загруженные файлы" v-if="orderSparePart?.files" class="mt-2">
+              <table>
+                <tr v-for="item in orderSparePart.files">
+                  <td class="w-8">
+                    <i class="far fa-file"></i>
+                  </td>
+                  <td>
+                    <a :href="item.url_file_download" target="_blank">{{ item.basename }}</a>
+                  </td>
+                  <td>
+                    <Button severity="danger" text size="small" @click="deleteFile(item.id)">
+                      <i class="fas fa-times me-2"></i>
+                      Удалить
+                    </Button>
+                  </td>
+                </tr>
+              </table>
+              <div v-if="!form.is_new" class="mt-2">
+                <div class="flex gap-3">
+                  <input type="file" @input="formUploadFile.files = $event.target.files" multiple class="w-full" />
+                  <Button v-if="formUploadFile.files.length > 0" @click="uploadFile" size="small">Загрузить</Button>
+                </div>
+                <ProgressBar v-if="formUploadFile.progress" :value="formUploadFile.progress?.percentage || 0">
+                </ProgressBar>
+              </div>
+            </Panel>
+
             <InlineMessage v-if="form.errors?.files" class="mt-2" severity="error">
               {{ form.errors?.files }}</InlineMessage>
           </div>

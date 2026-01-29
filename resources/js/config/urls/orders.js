@@ -23,5 +23,7 @@ const ordersSparePartsUrls = (rootUrl) => {
     edit: (id) => `${base}/${id}/edit`,
     update: (id) => `${base}/${id}`,
     show: (id) => `${base}/${id}`,
+    uploadFile: (idOrderSparePart) => `${base}/${idOrderSparePart}/upload-files`,
+    deleteFile: (idOrderSparePart, idOrderSparePartFile) => `${base}/${idOrderSparePart}/delete-file/${idOrderSparePartFile}`,  
   };
 };
