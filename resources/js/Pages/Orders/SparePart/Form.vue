@@ -30,6 +30,7 @@ const loadingPrinters = ref(false);
 const printersWorkplacesData = ref();
 const printersWorkplacesIsEmpty = ref(false);
 const printersWorkplacesSelected = ref();
+const uploadFilesRef = ref();
 
 const form = useForm({
   id: props.orderSparePart?.id,
@@ -111,10 +112,11 @@ const save = () => {
   }
 };
 
-const uploadFile = () => {
+const uploadFiles = () => {
   formUploadFile.post(urls.orders.spareParts.uploadFile(props.orderSparePart.id), {
     onFinish: () => {
       formUploadFile.files = [];
+      uploadFilesRef.value.value = '';
     },
     preserveScroll: true,
   });
@@ -126,7 +128,9 @@ const deleteFile = (idFile) => {
     header: 'Отмена заказа',
     accept: () => {
       const url = urls.orders.spareParts.deleteFile(props.orderSparePart.id, idFile);
-      Inertia.delete(url);
+      Inertia.delete(url, {
+        preserveScroll: true,
+      });
     },
   });
 };
@@ -228,7 +232,7 @@ const deleteFile = (idFile) => {
 
             <Panel header="Загруженные файлы" v-if="orderSparePart?.files" class="mt-2">
               <table>
-                <tr v-for="item in orderSparePart.files">
+                <tr v-for="item in orderSparePart.files" :key="item.id">
                   <td class="w-8">
                     <i class="far fa-file"></i>
                   </td>
@@ -245,8 +249,8 @@ const deleteFile = (idFile) => {
               </table>
               <div v-if="!form.is_new" class="mt-2">
                 <div class="flex gap-3">
-                  <input type="file" @input="formUploadFile.files = $event.target.files" multiple class="w-full" />
-                  <Button v-if="formUploadFile.files.length > 0" @click="uploadFile" size="small">Загрузить</Button>
+                  <input ref="uploadFilesRef" type="file" @input="formUploadFile.files = $event.target.files" multiple class="w-full" />
+                  <Button v-if="formUploadFile.files.length > 0" @click="uploadFiles" size="small">Загрузить</Button>
                 </div>
                 <ProgressBar v-if="formUploadFile.progress" :value="formUploadFile.progress?.percentage || 0">
                 </ProgressBar>
