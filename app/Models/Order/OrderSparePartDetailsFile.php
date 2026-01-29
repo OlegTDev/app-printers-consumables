@@ -4,6 +4,7 @@ namespace App\Models\Order;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Storage;
 
 /**
  * @property int $id
@@ -17,6 +18,15 @@ class OrderSparePartDetailsFile extends Model
 
     public const UPDATED_AT = null;
 
-    protected $table = 'order_spare_part_details_files';    
+    protected $table = 'order_spare_part_details_files';
+
+    public static function boot()
+    {
+        parent::boot();
+
+        static::deleting(function (OrderSparePartDetailsFile $model) {
+            Storage::delete($model->filename);
+        });
+    }
 
 }

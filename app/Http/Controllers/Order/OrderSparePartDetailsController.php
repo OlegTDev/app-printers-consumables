@@ -13,8 +13,9 @@ use App\Models\Order\OrderSparePartDetails;
 use App\Models\Order\OrderSparePartDetailsFile;
 use App\Models\SpareParts;
 use App\Services\OrderSparePartDetailUploadFilesService;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Request;
+use Illuminate\Support\Facades\Redirect;
 use Inertia\Inertia;
 
 class OrderSparePartDetailsController extends Controller
@@ -32,10 +33,10 @@ class OrderSparePartDetailsController extends Controller
     public function index(Request $request)
     {
         $orders = OrderSparePartDetails::queryWithFilterByOrgCode()            
-            ->filter(Request::only(['search', 'status', 'organizations']))->get();
+            ->filter($request->only(['search', 'status', 'organizations']))->get();
 
         return Inertia::render('Orders/SparePart/Index', [
-            'filters' => Request::all(['search', 'status', 'organizations']),
+            'filters' => $request->all(['search', 'status', 'organizations']),
             'orders' =>  OrderSparePartResource::collection($orders),
             'cartridgeColors' => CartridgeColors::get(),
             'consumableTypes' => ConsumableTypesEnum::array(),
@@ -130,6 +131,37 @@ class OrderSparePartDetailsController extends Controller
         $orderSparePartDetails->update($request->only(['id_printers_workplace', 'call_specialist', 'id_spare_part']));
         return redirect()->route('spare-parts.show', ['orderSparePartDetails' => $orderSparePartDetails])
             ->with('success', 'Изменения сохранены!');
+    }
+
+    /**
+     * @route DELETE orders/spare-parts/{orderSparePartDetails}/delete-file/{orderSparePartDetailsFile}
+     */
+    public function deleteFile(OrderSparePartDetails $orderSparePartDetails, OrderSparePartDetailsFile $orderSparePartDetailsFile)
+    {
+        if ($orderSparePartDetails->files()->count() == 1) {            
+            return Redirect::back()->with('error', 'Необходимо сначала загрузить файл.');
+        }
+    
+        $orderSparePartDetailsFile->delete();
+
+        return Redirect::back()->with('success', 'Файл удален.');
+    }
+
+    /**
+     * @route POST orders/spare-parts/{orderSparePartDetails}/upload-files
+     */
+    public function uploadFiles(OrderSparePartDetails $orderSparePartDetails, Request $request)
+    {
+        if ($request->has('files')) {
+            $uploadedPaths = (new OrderSparePartDetailUploadFilesService($request->file('files')))->upload();
+            foreach ($uploadedPaths as $uploadedPath) {
+                OrderSparePartDetailsFile::create([
+                    'id_spare_part_order_detail' => $orderSparePartDetails->id,
+                    'filename' => $uploadedPath,
+                ]);
+            }
+        }
+        return Redirect::back()->with('success', 'Файл загружен.');
     }
 
     

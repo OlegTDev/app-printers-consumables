@@ -104,6 +104,10 @@ Route::middleware('auth')->group(function () {
         ->parameters([
             'spare-parts' => 'orderSparePartDetails',
         ]);
+    Route::delete('orders/spare-parts/{orderSparePartDetails}/delete-file/{orderSparePartDetailsFile}', 
+        [OrderSparePartDetailsController::class, 'deleteFile']);
+    Route::post('orders/spare-parts/{orderSparePartDetails}/upload-files', 
+        [OrderSparePartDetailsController::class, 'uploadFiles']);
 
     // OrderStatusHistory
     Route::get('/orders/{order}/status-history', [OrderStatusHistoryController::class, 'index']);
