@@ -1,6 +1,8 @@
 <?php
 
+use App\Http\Controllers\Order\OrderConsumableDetailsController;
 use App\Http\Controllers\Order\OrderController;
+use App\Http\Controllers\Order\OrderMistDetailsController;
 use App\Http\Controllers\Order\OrderSparePartDetailsController;
 use App\Http\Controllers\Order\OrderStatusHistoryController;
 
@@ -27,3 +29,9 @@ Route::post(
 
 // OrderStatusHistory
 Route::get('/orders/{order}/status-history', [OrderStatusHistoryController::class, 'index']);
+
+// OrderConsumables
+Route::get('orders/consumables', [OrderConsumableDetailsController::class, 'index']);
+
+// OrderMisc
+Route::get('orders/misc', [OrderMistDetailsController::class, 'index']);

@@ -10,6 +10,8 @@ export const ordersUrls = (rootUrl) => {
     statusHistory: (order) => `${base}/${order}/status-history`,
 
     spareParts: ordersSparePartsUrls(rootUrl),
+    consumables: ordersConsumablesUrls(rootUrl),
+    misc: ordersMiscUrls(rootUrl),
   };
 };
 
@@ -24,6 +26,22 @@ const ordersSparePartsUrls = (rootUrl) => {
     update: (id) => `${base}/${id}`,
     show: (id) => `${base}/${id}`,
     uploadFile: (idOrderSparePart) => `${base}/${idOrderSparePart}/files`,
-    deleteFile: (idOrderSparePart, idOrderSparePartFile) => `${base}/${idOrderSparePart}/files/${idOrderSparePartFile}`,  
+    deleteFile: (idOrderSparePart, idOrderSparePartFile) => `${base}/${idOrderSparePart}/files/${idOrderSparePartFile}`,
   };
 };
+
+const ordersConsumablesUrls = (rootUrl) => {
+  const base = `${rootUrl}orders/consumables`;
+
+  return {
+    index: () => base,
+  };
+}
+
+const ordersMiscUrls = (rootUrl) => {
+  const base = `${rootUrl}orders/misc`;
+
+  return {
+    index: () => base,
+  };
+}
