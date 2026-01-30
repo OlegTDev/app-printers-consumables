@@ -1,19 +1,5 @@
 <?php
 
-use App\Http\Controllers\Auth\AuthenticatedSessionController;
-use App\Http\Controllers\ChartController;
-use App\Http\Controllers\ConsumablesCountsAddedController;
-use App\Http\Controllers\ConsumablesCountsController;
-use App\Http\Controllers\ConsumablesCountsInstalledController;
-use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\FilesController;
-use App\Http\Controllers\Order\OrderController;
-use App\Http\Controllers\Order\OrderSparePartDetailsController;
-use App\Http\Controllers\Order\OrderStatusHistoryController;
-use App\Http\Controllers\PrintersWorkplaceController;
-use App\Http\Controllers\ReportController;
-use App\Http\Controllers\UsersController;
-use App\Http\Controllers\UsersOrganizationsController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -27,99 +13,17 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-// Auth
-Route::get('login', [AuthenticatedSessionController::class, 'create'])
-    ->name('login')
-    ->middleware('guest');
+require __DIR__ . '/web/auth.php';
 
-Route::post('login', [AuthenticatedSessionController::class, 'store'])
-    ->name('login.store')
-    ->middleware('guest');
-
-Route::delete('logout', [AuthenticatedSessionController::class, 'destroy'])
-    ->name('logout');
-
-
-
-// Authenticate middleware
 Route::middleware('auth')->group(function () {
 
-    // Dashboard
-    Route::get('/', [DashboardController::class, 'index'])
-        ->name('dashboard');
-
-    // Users
-    Route::resource('users', UsersController::class)->except(['show'])->withTrashed(['edit']);
-    Route::put('users/{user}/restore', [UsersController::class, 'restore'])
-        ->name('users.restore')
-        ->withTrashed()
-        ->middleware('role:admin');
-
-    Route::get('users/organizations', [UsersOrganizationsController::class, 'index'])
-        ->name('users.organizations');
-    Route::post('users/organizations/{organization}', [UsersOrganizationsController::class, 'change']);
-
-    // Printers
-    Route::get('printers/workplace/all', [PrintersWorkplaceController::class, 'all']);
-    Route::resource('printers/workplace', PrintersWorkplaceController::class);
-    Route::get('printers/workplace/list/{consumable}', [PrintersWorkplaceController::class, 'list']);
-    Route::get('printers/workplace/consumables-installed/{workplace}', [PrintersWorkplaceController::class, 'consumablesInstalled']);
-
-    // ConsumableCount    
-    Route::resource('consumables/counts', ConsumablesCountsController::class)->only(['index', 'create', 'store', 'show', 'update']);
-    Route::post('consumables/counts/{count}/correct', [ConsumablesCountsController::class, 'correctCount'])->middleware('role:admin,subtract-consumable');
-    Route::post('consumables/counts/validate', [ConsumablesCountsController::class, 'validateConsumableCount']);
-    Route::post('consumables/counts/check-exists', [ConsumablesCountsController::class, 'checkExists']);
-    Route::put('consumables/counts/{count}/update-organizations', [ConsumablesCountsController::class, 'updateOrganizations'])
-        ->middleware('role:admin,add-consumables');
-    Route::get('consumables/counts/{count}/journal-added', [ConsumablesCountsController::class, 'journalAdded']);
-    Route::get('consumables/counts/{count}/journal-installed', [ConsumablesCountsController::class, 'journalInstalled']);
-    Route::get('consumables/counts/list-by-printer/{printer}', [ConsumablesCountsController::class, 'listByPrinter']);
-
-    Route::resource('consumables.counts.added', ConsumablesCountsAddedController::class)->only(['index', 'destroy']);
-    Route::resource('consumables.counts.installed', ConsumablesCountsInstalledController::class)->only(['index', 'store', 'destroy']);
-    Route::get('consumables/counts/installed/last', [ConsumablesCountsInstalledController::class, 'last']);
-    Route::get('consumables/counts/installed/master', [ConsumablesCountsInstalledController::class, 'master']);
-
-    // Chart
-    Route::get('chart/last', [ChartController::class, 'last']);
-    Route::get('chart/last-added', [ChartController::class, 'lastAdded']);
-    Route::get('chart/last-installed', [ChartController::class, 'lastInstalled']);
-
-    // Reports
-    Route::get('reports', [ReportController::class, 'index']);
-    Route::post('reports/export-printers-workplace', [ReportController::class, 'exportPrintersWorkplace']);
-    Route::post('reports/export-consumable-count', [ReportController::class, 'exportConsumableCount']);
-    Route::post('reports/export-consumable-installed-count', [ReportController::class, 'exportConsumableInstalledCount']);
-
-    // Order
-    Route::put('orders/{order}/approve', [OrderController::class, 'approve']);
-    Route::put('orders/{order}/reject', [OrderController::class, 'reject']);
-    Route::put('orders/{order}/completed', [OrderController::class, 'completed']);
-    Route::put('orders/{order}/cancel', [OrderController::class, 'cancel']);
-    Route::delete('orders/{order}', [OrderController::class, 'destroy']);
-
-    // OrderSpareParts
-    Route::resource('orders/spare-parts', OrderSparePartDetailsController::class)
-        ->parameters([
-            'spare-parts' => 'orderSparePartDetails',
-        ]);
-    Route::delete('orders/spare-parts/{orderSparePartDetails}/delete-file/{orderSparePartDetailsFile}', 
-        [OrderSparePartDetailsController::class, 'deleteFile']);
-    Route::post('orders/spare-parts/{orderSparePartDetails}/upload-files', 
-        [OrderSparePartDetailsController::class, 'uploadFiles']);
-
-    // OrderStatusHistory
-    Route::get('/orders/{order}/status-history', [OrderStatusHistoryController::class, 'index']);
-
-    // Download
-    Route::get('/download/{path}', [FilesController::class, 'preview'])
-        ->where('path', '.*')
-        ->name('download');
-
+    require __DIR__ . '/web/dashboard.php';
+    require __DIR__ . '/web/users.php';
+    require __DIR__ . '/web/printers.php';
+    require __DIR__ . '/web/consumables.php';
+    require __DIR__ . '/web/chart.php';
+    require __DIR__ . '/web/reports.php';
+    require __DIR__ . '/web/orders.php';
+    require __DIR__ . '/web/file.php';
+    require __DIR__ . '/web/dictionary.php';
 });
-
-
-
-
-require_once __DIR__ . "/dictionary.php";
