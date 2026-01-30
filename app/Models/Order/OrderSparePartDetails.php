@@ -87,9 +87,4 @@ class OrderSparePartDetails extends Model
         });
     }
 
-    public function isAmAuthor(): bool
-    {
-        return auth()->user()->id == $this->order->requested_by;
-    }
-
 }

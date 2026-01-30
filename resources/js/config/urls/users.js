@@ -4,7 +4,7 @@ export const usersUrls = (rootUrl) => {
     index: () => base,
     create: () => `${base}/create`,
     store: () => base,
-    edit: (id) => `${base}/${id}/edit}`,
+    edit: (id) => `${base}/${id}/edit`,
     update: (id) => `${base}/${id}`,
     delete: (id) => `${base}/${id}`,
     restore: (id) => `${base}/${id}/restore`,

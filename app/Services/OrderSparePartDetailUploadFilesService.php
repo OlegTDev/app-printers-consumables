@@ -6,9 +6,8 @@ use Illuminate\Http\UploadedFile;
 class OrderSparePartDetailUploadFilesService
 {
 
-    public function __construct(private $files, private string $uploadPath = 'orders')
-    {
-    }
+    public function __construct(private $files, private string $uploadPath = 'orders') 
+    {}
 
     /**
      * @param UploadedFile[] $files
@@ -18,8 +17,8 @@ class OrderSparePartDetailUploadFilesService
     {
         $uploadedPaths = [];
 
-        if ($this->files) {
-            foreach ((array) $this->files as $file) {
+        if ($this->files) {            
+            foreach ((array)$this->files as $file) {
                 $uploadedPaths[] = $file->store($this->uploadPath);
             }
         }

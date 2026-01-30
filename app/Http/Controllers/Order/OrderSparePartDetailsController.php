@@ -23,11 +23,8 @@ class OrderSparePartDetailsController extends Controller
 
     public function __construct()
     {
-        $this->middleware('role:admin,order-approver')
-            ->only(['create', 'store', 'cancel']);
-        
-        $this->middleware('role:admin')
-            ->only(['destroy']);
+        $this->middleware('role:admin,order-approver')->only(['create', 'store', 'cancel']);
+        $this->middleware('role:admin')->only(['edit', 'update', 'destroy']);
     }
 
     /**
@@ -35,16 +32,16 @@ class OrderSparePartDetailsController extends Controller
      */
     public function index(Request $request)
     {
-        $orders = OrderSparePartDetails::queryWithFilterByOrgCode()
+        $orders = OrderSparePartDetails::queryWithFilterByOrgCode()            
             ->filter($request->only(['search', 'status', 'organizations']))->get();
 
         return Inertia::render('Orders/SparePart/Index', [
             'filters' => $request->all(['search', 'status', 'organizations']),
-            'orders' => OrderSparePartResource::collection($orders),
+            'orders' =>  OrderSparePartResource::collection($orders),
             'cartridgeColors' => CartridgeColors::get(),
             'consumableTypes' => ConsumableTypesEnum::array(),
             'statuses' => Order::statusLabels(),
-
+            
             'labels' => [
                 'order' => config('labels.order'),
                 'spare_parts' => config('labels.spare_parts'),
@@ -59,11 +56,10 @@ class OrderSparePartDetailsController extends Controller
     public function create()
     {
         return Inertia::render('Orders/SparePart/Create', [
-            'spareParts' => SparePartsResource::collection(SpareParts::get()),
-            'labels' => [
-                ...(array)config('labels.order_spare_part'),
+            'spareParts' => SparePartsResource::collection(SpareParts::get()),           
+            'labels' => array_merge([
                 'order' => config('labels.order'),
-            ],
+            ], config('labels.order_spare_part')),
         ]);
     }
 
@@ -74,9 +70,19 @@ class OrderSparePartDetailsController extends Controller
     public function store(OrderSparePartDetailRequest $request)
     {
         DB::transaction(function () use ($request) {
-            $modelOrderSparePart = $this->createOrderSparePartDetail($request);
-            $this->createChildOrder($modelOrderSparePart, $request->input('comment'));
-            $this->uploadFiles($modelOrderSparePart, $request);
+            $model = new OrderSparePartDetails($request->only(['id_printers_workplace', 'id_spare_part', 'call_specialist']));
+            $comment = $request->get('comment');
+            Order::createWithChildOrder($model, $comment);
+
+            if ($request->has('files')) {
+                $uploadedPaths = (new OrderSparePartDetailUploadFilesService($request->file('files')))->upload();
+                foreach ($uploadedPaths as $uploadedPath) {
+                    OrderSparePartDetailsFile::create([
+                        'id_spare_part_order_detail' => $model->id,
+                        'filename' => $uploadedPath,
+                    ]);
+                }
+            }
         });
 
         return redirect()->route('spare-parts.index')
@@ -87,7 +93,7 @@ class OrderSparePartDetailsController extends Controller
      * @route GET orders/spare-parts/{orderSparePartDetails}
      */
     public function show(OrderSparePartDetails $orderSparePartDetails)
-    {
+    {        
         return Inertia::render('Orders/SparePart/Show', [
             'orderSparePartDetail' => new OrderSparePartResource($orderSparePartDetails),
             'orderStatusPending' => Order::STATUS_PENDING,
@@ -108,15 +114,12 @@ class OrderSparePartDetailsController extends Controller
      */
     public function edit(OrderSparePartDetails $orderSparePartDetails)
     {
-        $this->authorize('update', $orderSparePartDetails->order);
-
         return Inertia::render('Orders/SparePart/Edit', [
             'orderSparePartDetail' => new OrderSparePartResource($orderSparePartDetails),
             'spareParts' => SparePartsResource::collection(SpareParts::get()),
-            'labels' => [
-                ...(array)config('labels.order_spare_part'),
-                'order' => config('labels.order'), 
-            ],
+            'labels' => array_merge([
+                'order' => config('labels.order'),
+            ], config('labels.order_spare_part')),
         ]);
     }
 
@@ -125,62 +128,42 @@ class OrderSparePartDetailsController extends Controller
      */
     public function update(OrderSparePartDetailRequest $request, OrderSparePartDetails $orderSparePartDetails)
     {
-        $this->authorize('update', $orderSparePartDetails->order);
-
         $orderSparePartDetails->update($request->only(['id_printers_workplace', 'call_specialist', 'id_spare_part']));
         return redirect()->route('spare-parts.show', ['orderSparePartDetails' => $orderSparePartDetails])
             ->with('success', 'Изменения сохранены!');
     }
 
     /**
-     * @route DELETE orders/spare-parts/{orderSparePartDetails}/files/{orderSparePartDetailsFile}
+     * @route DELETE orders/spare-parts/{orderSparePartDetails}/delete-file/{orderSparePartDetailsFile}
      */
     public function deleteFile(OrderSparePartDetails $orderSparePartDetails, OrderSparePartDetailsFile $orderSparePartDetailsFile)
     {
-        if ($orderSparePartDetails->files()->count() == 1) {
-            return Redirect::back()->with('error', 'Невозможно удалить последний файл. Необходимо сначала загрузить файл.');
+        if ($orderSparePartDetails->files()->count() == 1) {            
+            return Redirect::back()->with('error', 'Необходимо сначала загрузить файл.');
         }
-
+    
         $orderSparePartDetailsFile->delete();
 
         return Redirect::back()->with('success', 'Файл удален.');
     }
 
     /**
-     * @route POST orders/spare-parts/{orderSparePartDetails}/files
+     * @route POST orders/spare-parts/{orderSparePartDetails}/upload-files
      */
     public function uploadFiles(OrderSparePartDetails $orderSparePartDetails, Request $request)
-    {
-        $this->uploadFilesIfPresent($orderSparePartDetails, $request);
-        return Redirect::back()->with('success', 'Файл загружен.');
-    }
-
-
-    private function createOrderSparePartDetail(Request $request): OrderSparePartDetails
-    {
-        return new OrderSparePartDetails($request->only([
-            'id_printers_workplace',
-            'id_spare_part',
-            'call_specialist',
-        ]));
-    }
-
-    private function createChildOrder(OrderSparePartDetails $orderSparePartDetails, ?string $comment): void
-    {        
-        Order::createWithChildOrder($orderSparePartDetails, $comment);
-    }
-
-    private function uploadFilesIfPresent(OrderSparePartDetails $model, Request $request): void
     {
         if ($request->has('files')) {
             $uploadedPaths = (new OrderSparePartDetailUploadFilesService($request->file('files')))->upload();
             foreach ($uploadedPaths as $uploadedPath) {
                 OrderSparePartDetailsFile::create([
-                    'id_spare_part_order_detail' => $model->id,
+                    'id_spare_part_order_detail' => $orderSparePartDetails->id,
                     'filename' => $uploadedPath,
                 ]);
             }
         }
+        return Redirect::back()->with('success', 'Файл загружен.');
     }
+
+    
 
 }
