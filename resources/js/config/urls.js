@@ -37,8 +37,6 @@ export const urls = {
     consumables: dictionaryConsumablesUrls(API_ROOT),
     // справочник организаций
     organizations: dictionaryOrganizationsUrls(API_ROOT),
-    // запчасти
-    spareParts: dictionarySparePartsUrls(API_ROOT),
   },
 
   // отчеты

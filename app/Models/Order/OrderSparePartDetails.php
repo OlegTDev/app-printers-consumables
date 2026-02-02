@@ -2,6 +2,7 @@
 
 namespace App\Models\Order;
 
+use App\Models\Consumable\Consumable;
 use App\Models\Printer\PrinterWorkplace;
 use App\Models\SpareParts;
 use Illuminate\Database\Eloquent\Builder;
@@ -16,10 +17,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $id_printers_workplace
  * @property int $id_spare_part
  * @property bool $call_specialist
- * 
+ *
  * @property Order $order
  * @property PrinterWorkplace $printerWorkplace
- * @property SpareParts $sparePart
+ * @property Consumable $consumable
  * @property OrderSparePartDetailsFile $files
  */
 class OrderSparePartDetails extends Model
@@ -46,9 +47,9 @@ class OrderSparePartDetails extends Model
         return $this->hasOne(PrinterWorkplace::class, 'id', 'id_printers_workplace');
     }
 
-    public function sparePart()
+    public function consumable()
     {
-        return $this->hasOne(SpareParts::class, 'id', 'id_spare_part');
+        return $this->hasOne(Consumable::class, 'id', 'id_spare_part');
     }
 
     public function files()

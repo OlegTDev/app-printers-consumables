@@ -29,10 +29,11 @@ export const dictionaryConsumablesUrls = (rootUrl) => {
     edit: (id) => `${base}/${id}/edit`,
     update: (id) => `${base}/${id}`,
     delete: (id) => `${base}/${id}`,
+    other: (idPrinter) => `${base}/${idPrinter}/other`,
 
     // привязанные принтеры к расходному материалу
     printers: {
-      index: (idConsumable) => `${base}/${idConsumable}/printers`,      
+      index: (idConsumable) => `${base}/${idConsumable}/printers`,
       add: (idConsumable, idPrinter) => `${base}/${idConsumable}/printers/${idPrinter}/add`,
       delete: (idConsumable, idPrinter) => `${base}/${idConsumable}/printers/${idPrinter}`,
     },
@@ -53,15 +54,3 @@ export const dictionaryOrganizationsUrls = (rootUrl) => {
   };
 };
 
-export const dictionarySparePartsUrls = (rootUrl) => {
-  const base = `${rootUrl}dictionary/spare-parts`;
-
-  return {
-    index: () => base,
-    create: () => `${base}/create`,
-    store: () => base,    
-    edit: (id) => `${base}/${id}/edit`,
-    update: (id) => `${base}/${id}`,
-    delete: (id) => `${base}/${id}`,
-  };
-};

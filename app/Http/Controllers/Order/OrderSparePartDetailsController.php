@@ -5,13 +5,11 @@ namespace App\Http\Controllers\Order;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Orders\OrderSparePartDetailRequest;
 use App\Http\Resources\OrderSparePartResource;
-use App\Http\Resources\SparePartsResource;
 use App\Models\Consumable\CartridgeColors;
 use App\Models\Consumable\ConsumableTypesEnum;
 use App\Models\Order\Order;
 use App\Models\Order\OrderSparePartDetails;
 use App\Models\Order\OrderSparePartDetailsFile;
-use App\Models\SpareParts;
 use App\Services\OrderSparePartDetailUploadFilesService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -25,7 +23,7 @@ class OrderSparePartDetailsController extends Controller
     {
         $this->middleware('role:admin,order-approver')
             ->only(['create', 'store', 'cancel']);
-        
+
         $this->middleware('role:admin')
             ->only(['destroy']);
     }
@@ -59,7 +57,6 @@ class OrderSparePartDetailsController extends Controller
     public function create()
     {
         return Inertia::render('Orders/SparePart/Create', [
-            'spareParts' => SparePartsResource::collection(SpareParts::get()),
             'labels' => [
                 ...(array)config('labels.order_spare_part'),
                 'order' => config('labels.order'),
@@ -112,10 +109,10 @@ class OrderSparePartDetailsController extends Controller
 
         return Inertia::render('Orders/SparePart/Edit', [
             'orderSparePartDetail' => new OrderSparePartResource($orderSparePartDetails),
-            'spareParts' => SparePartsResource::collection(SpareParts::get()),
+            //'spareParts' => SparePartsResource::collection(SpareParts::get()),
             'labels' => [
                 ...(array)config('labels.order_spare_part'),
-                'order' => config('labels.order'), 
+                'order' => config('labels.order'),
             ],
         ]);
     }
@@ -166,7 +163,7 @@ class OrderSparePartDetailsController extends Controller
     }
 
     private function createChildOrder(OrderSparePartDetails $orderSparePartDetails, ?string $comment): void
-    {        
+    {
         Order::createWithChildOrder($orderSparePartDetails, $comment);
     }
 
