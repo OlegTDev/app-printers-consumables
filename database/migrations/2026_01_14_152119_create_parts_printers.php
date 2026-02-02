@@ -36,18 +36,6 @@ return new class extends Migration {
             $table->foreign('id_author')->references('id')->on('users');
         });
 
-        
-        # справочник виды запчастей для принтера
-        Schema::create('spare_parts', function (Blueprint $table) {
-            $table->id();
-            $table->string('name', 250);
-            $table->text('description')->nullable();
-            $table->integer('id_author');
-            $table->timestamps();
-
-            $table->foreign('id_author')->references('id')->on('users');
-        });
-
         # заказы запчастей
         Schema::create('order_spare_part_details', function (Blueprint $table) {
             $table->id();
@@ -58,7 +46,7 @@ return new class extends Migration {
 
             $table->foreign('id_order')->references('id')->on('orders')->cascadeOnDelete();
             $table->foreign('id_printers_workplace')->references('id')->on('printers_workplace');
-            $table->foreign('id_spare_part')->references('id')->on('spare_parts');
+            $table->foreign('id_consumable')->references('id')->on('consumables');
         });
 
         # заказы запчастей - файлы
@@ -71,7 +59,7 @@ return new class extends Migration {
             $table->foreign('id_spare_part_order_detail')->references('id')->on('order_spare_part_details')->cascadeOnDelete();
         });
 
-        
+
 
         # заказы картриджей
         Schema::create('order_consumables_details', function (Blueprint $table) {
@@ -111,7 +99,6 @@ return new class extends Migration {
         Schema::dropIfExists('order_consumables_details');
         Schema::dropIfExists('order_spare_part_details_files');
         Schema::dropIfExists('order_spare_part_details');
-        Schema::dropIfExists('spare_parts');
         Schema::dropIfExists('order_status_history');
         Schema::dropIfExists('orders');
     }
