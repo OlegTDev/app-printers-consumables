@@ -46,7 +46,7 @@ return new class extends Migration {
 
             $table->foreign('id_order')->references('id')->on('orders')->cascadeOnDelete();
             $table->foreign('id_printers_workplace')->references('id')->on('printers_workplace');
-            $table->foreign('id_consumable')->references('id')->on('consumables');
+            $table->foreign('id_spare_part')->references('id')->on('consumables');
         });
 
         # заказы запчастей - файлы
