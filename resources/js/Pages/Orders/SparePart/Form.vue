@@ -2,7 +2,6 @@
 import { useForm } from '@inertiajs/inertia-vue3';
 import { computed, inject, ref } from 'vue';
 import Button from 'primevue/button';
-import { useConfirm } from 'primevue/useconfirm';
 import { Inertia } from '@inertiajs/inertia';
 import Steps from 'primevue/steps';
 import Step1 from './Steps/Step1';
@@ -19,8 +18,6 @@ const props = defineProps({
 });
 const urls = inject('urls');
 
-const confirm = useConfirm();
-
 const form = useForm({
   id: props.orderSparePart?.id,
   id_printers_workplace: props.orderSparePart?.id_printers_workplace,
@@ -33,11 +30,14 @@ const form = useForm({
   step: step,
 });
 
+const idPrinter = ref(props.orderSparePart?.printerWorkplace?.printer?.id);
+
 
 const emitPrintersWorkplacesSelected = (value) => {
   form.id_printers_workplace = value?.id;
   if (value?.id) {
     delete form.errors.id_printers_workplace;
+    idPrinter.value = value?.id_printer;
   }
   form.id_spare_part = null;
 }
@@ -71,7 +71,7 @@ const emitQuantity = (value) => {
 
 const urlOtherConsumablesForPrinter = computed(() => {
   if (form.id_printers_workplace) {
-    return urls.dictionary.consumables.other(form.id_printers_workplace);
+    return urls.dictionary.consumables.other(idPrinter.value);
   }
 });
 
