@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * Расходный материал
- * 
+ *
  * @property int $id
  * @property int $id_author
  * @property string $type
@@ -26,7 +26,7 @@ use Illuminate\Support\Facades\DB;
  * @property bool $arch
  * @property string $created_at
  * @property string $updated_at
- * 
+ *
  * @property User $author
  * @property Printer[] $printers
  * @property PrinterWorkplace[] $printersWorkplace
@@ -50,7 +50,7 @@ class Consumable extends Model
      * {@inheritDoc}
      */
     protected $table = 'consumables';
-    
+
     /**
      * {@inheritDoc}
      */
@@ -70,7 +70,7 @@ class Consumable extends Model
     public function author(): HasOne
     {
         return $this->hasOne(User::class, 'id', 'id_author');
-    }    
+    }
 
     /**
      * Принтеры привязанные к этому расходному материалу
@@ -78,7 +78,7 @@ class Consumable extends Model
      */
     public function printers(): BelongsToMany
     {
-        return $this->belongsToMany(Printer::class, 'printers_consumables', 'id_consumable', 'id_printer');        
+        return $this->belongsToMany(Printer::class, 'printers_consumables', 'id_consumable', 'id_printer');
     }
 
     /**
@@ -102,7 +102,7 @@ class Consumable extends Model
             ->join('printers', 'printers.id', '=', 'printers_workplace.id_printer')
             ->join('printers_consumables', 'printers_consumables.id_printer', '=', 'printers.id')
             ->where('printers_consumables.id_consumable', $this->id)
-            ->where('printers_workplace.org_code', Auth::user()->org_code)        
+            ->where('printers_workplace.org_code', Auth::user()->org_code)
             ->get();
     }
 
@@ -111,8 +111,8 @@ class Consumable extends Model
      * @return Builder
      */
     public function printersNotIn()
-    {        
-        return Printer::whereDoesntHave('consumables', fn(Builder $query) => 
+    {
+        return Printer::whereDoesntHave('consumables', fn(Builder $query) =>
             $query->where('consumables.id', $this->id)
         );
     }
@@ -122,9 +122,9 @@ class Consumable extends Model
      */
     public function consumableCount()
     {
-        return $this->hasOne(ConsumableCount::class, 'id_consumable', 'id');           
+        return $this->hasOne(ConsumableCount::class, 'id_consumable', 'id');
     }
-    
+
 
     /**
      * Фильтр
@@ -132,12 +132,20 @@ class Consumable extends Model
      * @param array $filter
      */
     public function scopeFilter(Builder $query, array $filters)
-    {               
+    {
         $query->with('author');
         $query->when($filters['search'] ?? null, function (Builder $query, $search) {
             $query->whereAny(['name'], 'ILIKE', "%$search%");
         });
         $query->orderByDesc('created_at')->orderByDesc('updated_at');
+    }
+
+    public static function queryWithOtherTypesByPrinter(int $idPrinter)
+    {
+        return static::query()->whereHas('printers', function(Builder $query) use($idPrinter) {
+            $query->where('printers.id', $idPrinter);
+        })
+        ->where('type', ConsumableTypesEnum::other->name);
     }
 
     /**
