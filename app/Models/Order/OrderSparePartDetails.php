@@ -3,6 +3,7 @@
 namespace App\Models\Order;
 
 use App\Models\Consumable\Consumable;
+use App\Models\Consumable\ConsumableTypesEnum;
 use App\Models\Printer\PrinterWorkplace;
 use App\Models\SpareParts;
 use Illuminate\Database\Eloquent\Builder;
@@ -20,7 +21,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  *
  * @property Order $order
  * @property PrinterWorkplace $printerWorkplace
- * @property Consumable $consumable
+ * @property Consumable $sparePart
  * @property OrderSparePartDetailsFile $files
  */
 class OrderSparePartDetails extends Model
@@ -47,9 +48,10 @@ class OrderSparePartDetails extends Model
         return $this->hasOne(PrinterWorkplace::class, 'id', 'id_printers_workplace');
     }
 
-    public function consumable()
+    public function sparePart()
     {
-        return $this->hasOne(Consumable::class, 'id', 'id_spare_part');
+        return $this->hasOne(Consumable::class, 'id', 'id_spare_part')
+            ->where('type', ConsumableTypesEnum::other->name);
     }
 
     public function files()

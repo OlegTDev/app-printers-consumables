@@ -22,7 +22,7 @@ class OrderSparePartResource extends JsonResource
             'id_spare_part' => $this->id_spare_part,
             'call_specialist' => $this->call_specialist,
 
-            'sparePart' => new SparePartsResource($this->sparePart),
+            'sparePart' => new ConsumableResource($this->sparePart),
             'printerWorkplace' => new PrinterWorkplaceResource($this->printerWorkplace),
             'order' => new OrderResource($this->order),
             'files' => OrderSparePartFileResource::collection($this->files),

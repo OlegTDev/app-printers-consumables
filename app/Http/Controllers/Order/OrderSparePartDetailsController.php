@@ -45,7 +45,6 @@ class OrderSparePartDetailsController extends Controller
 
             'labels' => [
                 'order' => config('labels.order'),
-                'spare_parts' => config('labels.spare_parts'),
                 'order_spare_part' => config('labels.order_spare_part'),
             ],
         ]);
