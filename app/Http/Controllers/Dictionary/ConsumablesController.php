@@ -4,10 +4,12 @@ namespace App\Http\Controllers\Dictionary;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Dictionary\ConsumableRequest;
+use App\Http\Resources\ConsumableResource;
 use App\Models\Consumable\CartridgeColors;
 use App\Models\Consumable\Consumable;
 use App\Models\Consumable\ConsumableTypesEnum;
 use App\Models\Printer\Printer;
+use Illuminate\Database\Eloquent\Casts\Json;
 use Illuminate\Support\Facades\Request;
 use Inertia\Inertia;
 
@@ -21,7 +23,7 @@ class ConsumablesController extends Controller
      * @return \Inertia\Response
      */
     public function index()
-    {        
+    {
         return Inertia::render('Dictionary/Consumables/Index', [
             'consumables' => Consumable::filter(Request::only(['search']))->get(),
             'filters' => Request::all(['search']),
@@ -41,7 +43,7 @@ class ConsumablesController extends Controller
             'labels' => Consumable::labels(),
             'cartridgeColors' => CartridgeColors::get(),
             'consumableTypes' => ConsumableTypesEnum::array(),
-        ]); 
+        ]);
     }
 
     /**
@@ -66,7 +68,7 @@ class ConsumablesController extends Controller
      */
     public function show(Consumable $consumable)
     {
-        return Inertia::render('Dictionary/Consumables/Show', [            
+        return Inertia::render('Dictionary/Consumables/Show', [
             'consumable' => [
                 'id' => $consumable->id,
                 'type' => $consumable->type,
@@ -101,7 +103,7 @@ class ConsumablesController extends Controller
             'cartridgeColors' => CartridgeColors::get(),
             'consumableTypes' => ConsumableTypesEnum::array(),
             'consumableTypeValue' => ConsumableTypesEnum::getValueByName($consumable->type),
-        ]); 
+        ]);
     }
 
     /**
@@ -131,5 +133,14 @@ class ConsumablesController extends Controller
         return redirect()->route('dictionary.consumables.index')
             ->with('success', 'Запись успешно удалена!');
     }
-    
+
+    /**
+     * @route GET dictionary/consumables/{printer}/other
+     */
+    public function otherConsumablesForPrinter(Printer $printer)
+    {
+        $items = Consumable::queryWithOtherTypesByPrinter($printer->id)->get();
+        return ConsumableResource::collection($items);
+    }
+
 }
