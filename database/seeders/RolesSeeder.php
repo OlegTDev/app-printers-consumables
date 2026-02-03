@@ -12,22 +12,22 @@ class RolesSeeder extends AbstractSeeder
 
     private $roles = [
         // полные права
-        ['admin' => 'Администратор (по всему контексту)'],
+        'admin' => 'Администратор (по всему контексту)',
 
         // права для работы со справочниками (управление справочниками принтеров, расходных материалов)
-        ['editor-dictionary' => 'Редактор справочников (принтеров, расходных материалов)'],
+        'editor-dictionary' => 'Редактор справочников (принтеров, расходных материалов)',
 
         // права на добавление принтеров на местах
-        ['editor-printer-workplace' => 'Редактор принтеров на местах'],
+        'editor-printer-workplace' => 'Редактор принтеров на местах',
 
         // права на добавление расходных материалов (количества)
-        ['add-consumables' => 'Добавление расходных материалов'],
+        'add-consumables' => 'Добавление расходных материалов',
 
         // права на вычитание расходного материала (количества)
-        ['subtract-consumable' => 'Вычитание расходных материалов'],
+        'subtract-consumable' => 'Вычитание расходных материалов',
 
         // права на согласование заказов
-        ['order-approver' => 'Согласование заказов'],
+        'order-approver' => 'Согласование заказов',
     ];
 
     /**
@@ -41,7 +41,7 @@ class RolesSeeder extends AbstractSeeder
             $inserts[] = [
                 'name' => $role,
                 'description'=> $description,
-                'created_at' => $this->getDbNowDate(), 
+                'created_at' => $this->getDbNowDate(),
                 'updated_at' => $this->getDbNowDate(),
             ];
         }
