@@ -29,7 +29,7 @@ class ConsumablesController extends Controller
             'filters' => Request::all(['search']),
             'consumableTypes' => ConsumableTypesEnum::array(),
             'cartridgeColors' => CartridgeColors::get(),
-            'labels' => Consumable::labels(),
+            'labels' => config('labels.consumable'),
         ]);
     }
 
@@ -40,7 +40,7 @@ class ConsumablesController extends Controller
     public function create()
     {
         return Inertia::render('Dictionary/Consumables/Create', [
-            'labels' => Consumable::labels(),
+            'labels' => config('labels.consumable'),
             'cartridgeColors' => CartridgeColors::get(),
             'consumableTypes' => ConsumableTypesEnum::array(),
         ]);
@@ -81,7 +81,7 @@ class ConsumablesController extends Controller
             ],
             'cartridgeColors' => CartridgeColors::get(),
             'consumableTypes' => ConsumableTypesEnum::array(),
-            'consumableLabels' => Consumable::labels(),
+            'consumableLabels' => config('labels.consumable'),
             'consumableTypeValue' => ConsumableTypesEnum::getValueByName($consumable->type),
 
             'printersNotIn' => $consumable->printersNotIn()->get(),
@@ -98,7 +98,7 @@ class ConsumablesController extends Controller
     public function edit(Consumable $consumable)
     {
         return Inertia::render('Dictionary/Consumables/Edit', [
-            'labels' => Consumable::labels(),
+            'labels' => config('labels.consumable'),
             'consumable' => $consumable,
             'cartridgeColors' => CartridgeColors::get(),
             'consumableTypes' => ConsumableTypesEnum::array(),

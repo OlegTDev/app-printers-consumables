@@ -21,7 +21,7 @@ class PrintersController extends Controller
     /**
      * {@inheritDoc}
      */
-    public function __construct()    
+    public function __construct()
     {
         // настройка прав доступа
         $this->middleware('role:admin,editor-dictionary')
@@ -57,7 +57,7 @@ class PrintersController extends Controller
         return Inertia::render('Dictionary/Printers/Create', [
             'labels' => Printer::labels(),
             'manufacturers' => $this->manufacturersList(),
-        ]); 
+        ]);
     }
 
     /**
@@ -73,16 +73,16 @@ class PrintersController extends Controller
         }
         return redirect()->route('dictionary.printers.index')
             ->with('success', 'Запись успешно добавлена!');
-    }    
+    }
 
     /**
-     * Детальная информация о принтере $printer 
+     * Детальная информация о принтере $printer
      * @param Printer $printer
      * @return \Inertia\Response
      */
     public function show(Printer $printer)
     {
-        return Inertia::render('Dictionary/Printers/Show', [            
+        return Inertia::render('Dictionary/Printers/Show', [
             'printer' => [
                 'id' => $printer->id,
                 'vendor' => $printer->vendor,
@@ -98,7 +98,7 @@ class PrintersController extends Controller
             'consumablesNotIn' => $printer->consumablesNotIn()->get(),
             'cartridgeColors' => CartridgeColors::get(),
             'consumableTypes' => ConsumableTypesEnum::array(),
-            'consumableLabels' => Consumable::labels(),
+            'consumableLabels' => config('labels.consumable'),
         ]);
     }
 
@@ -111,8 +111,8 @@ class PrintersController extends Controller
     {
         return Inertia::render('Dictionary/Printers/Edit', [
             'printer' => $printer->toArray(),
-            'labels' => Printer::labels(),           
-            'manufacturers' => $this->manufacturersList(), 
+            'labels' => Printer::labels(),
+            'manufacturers' => $this->manufacturersList(),
         ]);
     }
 
@@ -123,17 +123,17 @@ class PrintersController extends Controller
      * @return \Illuminate\Http\RedirectResponse
      */
     public function update(PrinterRequest $request, Printer $printer)
-    {       
-        $printerUpdate = $printer->update($request->only(['vendor', 'model', 'is_color_print']));        
+    {
+        $printerUpdate = $printer->update($request->only(['vendor', 'model', 'is_color_print']));
         if (!$printerUpdate) {
             return redirect()->back();
-        }        
+        }
         return redirect()->route('dictionary.printers.index')
             ->with('success', 'Запись успешно обновлена!');
     }
 
     /**
-     * Удаление принтера $printer 
+     * Удаление принтера $printer
      * @param Printer $printer
      * @return \Illuminate\Http\RedirectResponse
      */

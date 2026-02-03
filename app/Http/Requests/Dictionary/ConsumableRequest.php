@@ -59,6 +59,6 @@ class ConsumableRequest extends FormRequest
      */
     public function attributes()
     {
-        return Consumable::labels();
+        return config('labels.consumable');
     }
 }

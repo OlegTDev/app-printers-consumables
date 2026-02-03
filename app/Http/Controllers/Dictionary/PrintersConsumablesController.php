@@ -26,9 +26,9 @@ class PrintersConsumablesController extends Controller
         return Inertia::render('Dictionary/Printers/Consumables/Index', [
             'consumables' => $printer->consumablesNotIn()->filter(Request::only(['search']))->get(),
             'filters' => Request::all(['search']),
-            'printer' => $printer,            
+            'printer' => $printer,
             'consumableTypes' => ConsumableTypesEnum::array(),
-            'consumableLabels' => Consumable::labels(),
+            'consumableLabels' => config('labels.consumable'),
             'cartridgeColors' => CartridgeColors::get(),
         ]);
     }
@@ -45,7 +45,7 @@ class PrintersConsumablesController extends Controller
         return redirect()->route('dictionary.printers.show', [$printer])
             ->with('success', 'Связь успешно добавлена!');
     }
-    
+
     /**
      * Удаление привязки расходного материала $consumable с принтером $printer
      * @param Consumable $consumable
@@ -56,7 +56,7 @@ class PrintersConsumablesController extends Controller
     {
         $printer->consumables()->detach($consumable->id);
         return redirect()->route('dictionary.printers.show', [$printer])
-            ->with('success', 'Связь успешно удалена!');        
+            ->with('success', 'Связь успешно удалена!');
     }
 
 }

@@ -17,7 +17,7 @@ use Inertia\Inertia;
 
 /**
  * Принтеры на рабочих местах
- * 
+ *
  */
 class PrintersWorkplaceController extends Controller
 {
@@ -122,7 +122,7 @@ class PrintersWorkplaceController extends Controller
     }
 
     /**
-     * Детальная информация о принтере 
+     * Детальная информация о принтере
      * @route GET /printers/workplace/{workplace}
      * @param PrinterWorkplace $workplace
      * @return \Inertia\Response
@@ -140,13 +140,13 @@ class PrintersWorkplaceController extends Controller
             'consumables' => $workplace->printer->consumablesDeep,
             'consumableTypes' => ConsumableTypesEnum::array(),
             'cartridgeColors' => CartridgeColors::get(),
-            'consumableLabels' => Consumable::labels(),
+            'consumableLabels' => config('labels.consumable'),
             'consumableCountLabels' => ConsumableCount::labels(),
         ]);
     }
 
     /**
-     * Редактирование принтера 
+     * Редактирование принтера
      * @route GET /printers/workplace/{workplace}/edit
      * @param PrinterWorkplace $workplace
      * @return \Inertia\Response
@@ -163,7 +163,7 @@ class PrintersWorkplaceController extends Controller
     }
 
     /**
-     * Сохранение отредактированного принтера 
+     * Сохранение отредактированного принтера
      * @route PUT /printers/workplace/{workplace}
      * @param PrinterWorkplace $workplace
      * @param PrinterWorkplaceRequest $request
@@ -181,7 +181,7 @@ class PrintersWorkplaceController extends Controller
     }
 
     /**
-     * Удаление принтера 
+     * Удаление принтера
      * @route DELETE /printers/workplace/{workplace}
      * @param PrinterWorkplace $workplace
      * @return \Illuminate\Http\RedirectResponse

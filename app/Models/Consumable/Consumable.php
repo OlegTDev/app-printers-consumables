@@ -149,24 +149,6 @@ class Consumable extends Model
     }
 
     /**
-     * Описание атрибутов
-     * @return array
-     */
-    public static function labels()
-    {
-        return [
-            'type' => 'Вид',
-            'name' => 'Наименование (модель)',
-            'description' => 'Описание',
-            'color' => 'Цвет',
-            'date' => 'Дата',
-            'created_at' => 'Дата создания',
-            'updated_at' => 'Дата изменения',
-            'author' => 'Автор',
-        ];
-    }
-
-    /**
      * Описание расходного материала (с указанием типа, наименование и цветом (если картридж))
      * @return string
      */
