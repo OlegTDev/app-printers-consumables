@@ -31,7 +31,7 @@ const save = () => {
       <div>
         <Label for="count">{{ message }}</Label>
         <Textarea class="w-full" rows="4" v-model="form.comment" placeholder="введите комментарий"
-          :invalid="form.errors?.comment?.length" />
+          :invalid="!!form.errors?.comment" />
         <InlineMessage v-if="form.errors?.comment" class="mt-2" severity="error">{{ form.errors?.comment }}
         </InlineMessage>
       </div>

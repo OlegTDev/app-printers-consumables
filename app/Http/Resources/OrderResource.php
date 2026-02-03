@@ -22,9 +22,12 @@ class OrderResource extends JsonResource
             'status' => $this->status,
             'status_label' => Order::getStatusLabelByStatus($this->status),
             'comment' => $this->comment,
+            'quantity' => $this->quantity,
             'requested' => new UserResourceShort($this->requested),
             'created_at' => $this->created_at,
             'updated_at'=> $this->updated_at,
+
+            'organization' => new OrganizationResource($this->organization),
         ];
     }
 }

@@ -14,7 +14,6 @@ import OrderStatusHistory from '../Shared/OrderStatusHistory.vue';
 import { useConfirm } from 'primevue/useconfirm';
 import { createUrlWithParams } from '@/config/urls';
 
-
 defineOptions({
   layout: Layout,
 });
@@ -44,12 +43,15 @@ const actions = {
   edit: () => {
     Inertia.get(urls.orders.spareParts.edit(orderSparePartDetail.id));
   },
+  editFiles: () => {
+    Inertia.get(urls.orders.spareParts.editFiles(orderSparePartDetail.id));
+  },
   delete: () => {
     confirm.require({
       message: 'Вы уверены, что хотите удалить заказ?',
       header: 'Удаление заказа',
       accept: () => {
-        const url = createUrlWithParams(urls.orders.delete(orderSparePartDetail.id), { context: 'spare-parts' });        
+        const url = createUrlWithParams(urls.orders.delete(orderSparePartDetail.id), { context: 'spare-parts' });
         Inertia.delete(url);
       },
     });
@@ -156,16 +158,25 @@ const actions = {
           </td>
         </tr>
         <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-          <th class="px-6 py-4">{{ labels.order_spare_part.id_spare_part_or_call_specialist }}</th>
+          <th class="px-6 py-4">{{ labels.order_spare_part.call_specialist }}</th>
           <td class="px-6 py-4">
-            <template v-if="orderSparePartDetail.call_specialist">
-              <i class="fa-solid fa-phone me-2"></i> {{ labels.order_spare_part.call_specialist }}
-            </template>
-            <template v-else>
-              {{ orderSparePartDetail.sparePart.name }}
-            </template>
+            {{ orderSparePartDetail.call_specialist ? 'Да' : 'Нет' }}
           </td>
-        </tr>        
+        </tr>
+        <template v-if="!orderSparePartDetail.call_specialist">
+        <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+          <th class="px-6 py-4">{{ labels.order_spare_part.id_spare_part }}</th>
+          <td class="px-6 py-4">
+            {{ orderSparePartDetail?.sparePart?.name }}
+          </td>
+        </tr>
+        <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+          <th class="px-6 py-4">{{ labels.order.quantity }}</th>
+          <td class="px-6 py-4">
+            {{ orderSparePartDetail?.order?.quantity }}
+          </td>
+        </tr>
+        </template>
         <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
           <th class="px-6 py-4">{{ labels.order.status }}</th>
           <td class="px-6 py-4">
@@ -182,9 +193,9 @@ const actions = {
         <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
           <th class="px-6 py-4">{{ labels.order_spare_part.files }}</th>
           <td class="px-6 py-4">
-            <ul v-if="orderSparePartDetail.files">
-              <li v-for="item in orderSparePartDetail.files" class="mb-2">
-                <i class="far fa-file"></i>
+            <ul v-if="orderSparePartDetail.files" class="space-y-2">
+              <li v-for="item in orderSparePartDetail.files" :key="item.id" class="flex items-center">
+                <i class="pi pi-file"></i>
                 <a :href="item.url_file_download" target="_blank" class="ms-2">{{ item.basename }}</a>
               </li>
             </ul>
@@ -228,6 +239,7 @@ const actions = {
         </div>
 
         <div v-if="auth.can('admin')" class="flex gap-2">
+          <Button class="font-bold" @click="actions.editFiles">Редактировать файлы</Button>
           <Button class="font-bold" @click="actions.edit">Редактировать</Button>
           <Button severity="danger" class="font-bold" @click="actions.delete">Удалить</Button>
         </div>

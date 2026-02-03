@@ -34,6 +34,7 @@ class OrderSparePartDetailsController extends Controller
     public function index(Request $request)
     {
         $orders = OrderSparePartDetails::queryWithFilterByOrgCode()
+            ->orderByDesc('id')
             ->filter($request->only(['search', 'status', 'organizations']))->get();
 
         return Inertia::render('Orders/SparePart/Index', [
@@ -71,7 +72,10 @@ class OrderSparePartDetailsController extends Controller
     {
         DB::transaction(function () use ($request) {
             $modelOrderSparePart = $this->createOrderSparePartDetail($request);
-            $this->createChildOrder($modelOrderSparePart, $request->input('comment'));
+            $this->createChildOrder($modelOrderSparePart,
+                $request->input('comment'),
+                $request->input('quantity'),
+            );
             $this->uploadFiles($modelOrderSparePart, $request);
         });
 
@@ -108,7 +112,6 @@ class OrderSparePartDetailsController extends Controller
 
         return Inertia::render('Orders/SparePart/Edit', [
             'orderSparePartDetail' => new OrderSparePartResource($orderSparePartDetails),
-            //'spareParts' => SparePartsResource::collection(SpareParts::get()),
             'labels' => [
                 ...(array)config('labels.order_spare_part'),
                 'order' => config('labels.order'),
@@ -124,8 +127,21 @@ class OrderSparePartDetailsController extends Controller
         $this->authorize('update', $orderSparePartDetails->order);
 
         $orderSparePartDetails->update($request->only(['id_printers_workplace', 'call_specialist', 'id_spare_part']));
+        $orderSparePartDetails->order()->update($request->only(['quantity']));
         return redirect()->route('spare-parts.show', ['orderSparePartDetails' => $orderSparePartDetails])
             ->with('success', 'Изменения сохранены!');
+    }
+
+    /**
+     * @route GET orders/spare-parts/{orderSparePartDetails}/edit-files
+     */
+    public function editFiles(OrderSparePartDetails $orderSparePartDetails)
+    {
+        $this->authorize('update', $orderSparePartDetails->order);
+        return Inertia::render('Orders/SparePart/EditFiles', [
+            'orderSparePartDetail' => new OrderSparePartResource($orderSparePartDetails),
+            'labels' => config('labels.order_spare_part'),
+        ]);
     }
 
     /**
@@ -161,9 +177,9 @@ class OrderSparePartDetailsController extends Controller
         ]));
     }
 
-    private function createChildOrder(OrderSparePartDetails $orderSparePartDetails, ?string $comment): void
+    private function createChildOrder(OrderSparePartDetails $orderSparePartDetails, ?string $comment, ?int $quantity): void
     {
-        Order::createWithChildOrder($orderSparePartDetails, $comment);
+        Order::createWithChildOrder($orderSparePartDetails, $comment, $quantity);
     }
 
     private function uploadFilesIfPresent(OrderSparePartDetails $model, Request $request): void

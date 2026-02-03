@@ -18,6 +18,8 @@ Route::resource('orders/spare-parts', OrderSparePartDetailsController::class)
     ->parameters([
         'spare-parts' => 'orderSparePartDetails',
     ]);
+Route::get('orders/spare-parts/{orderSparePartDetails}/files',
+    [OrderSparePartDetailsController::class, 'editFiles']);
 Route::delete(
     'orders/spare-parts/{orderSparePartDetails}/files/{orderSparePartDetailsFile}',
     [OrderSparePartDetailsController::class, 'deleteFile']

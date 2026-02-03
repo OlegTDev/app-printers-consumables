@@ -91,13 +91,14 @@ final class Order extends Model
         return $this->belongsTo(Organization::class, 'org_code');
     }
 
-    public static function createWithChildOrder(Model $subOrder, ?string $comment)
+    public static function createWithChildOrder(Model $subOrder, ?string $comment, ?int $quantity)
     {
-        DB::transaction(function () use ($subOrder, $comment) {
+        DB::transaction(function () use ($subOrder, $comment, $quantity) {
             $order = self::create([
                 'org_code' => auth()->user()->org_code,
                 'status' => self::STATUS_PENDING,
                 'comment' => $comment,
+                'quantity' => $quantity,
                 'requested_by' => auth()->user()->id,
             ]);
 

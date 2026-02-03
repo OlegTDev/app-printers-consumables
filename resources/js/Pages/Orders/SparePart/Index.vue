@@ -18,6 +18,7 @@ import Dropdown from 'primevue/dropdown';
 import axios from 'axios';
 import { useToast } from 'primevue/usetoast';
 import TreeSelect from 'primevue/treeselect';
+import Badge from 'primevue/badge';
 
 defineOptions({
   layout: Layout,
@@ -37,7 +38,7 @@ const listStatuses = computed(() => {
 });
 
 const propsFiltersOrganizations = computed(() => {
-  if (props.filters?.organizations) {    
+  if (props.filters?.organizations) {
     return props.filters.organizations.reduce((acc, val) => {
       acc[val] = true;
       return acc;
@@ -58,7 +59,7 @@ const organizations = ref();
 const loadDataOrgs = () => {
   axios.get(urls.users.organizations.index())
     .then((response) => {
-      organizations.value = response.data.organizations;      
+      organizations.value = response.data.organizations;
     })
     .catch((error) => {
       toast.add({
@@ -111,7 +112,7 @@ const title = 'Заказ запчастей';
           <Button @click="actions.create" severity="info">
             Заказать
           </Button>
-          <div>            
+          <div>
             <TreeSelect selectionMode="multiple" v-model="form.organizations" :options="organizations"
               placeholder="Организации" class="w-20rem me-2" />
             <Dropdown v-model="form.status" :options="listStatuses" optionLabel="label" optionValue="key"
@@ -124,8 +125,8 @@ const title = 'Заказ запчастей';
         </div>
       </template>
       <Column header="#" headerStyle="width:3rem">
-        <template #body="slotProps">
-          {{ slotProps.index + 1 }}
+        <template #body="{ data }">
+          {{ data.id }}
         </template>
       </Column>
       <Column :header="labels.order.status">
@@ -139,7 +140,14 @@ const title = 'Заказ запчастей';
             <i class="fa-solid fa-phone me-2"></i> {{ labels.order_spare_part.call_specialist }}
           </template>
           <template v-else>
-            {{ data.sparePart.name }}
+            <div class="flex flex-col gap-3">
+              <div>
+                {{ data.sparePart.name }} (x{{ data.order.quantity }})
+              </div>
+              <div v-if="data.sparePart.description" class="text-gray-500">
+                {{ data.sparePart.description }}
+              </div>
+            </div>
           </template>
         </template>
       </Column>
@@ -149,6 +157,12 @@ const title = 'Заказ запчастей';
             :is_color_print="data.printerWorkplace.printer.is_color_print" :location="data.printerWorkplace.location"
             :inventory_number="data.printerWorkplace.inventory_number"
             :serial_number="data.printerWorkplace.serial_number" />
+        </template>
+      </Column>
+      <Column :header="labels.order.org_code">
+        <template #body="{ data }">
+          {{ data.order.organization.name }}
+          ({{ data.order.organization.code }})
         </template>
       </Column>
       <Column :header="labels.order.requested_by">

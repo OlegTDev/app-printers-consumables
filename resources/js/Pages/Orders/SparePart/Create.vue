@@ -6,31 +6,32 @@ import { computed, inject } from 'vue';
 import Form from './Form.vue';
 
 defineOptions({
-    layout: Layout,
+  layout: Layout,
 });
 
 const urls = inject('urls');
 
-const props = defineProps({    
-    spareParts: Object,
-    labels: Object,
+const props = defineProps({
+  spareParts: Object,
+  labels: Object,
 });
 
 const sparePartsData = computed(() => props.spareParts?.data || []);
 const title = 'Оформление заказа';
-
 </script>
 <template>
-    <Head :title="title" />    
 
-    <Breadcrumbs :home="{ label: 'Главная', url: '/' }" :items="[
-        { label: 'Заказ запчастей', url: urls.orders.spareParts.index() },
-        { label: title },
-    ]" />
+  <Head :title="title" />
 
-    <div class="flex justify-stretch bg-white rounded-md shadow overflow-hidden mt-4">
-        
-        <Form :isNew="true" :spareParts="sparePartsData" :labels="labels" />
+  <Breadcrumbs :home="{ label: 'Главная', url: '/' }" :items="[
+    { label: 'Заказ запчастей', url: urls.orders.spareParts.index() },
+    { label: title },
+  ]" />
 
-    </div>
+  <div class="rounded-lg bg-white shadow-sm border border-gray-200">
+
+
+    <Form :isNew="true" :spareParts="sparePartsData" :labels="labels" />
+
+  </div>
 </template>
