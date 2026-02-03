@@ -21,11 +21,23 @@ class OrderSparePartDetailRequest extends OrderChildRequest
             'files.*' => [
                 'max:30720',
             ],
+            'quantity' => 'required_if:call_specialist,false|integer|min:1',
         ];
     }
 
     public function attributes()
     {
-        return config('labels.order_spare_part');
+        return [
+            ...(array)config('labels.order'),
+            ...(array)config('labels.order_spare_part'),
+        ];
+    }
+
+    public function messages()
+    {
+        return [
+            'files' => 'Необходимо загрузить ":attribute"',
+            'quantity' => 'Количество должно быть не менее 1',
+        ];
     }
 }

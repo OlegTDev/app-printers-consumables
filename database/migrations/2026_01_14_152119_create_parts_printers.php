@@ -16,12 +16,14 @@ return new class extends Migration {
             $table->string('org_code', 5);
             $table->enum('status', ['draft', 'pending', 'rejected', 'in_progress', 'completed', 'cancelled']);
             $table->text('comment')->nullable();
+            $table->integer(column: 'quantity', unsigned: true)->default(1);
             $table->integer('requested_by');
             $table->timestamps();
 
             $table->foreign('requested_by')->references('id')->on('users');
             $table->foreign('org_code')->references('code')->on('organizations');
         });
+        DB::statement('ALTER TABLE orders ADD CONSTRAINT orders_quantity_check CHECK (quantity > 0)');
 
         # история изменения статусов заказа
         Schema::create('order_status_history', function (Blueprint $table) {
@@ -35,6 +37,7 @@ return new class extends Migration {
             $table->foreign('id_order')->references('id')->on('orders')->cascadeOnDelete();
             $table->foreign('id_author')->references('id')->on('users');
         });
+
 
         # заказы запчастей
         Schema::create('order_spare_part_details', function (Blueprint $table) {

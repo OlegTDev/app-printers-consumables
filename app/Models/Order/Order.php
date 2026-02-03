@@ -3,6 +3,7 @@
 namespace App\Models\Order;
 
 use App\Models\Auth\User;
+use App\Models\Organization;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -15,12 +16,14 @@ use Illuminate\Support\Facades\DB;
  * @property string $org_code
  * @property string $status
  * @property string $comment
+ * @property int $quantity
  * @property int $requested_by
  * @property string $created_at
  * @property string $updated_at
- * 
+ *
  * @property \App\Models\User $requested
  * @property \App\Models\Order\OrderStatusHistory $statusHistory
+ * @property \App\Models\Organization $organization
  */
 final class Order extends Model
 {
@@ -49,7 +52,8 @@ final class Order extends Model
     protected $table = 'orders';
 
     protected $fillable = [
-        'comment',      
+        'comment',
+        'quantity',
     ];
 
     public static function boot()
@@ -57,7 +61,7 @@ final class Order extends Model
         parent::boot();
         self::creating(function(self $model) {
             $model->requested_by = Auth::id();
-        });        
+        });
     }
 
     public static function labels()
@@ -82,6 +86,11 @@ final class Order extends Model
         return $this->hasMany(OrderStatusHistory::class, 'id_order');
     }
 
+    public function organization(): BelongsTo
+    {
+        return $this->belongsTo(Organization::class, 'org_code');
+    }
+
     public static function createWithChildOrder(Model $subOrder, ?string $comment)
     {
         DB::transaction(function () use ($subOrder, $comment) {
@@ -89,7 +98,7 @@ final class Order extends Model
                 'org_code' => auth()->user()->org_code,
                 'status' => self::STATUS_PENDING,
                 'comment' => $comment,
-                'requested_by' => auth()->user()->id,                
+                'requested_by' => auth()->user()->id,
             ]);
 
             $subOrder->order()->associate($order);
@@ -100,7 +109,7 @@ final class Order extends Model
     public static function getStatusLabelByStatus(string $status): string
     {
         return self::$statusLabels[$status] ?? $status;
-    }    
+    }
 
     public static function statusLabels(): array
     {
