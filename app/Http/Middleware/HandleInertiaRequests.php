@@ -3,9 +3,7 @@
 namespace App\Http\Middleware;
 
 use App;
-use App\Models\Auth\Role;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
@@ -39,34 +37,33 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request)
     {
-        return array_merge(parent::share($request), [
+        return [
+            ...parent::share($request),
             'auth' => function () use ($request) {
-                $roles = $request->user()?->roles()?->get()?->transform(fn(Role $role) => $role->name) ?? [];
+                $roles = [];
+                $user = $request->user();
+                if ($user) {
+                    $roles = cache()->remember(
+                        "user_roles_{$user->id}",
+                        10,
+                        fn() => $user?->roles()->pluck('name')->toArray()
+                    ) ?? [];
+                }
                 return [
-                    'user' => $request->user() ? [
-                        'id' => $request->user()->id,                       
-                        'name' => $request->user()->name,
-                        'email' => $request->user()->email,                        
-                        'roles' => $roles,
-                        'fio' => $request->user()->fio,
-                        'org_code' => $request->user()->org_code,
-                    ] : null,
-                ];
-            },            
-            // 'canGlobal' => [
-            //     'admin' => Auth::check() && Auth::user()->hasRole('admin'),
-            //     'editorStock' => Auth::check() && Auth::user()->hasRole(['admin', 'editor-stock']),
-            //     'editorLocal' => Auth::check() && Auth::user()->hasRole(['admin', 'editor-local']),
-            //     'reader' => Auth::check() && Auth::user()->hasRole(['reader', 'editor-local', 'editor-stock', 'admin']),
-            // ],
-            'flash' => function () use ($request) {
-                return [
-                    'success' => $request->session()->get('success'),
-                    'error' => $request->session()->get('error'),
+                    'user' => $user
+                        ? $request->user()->only(['id', 'name', 'email', 'fio', 'org_code'])
+                        + ['roles' => $roles]
+                        : null,
+                    'isAdmin' => $user ? $user->isAdmin() : false,
                 ];
             },
+            'flash' => fn() =>
+                [
+                    'success' => $request->session()->get('success'),
+                    'error' => $request->session()->get('error'),
+                ],
             'appName' => config('app.name'),
-            
-        ]);
+
+        ];
     }
 }
