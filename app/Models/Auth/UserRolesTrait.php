@@ -11,12 +11,12 @@ trait UserRolesTrait
 {
     /**
      * Проверка принадлежности роли(ей) $role пользователю
-     * @param string|array $role 
+     * @param string|array $role
      * @return bool
      */
     public function hasRole(string|array $role): bool
-    {     
-        return $this->roles()->whereIn('name', (array)$role)->count() > 0; 
+    {
+        return $this->roles()->whereIn('name', (array)$role)->exists();
     }
 
     /**
@@ -33,7 +33,7 @@ trait UserRolesTrait
      * @param array $roles
      */
     public function updateRoles($roles)
-    {        
+    {
         $this->clearRoles();
         $roles = (array)$roles;
         if (in_array('admin', $roles)) {
@@ -44,7 +44,7 @@ trait UserRolesTrait
             return;
         }
         foreach($roles as $role) {
-            $roleModel = Role::query()->where('name', $role)->first(); 
+            $roleModel = Role::query()->where('name', $role)->first();
             if ($roleModel) {
                 $this->roles()->save($roleModel);
             }
@@ -72,5 +72,15 @@ trait UserRolesTrait
             'editor-dev' => 'Уменьшение количества (по контексту) - ФКУ',
         ];
     }
-    
+
+    public function getRoleNames(): array
+    {
+        return $this->roles()->pluck('name')->toArray();
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->hasRole('admin');
+    }
+
 }
