@@ -14,13 +14,13 @@ use Laravel\Sanctum\HasApiTokens;
 
 /**
  * Пользователь
- * 
+ *
  * @property int $id
  * @property string $name
  * @property string $email
  * @property string $photo_path
  * @property string $password
- * 
+ *
  * @property string $domain
  * @property string $org_code
  * @property string $company
@@ -30,15 +30,15 @@ use Laravel\Sanctum\HasApiTokens;
  * @property string $telephone
  * @property string $lotus_mail
  * @property string $members
- * 
+ *
  * @property string $created_at
  * @property string $updated_at
  * @property string $deleted_at
- * 
+ *
  * @property Role[] $roles
  * @property Permission[] $permissions
  * @property Organization[] $organizations
- * 
+ *
  */
 class User extends Authenticatable
 {
@@ -94,7 +94,7 @@ class User extends Authenticatable
      * @return void
      */
     public function scopeFilter(Builder $query, array $filters): void
-    {        
+    {
         $query->whereNotNull('users.id')
             ->withTrashed()
             ->select('users.*');
@@ -106,12 +106,12 @@ class User extends Authenticatable
                     ->orWhere('fio', 'like', '%'.$search.'%');
             });
         })
-        ->when($filters['role'] ?? null, function(Builder $query, $role) {            
+        ->when($filters['role'] ?? null, function(Builder $query, $role) {
             $query->leftJoin('roles_users', 'roles_users.id_user', '=', 'users.id')
                 ->leftJoin('roles', 'roles.id', '=', 'roles_users.id_role')
                 ->where('roles.name', $role);
         });
-    }   
+    }
 
     /**
      * Изменение организации у пользователя
@@ -119,7 +119,7 @@ class User extends Authenticatable
      * @return void
      */
     public function changeSelectedOrganization(string $code)
-    {        
+    {
         $this->org_code = $code;
         $this->save();
     }
@@ -147,18 +147,18 @@ class User extends Authenticatable
      * @return array
      */
     public function availableOrganizations(string $parent = null): array
-    {        
+    {
         $isAdmin = $this->hasRole('admin');
         $result = [];
         $items = Organization::query()
             ->select(['organizations.code', 'organizations.name', 'users_organizations.id AS available'])
             ->leftJoin('users_organizations', function($join) {
                 $join->on('users_organizations.org_code', '=', 'organizations.code');
-                $join->on('users_organizations.id_user', '=', DB::raw($this->id));                
+                $join->on('users_organizations.id_user', '=', DB::raw($this->id));
             })
             ->where('organizations.parent', '=', $parent)
             ->get();
-        
+
         if ($items !== null) {
             foreach($items as $item) {
                 $children = $this->availableOrganizations($item->code);
@@ -166,7 +166,7 @@ class User extends Authenticatable
                     $result[] = [
                         'key' => $item->code,
                         'label' => "{$item->name} ({$item->code})",
-                        'code' => $item->code, 
+                        'code' => $item->code,
                         'data' => [
                             'code' => $item->code,
                             'name' => $item->name,
@@ -182,5 +182,10 @@ class User extends Authenticatable
         return $result;
     }
 
-    
+    public function getRoleNames(): array
+    {
+        return $this->roles()->pluck('name')->toArray();
+    }
+
+
 }
