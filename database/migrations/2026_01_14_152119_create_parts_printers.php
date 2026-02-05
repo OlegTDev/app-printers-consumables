@@ -14,7 +14,7 @@ return new class extends Migration {
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
             $table->string('org_code', 5);
-            $table->enum('status', ['draft', 'pending', 'rejected', 'in_progress', 'completed', 'cancelled']);
+            $table->string('status', 30);
             $table->text('comment')->nullable();
             $table->integer(column: 'quantity', unsigned: true)->default(1);
             $table->integer('requested_by');
@@ -29,7 +29,7 @@ return new class extends Migration {
         Schema::create('order_status_history', function (Blueprint $table) {
             $table->id();
             $table->integer('id_order');
-            $table->enum('status', ['draft', 'pending', 'rejected', 'in_progress', 'completed', 'cancelled']);
+            $table->string('status', 30);
             $table->text('comment')->nullable();
             $table->integer('id_author');
             $table->timestamp('created_at');
