@@ -1,24 +1,21 @@
 <script setup>
 import Tag from 'primevue/tag';
+import { computed } from 'vue';
 
 const props = defineProps({
-    status: String,
-    statusLabel: String,
+  status: String,
+  statuses: Object,
 });
 
-let severity = 'secondary';
-if (props.status == 'pending') {
-    severity = 'warning';
-} else if (props.status == 'rejected' || props.status == 'cancelled') {
-    severity = 'danger';
-} else if (props.status == 'in_progress') {
-    severity = 'info';
-} else if (props.status == 'completed') {
-    severity = 'success';
-}
+const tagStatus = computed(() => {
+  if (props.status in props.statuses) {
+    return props.statuses[props.status];
+  }
+})
+
 </script>
 <template>
-    <Tag :severity="severity">
-        {{ statusLabel }}
-    </Tag>
+  <Tag :severity="tagStatus.color">
+    {{ tagStatus.label }}
+  </Tag>
 </template>

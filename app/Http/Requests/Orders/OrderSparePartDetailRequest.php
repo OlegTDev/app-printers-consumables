@@ -21,7 +21,6 @@ class OrderSparePartDetailRequest extends OrderChildRequest
             'files.*' => [
                 'max:30720',
             ],
-            'quantity' => 'required_if:call_specialist,false|integer|min:1',
         ];
     }
 
@@ -37,7 +36,6 @@ class OrderSparePartDetailRequest extends OrderChildRequest
     {
         return [
             'files' => 'Необходимо загрузить ":attribute"',
-            'quantity' => 'Количество должно быть не менее 1',
         ];
     }
 }

@@ -29,31 +29,10 @@ final class Order extends Model
 {
     use HasFactory;
 
-    public const STATUS_DRAFT = 'draft';
-    public const STATUS_PENDING = 'pending';
-    public const STATUS_REJECTED = 'rejected';
-    public const STATUS_IN_PROGRESS = 'in_progress';
-    public const STATUS_COMPLETED = 'completed';
-    public const STATUS_CANCELLED = 'cancelled';
-
-    private static $statusLabels = [
-        self::STATUS_DRAFT => 'черновик',
-        self::STATUS_PENDING => 'на согласовании',
-        self::STATUS_REJECTED => 'отказан',
-        self::STATUS_COMPLETED => 'завершен',
-        self::STATUS_CANCELLED => 'отменен',
-        self::STATUS_IN_PROGRESS => 'в работе',
-    ];
-
-    public const ROLE_AUTHOR = 'order-author';
-    public const ROLE_APPROVER = 'order-approver';
-
-
     protected $table = 'orders';
 
     protected $fillable = [
         'comment',
-        'quantity',
     ];
 
     public static function boot()
@@ -62,18 +41,6 @@ final class Order extends Model
         self::creating(function(self $model) {
             $model->requested_by = Auth::id();
         });
-    }
-
-    public static function labels()
-    {
-        return [
-            'status' => 'Статус',
-            'comment' => 'Комментарий',
-            'created_at' => 'Дата создания',
-            'updated_at' => 'Дата изменения',
-            'timestamps' => 'Дата',
-            'requested_by' => 'Автор',
-        ];
     }
 
     public function requested(): BelongsTo
@@ -93,12 +60,11 @@ final class Order extends Model
 
     public static function createWithChildOrder(Model $subOrder, ?string $comment, ?int $quantity)
     {
-        DB::transaction(function () use ($subOrder, $comment, $quantity) {
+        DB::transaction(function () use ($subOrder, $comment) {
             $order = self::create([
                 'org_code' => auth()->user()->org_code,
-                'status' => self::STATUS_PENDING,
+                'status' => OrderStatusEnum::default(),
                 'comment' => $comment,
-                'quantity' => $quantity,
                 'requested_by' => auth()->user()->id,
             ]);
 
@@ -110,11 +76,6 @@ final class Order extends Model
     public static function getStatusLabelByStatus(string $status): string
     {
         return self::$statusLabels[$status] ?? $status;
-    }
-
-    public static function statusLabels(): array
-    {
-        return self::$statusLabels;
     }
 
     public function getLastEditor()

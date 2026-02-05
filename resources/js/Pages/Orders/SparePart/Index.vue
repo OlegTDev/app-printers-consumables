@@ -18,7 +18,7 @@ import Dropdown from 'primevue/dropdown';
 import axios from 'axios';
 import { useToast } from 'primevue/usetoast';
 import TreeSelect from 'primevue/treeselect';
-import Badge from 'primevue/badge';
+import Tag from 'primevue/tag';
 
 defineOptions({
   layout: Layout,
@@ -33,7 +33,7 @@ const props = defineProps({
 
 const listStatuses = computed(() => {
   let result = [];
-  Object.entries(props.statuses).forEach(([key, label]) => result.push({ key, label }));
+  Object.entries(props.statuses).forEach(([key, label]) => result.push({ key, label: label.label }));
   return result;
 });
 
@@ -131,7 +131,7 @@ const title = 'Заказ запчастей';
       </Column>
       <Column :header="labels.order.status">
         <template #body="{ data }">
-          <OrderStatus :status="data.order.status" :statusLabel="data.order.status_label" />
+          <OrderStatus :status="data.order.status" :statuses="statuses" />
         </template>
       </Column>
       <Column :header="labels.order_spare_part.id_spare_part_or_call_specialist">
@@ -142,7 +142,7 @@ const title = 'Заказ запчастей';
           <template v-else>
             <div class="flex flex-col gap-3">
               <div>
-                {{ data.sparePart.name }} (x{{ data.order.quantity }})
+                {{ data.sparePart.name }}
               </div>
               <div v-if="data.sparePart.description" class="text-gray-500">
                 {{ data.sparePart.description }}

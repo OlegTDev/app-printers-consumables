@@ -10,7 +10,9 @@ use App\Models\Consumable\ConsumableTypesEnum;
 use App\Models\Order\Order;
 use App\Models\Order\OrderSparePartDetails;
 use App\Models\Order\OrderSparePartDetailsFile;
+use App\Models\Order\Roles;
 use App\Services\OrderSparePartDetailUploadFilesService;
+use App\Services\OrderStatusButtonService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redirect;
@@ -21,7 +23,7 @@ class OrderSparePartDetailsController extends Controller
 
     public function __construct()
     {
-        $this->middleware('role:admin,order-approver')
+        $this->middleware('role:admin,' . Roles::ORDER_APPROVER->value)
             ->only(['create', 'store', 'cancel']);
 
         $this->middleware('role:admin')
@@ -42,7 +44,8 @@ class OrderSparePartDetailsController extends Controller
             'orders' => OrderSparePartResource::collection($orders),
             'cartridgeColors' => CartridgeColors::get(),
             'consumableTypes' => ConsumableTypesEnum::array(),
-            'statuses' => Order::statusLabels(),
+            'statuses' => config('order_statuses'),
+
 
             'labels' => [
                 'order' => config('labels.order'),
@@ -74,7 +77,6 @@ class OrderSparePartDetailsController extends Controller
             $modelOrderSparePart = $this->createOrderSparePartDetail($request);
             $this->createChildOrder($modelOrderSparePart,
                 $request->input('comment'),
-                $request->input('quantity'),
             );
             $this->uploadFiles($modelOrderSparePart, $request);
         });
@@ -86,15 +88,21 @@ class OrderSparePartDetailsController extends Controller
     /**
      * @route GET orders/spare-parts/{orderSparePartDetails}
      */
-    public function show(OrderSparePartDetails $orderSparePartDetails)
+    public function show(OrderSparePartDetails $orderSparePartDetails, OrderStatusButtonService $orderStatusButtonService)
     {
+        $userRoles = auth()->user()->getRoleNames();
+        $order = $orderSparePartDetails->order;
+        $isAuthor = $order->requested_by === auth()->user()->id;
+        if ($isAuthor) {
+            $userRoles[] = Roles::ORDER_AUTHOR->value;
+        }
+        $buttons = $orderStatusButtonService->getAvailableButtons($order->status, $userRoles);
+
         return Inertia::render('Orders/SparePart/Show', [
             'orderSparePartDetail' => new OrderSparePartResource($orderSparePartDetails),
-            'orderStatusPending' => Order::STATUS_PENDING,
-            'orderStatusInProgress' => Order::STATUS_IN_PROGRESS,
-            'orderStatusCancelled' => Order::STATUS_CANCELLED,
-            'isAuthor' => $orderSparePartDetails->order->requested_by === auth()->user()->id,
-
+            'statuses' => config('order_statuses'),
+            'isAuthor' => $isAuthor,
+            'buttons' => $buttons,
             'labels' => [
                 'order' => config('labels.order'),
                 'spare_parts' => config('labels.spare_parts'),
@@ -177,9 +185,9 @@ class OrderSparePartDetailsController extends Controller
         ]));
     }
 
-    private function createChildOrder(OrderSparePartDetails $orderSparePartDetails, ?string $comment, ?int $quantity): void
+    private function createChildOrder(OrderSparePartDetails $orderSparePartDetails, ?string $comment): void
     {
-        Order::createWithChildOrder($orderSparePartDetails, $comment, $quantity);
+        Order::createWithChildOrder($orderSparePartDetails, $comment, 1);
     }
 
     private function uploadFilesIfPresent(OrderSparePartDetails $model, Request $request): void

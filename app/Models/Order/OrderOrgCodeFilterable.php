@@ -7,7 +7,7 @@ trait OrderOrgCodeFilterable
 {
     public function scopeFilterByOrgCode(Builder $query)
     {
-        if (auth()->user()->hasRole(['admin', Order::ROLE_APPROVER])) {
+        if (auth()->user()->hasRole(['admin', Roles::ORDER_APPROVER->value, Roles::ORDER_EXECUTOR->value])) {
             return $query;
         }
 

@@ -9,6 +9,7 @@ import Author from '@/Shared/DataTable/Author';
 
 const props = defineProps({
   idOrder: Number,
+  statuses: Object,
 });
 
 const urls = inject('urls');
@@ -32,14 +33,14 @@ const loadData = async () => {
       <DataTable :value="data" class="w-full">
         <Column field="status" :header="labels?.status">
           <template #body="{ data }">
-            <OrderStatus :status="data?.status" :statusLabel="data?.status_label" />
+            <OrderStatus :status="data?.status" :statuses="statuses" />
           </template>
         </Column>
         <Column field="author" :header="labels?.author">
           <template #body="{ data }">
-            <Author 
+            <Author
               :login="data?.author.name"
-              :fullName="data?.author.fio" 
+              :fullName="data?.author.fio"
               :post="data?.author.post"
               :department="data?.author.department" />
           </template>

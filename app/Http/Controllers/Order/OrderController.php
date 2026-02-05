@@ -5,26 +5,29 @@ namespace App\Http\Controllers\Order;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Orders\CommentRequired;
 use App\Models\Order\Order;
+use App\Models\Order\OrderStatusEnum;
+use App\Models\Order\Roles;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 class OrderController extends Controller
 {
 
-
     public function __construct()
     {
-        $this->middleware('role:admin,order-approver')
-            ->only(['approve', 'reject', 'completed']);
+        $this->middleware('role:' . implode(',', ['admin', Roles::ORDER_APPROVER->value]))
+            ->only(['agreed', 'reject', 'ordered', 'received', 'completed']);
+        $this->middleware('role:' . implode(',', ['admin', Roles::ORDER_APPROVER->value, Roles::ORDER_EXECUTOR->value]))
+            ->only(['ordered', 'received', 'completed']);
     }
 
     /**
-     * @route PUT orders/{order}/approve
+     * @route PUT orders/{order}/agree
      */
-    public function approve(Order $order, Request $request)
+    public function agree(Order $order, Request $request)
     {
-        $this->validateStatusOrFail($order, Order::STATUS_PENDING);
-        $this->saveOrder($order, Order::STATUS_IN_PROGRESS, $request->input('comment'));
+        $this->validateStatusOrFail($order, OrderStatusEnum::STATUS_PENDING);
+        $this->saveOrder($order, OrderStatusEnum::STATUS_AGREED, $request->input('comment'));
 
         return $this->createRoute($request, 'index')
             ->with('success', 'Заявка успешно согласована!');
@@ -35,21 +38,45 @@ class OrderController extends Controller
      */
     public function reject(Order $order, CommentRequired $request)
     {
-        $this->validateStatusOrFail($order, Order::STATUS_PENDING);
-        $this->saveOrder($order, Order::STATUS_REJECTED, $request->input('comment'));
+        $this->validateStatusOrFail($order, OrderStatusEnum::STATUS_PENDING);
+        $this->saveOrder($order, OrderStatusEnum::STATUS_REJECTED, $request->input('comment'));
 
         return $this->createRoute($request, 'index')
             ->with('success', 'Заявка отказана!');
     }
 
     /**
-     * @route PUT orders/{order}/completed
+     * @route PUT orders/{order}/ordered
      */
-    public function completed(Order $order, Request $request)
+    public function ordered(Order $order, Request $request)
     {
-        $this->validateStatusOrFail($order, Order::STATUS_IN_PROGRESS);
-        $this->saveOrder($order, Order::STATUS_COMPLETED, $request->input('comment'));
-        
+        $this->validateStatusOrFail($order, OrderStatusEnum::STATUS_AGREED);
+        $this->saveOrder($order, OrderStatusEnum::STATUS_ORDERED, $request->input('comment'));
+
+        return $this->createRoute($request, 'index')
+            ->with('success', "Статус заявки изменен на заказан!");
+    }
+
+    /**
+     * @route PUT orders/{order}/receive
+     */
+    public function receive(Order $order, Request $request)
+    {
+        $this->validateStatusOrFail($order, OrderStatusEnum::STATUS_ORDERED);
+        $this->saveOrder($order, OrderStatusEnum::STATUS_RECEIVED, $request->input('comment'));
+
+        return $this->createRoute($request, 'index')
+            ->with('success', "Статус заявки изменен на получен!");
+    }
+
+    /**
+     * @route PUT orders/{order}/complete
+     */
+    public function complete(Order $order, Request $request)
+    {
+        $this->validateStatusOrFail($order, OrderStatusEnum::STATUS_RECEIVED);
+        $this->saveOrder($order, OrderStatusEnum::STATUS_COMPLETED, $request->input('comment'));
+
         return $this->createRoute($request, 'index')
             ->with('success', 'Исполнение заявки завершено!');
     }
@@ -58,9 +85,9 @@ class OrderController extends Controller
      * @route PUT orders/{order}/cancel
      */
     public function cancel(Order $order, Request $request)
-    {        
-        if (auth()->user()->hasRole('admin') || auth()->user()->id == $order->requested_by) {
-            $order->setStatus(Order::STATUS_CANCELLED);
+    {
+        if (auth()->user()->isAdmin() || auth()->user()->id == $order->requested_by) {
+            $order->setStatus(OrderStatusEnum::STATUS_CANCELLED);
             return $this->createRoute($request, 'index')
                 ->with('success', 'Заявка отменена!');
         }
@@ -72,11 +99,11 @@ class OrderController extends Controller
      */
     public function destroy(Order $order, Request $request)
     {
-        if (!auth()->user()->hasRole('admin')) {
+        if (!auth()->user()->isAdmin()) {
             if (auth()->user()->id != $order->requested_by) {
                 abort(403);
             }
-            if ($order->status == Order::STATUS_COMPLETED) {
+            if ($order->status == OrderStatusEnum::STATUS_COMPLETED) {
                 abort(500, "Невозможно удалить со статусом {$order->status}.");
             }
         }

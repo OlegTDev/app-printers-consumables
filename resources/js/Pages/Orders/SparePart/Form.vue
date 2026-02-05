@@ -24,7 +24,6 @@ const form = useForm({
   id_spare_part: props.orderSparePart?.id_spare_part,
   call_specialist: props.orderSparePart?.call_specialist ?? false,
   comment: props.orderSparePart?.order?.comment,
-  quantity: props.orderSparePart?.order?.quantity || 1,
   files: [],
   is_new: props.isNew,
   step: step,
@@ -63,10 +62,6 @@ const emitClearFiles = () => {
 
 const emitChangeComment = (event) => {
   form.comment = event.target.value;
-}
-
-const emitQuantity = (value) => {
-  form.quantity = value;
 }
 
 const urlOtherConsumablesForPrinter = computed(() => {
@@ -135,15 +130,12 @@ const btnNextDisabled = computed(() => {
 
           :labelCallSpecialist="labels.call_specialist"
           :labelConsumable="labels.id_spare_part"
-          :labelQuantity="labels.quantity"
 
           :callSpecialist="form.call_specialist"
           :sparePartId="form.id_spare_part"
-          :quantity="form.quantity"
 
           @update:selectedCallSpecialist="emitCallSpecialistSelected"
           @update:selectedConsumable="emitConsumableSelected"
-          @update:quantity="emitQuantity"
         />
       </div>
       <div v-if="step === 2">

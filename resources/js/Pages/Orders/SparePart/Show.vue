@@ -14,24 +14,30 @@ import OrderStatusHistory from '../Shared/OrderStatusHistory.vue';
 import { useConfirm } from 'primevue/useconfirm';
 import { createUrlWithParams } from '@/config/urls';
 
+
 defineOptions({
   layout: Layout,
 });
 
 const urls = inject('urls');
 const moment = inject('moment');
-const auth = inject('auth');
 const dialog = useDialog();
 const confirm = useConfirm();
 
 const props = defineProps({
+  auth: Object,
   orderSparePartDetail: Object,
   labels: Object,
-  orderStatusPending: String,
-  orderStatusInProgress: String,
-  orderStatusCancelled: String,
   isAuthor: Boolean,
+  buttons: Array,
+  statuses: Object,
 });
+
+function getColorByStatus(status) {
+  if (status in props.statuses) {
+    return props.statuses[status]['color'];
+  }
+}
 
 const ConfirmDialog = defineAsyncComponent(() => import('../Shared/ConfirmDialog.vue'));
 
@@ -66,7 +72,7 @@ const actions = {
       },
     });
   },
-  approve: () => {
+  agree: () => {
     dialog.open(ConfirmDialog, {
       props: {
         header: 'Согласование',
@@ -82,7 +88,7 @@ const actions = {
       data: {
         idOrder: orderSparePartDetail.order.id,
         message: props.labels.order.comment,
-        url: createUrlWithParams(urls.orders.approve(orderSparePartDetail.id), { context: 'spare-parts' }),
+        url: createUrlWithParams(urls.orders.agree(orderSparePartDetail.id), { context: 'spare-parts' }),
         buttonLabel: 'Согласовать',
       }
     });
@@ -109,7 +115,49 @@ const actions = {
       }
     });
   },
-  completed: () => {
+  ordered: () => {
+    dialog.open(ConfirmDialog, {
+      props: {
+        header: 'Заказан',
+        style: {
+          width: '50vw',
+        },
+        breakpoints: {
+          '960px': '75vw',
+          '640px': '90vw'
+        },
+        modal: true,
+      },
+      data: {
+        idOrder: orderSparePartDetail.order.id,
+        message: props.labels.order.comment,
+        url: createUrlWithParams(urls.orders.ordered(orderSparePartDetail.id), { context: 'spare-parts' }),
+        buttonLabel: 'Перевести в состояние "Заказан"',
+      }
+    });
+  },
+  receive: () => {
+    dialog.open(ConfirmDialog, {
+      props: {
+        header: 'Получен',
+        style: {
+          width: '50vw',
+        },
+        breakpoints: {
+          '960px': '75vw',
+          '640px': '90vw'
+        },
+        modal: true,
+      },
+      data: {
+        idOrder: orderSparePartDetail.order.id,
+        message: props.labels.order.comment,
+        url: createUrlWithParams(urls.orders.receive(orderSparePartDetail.id), { context: 'spare-parts' }),
+        buttonLabel: 'Перевести в состояние "Получен"',
+      }
+    });
+  },
+  complete: () => {
     dialog.open(ConfirmDialog, {
       props: {
         header: 'Исполнено',
@@ -125,7 +173,7 @@ const actions = {
       data: {
         idOrder: orderSparePartDetail.order.id,
         message: props.labels.order.comment,
-        url: createUrlWithParams(urls.orders.completed(orderSparePartDetail.id), { context: 'spare-parts' }),
+        url: createUrlWithParams(urls.orders.complete(orderSparePartDetail.id), { context: 'spare-parts' }),
         buttonLabel: 'Исполнено',
       }
     });
@@ -163,25 +211,17 @@ const actions = {
             {{ orderSparePartDetail.call_specialist ? 'Да' : 'Нет' }}
           </td>
         </tr>
-        <template v-if="!orderSparePartDetail.call_specialist">
-        <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+        <tr v-if="!orderSparePartDetail.call_specialist" class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
           <th class="px-6 py-4">{{ labels.order_spare_part.id_spare_part }}</th>
           <td class="px-6 py-4">
             {{ orderSparePartDetail?.sparePart?.name }}
           </td>
         </tr>
         <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-          <th class="px-6 py-4">{{ labels.order.quantity }}</th>
-          <td class="px-6 py-4">
-            {{ orderSparePartDetail?.order?.quantity }}
-          </td>
-        </tr>
-        </template>
-        <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
           <th class="px-6 py-4">{{ labels.order.status }}</th>
           <td class="px-6 py-4">
             <OrderStatus :status="orderSparePartDetail.order.status"
-              :statusLabel="orderSparePartDetail.order.status_label" />
+              :statuses="statuses" />
           </td>
         </tr>
         <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
@@ -204,7 +244,7 @@ const actions = {
         <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
           <th class="px-6 py-4">{{ labels.order.status_history }}</th>
           <td class="px-6 py-4">
-            <OrderStatusHistory :idOrder="orderSparePartDetail.order.id" />
+            <OrderStatusHistory :idOrder="orderSparePartDetail.order.id" :statuses="statuses" />
           </td>
         </tr>
         <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
@@ -223,26 +263,23 @@ const actions = {
         </tr>
       </table>
 
-      <div class="flex justify-between mt-10" v-if="auth.can('admin', 'order-approver')">
+      <div class="flex justify-between mt-10" vif="auth.can('admin', 'order-approver')">
 
-        <div class="flex gap-2" v-if="orderSparePartDetail.order.status == orderStatusPending">
-          <Button severity="info" class="font-bold" @click="actions.approve">Согласовать</Button>
-          <Button severity="danger" class="font-bold" @click="actions.reject">Отказать в согласовании</Button>
+        <div class="flex gap-2">
+          <Button v-if="buttons.includes('agreed')" severity="info" class="font-bold" @click="actions.agree">Согласовать</Button>
+          <Button v-if="buttons.includes('rejected')" severity="danger" class="font-bold" @click="actions.reject">Отказать в согласовании</Button>
+          <Button v-if="buttons.includes('ordered')" severity="info" class="font-bold" @click="actions.ordered">Заказан</Button>
+          <Button v-if="buttons.includes('received')" severity="info" class="font-bold" @click="actions.receive">Получен</Button>
+          <Button v-if="buttons.includes('completed')" severity="success" class="font-bold" @click="actions.complete">Исполнено</Button>
+          <Button v-if="buttons.includes('cancelled')" severity="danger" class="font-bold" @click="actions.cancel">Отменить</Button>
         </div>
 
-        <div class="flex gap-2" v-if="orderSparePartDetail.order.status == orderStatusInProgress">
-          <Button severity="info" class="font-bold" @click="actions.completed">Исполнено</Button>
+        <div class="flex gap-2">
+          <Button v-if="auth.isAdmin || isAuthor" class="font-bold" @click="actions.editFiles">Редактировать файлы</Button>
+          <Button v-if="auth.isAdmin || isAuthor" class="font-bold" @click="actions.edit">Редактировать</Button>
+          <Button v-if="auth.isAdmin" severity="danger" class="font-bold" @click="actions.delete">Удалить</Button>
         </div>
 
-        <div v-if="orderSparePartDetail.order.status == orderStatusInProgress && (auth.can('admin') || isAuthor)">
-          <Button severity="danger" class="font-bold" @click="actions.cancel">Отменить</Button>
-        </div>
-
-        <div v-if="auth.can('admin')" class="flex gap-2">
-          <Button class="font-bold" @click="actions.editFiles">Редактировать файлы</Button>
-          <Button class="font-bold" @click="actions.edit">Редактировать</Button>
-          <Button severity="danger" class="font-bold" @click="actions.delete">Удалить</Button>
-        </div>
       </div>
 
     </template>

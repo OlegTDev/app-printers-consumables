@@ -18,9 +18,11 @@ const toast = reactive(useToast());
 
 const printersWorkplacesData = ref([]);
 const printersWorkplacesSelected = ref();
+const loading = ref(false);
 
 onMounted(async () => {
   try {
+    loading.value = true;
     printersWorkplacesData.value = await printersWorkplaceService.fetch(props.urlPrintersAll);
     printersWorkplacesSelected.value = printersWorkplacesData.value.find((item) => item.id == props.selectedId);
   } catch (error) {
@@ -31,6 +33,8 @@ onMounted(async () => {
       life: config.toast.timeLife,
     });
     console.error(error);
+  } finally {
+    loading.value = false;
   }
 });
 
@@ -43,7 +47,7 @@ const onChangePrinterWorkplace = (event) => {
   <div>
     <Label for="id_printers_workplace">{{ labels.id_printers_workplace }}</Label>
     <Dropdown v-model="printersWorkplacesSelected" filter showClear :options="printersWorkplacesData" optionLabel="label"
-      placeholder="Выберите принтер" class="w-full" @change="onChangePrinterWorkplace">
+      placeholder="Выберите принтер" class="w-full" @change="onChangePrinterWorkplace" :loading="loading">
       <template #value="slotProps">
         <div v-if="slotProps.value" class="grid gap-y-2">
           <div class="flex gap-x-2">

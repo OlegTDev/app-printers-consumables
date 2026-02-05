@@ -2,9 +2,11 @@ export const ordersUrls = (rootUrl) => {
   const base = `${rootUrl}orders`;
 
   return {
-    approve: (order) => `${base}/${order}/approve`,
+    agree: (order) => `${base}/${order}/agree`,
     reject: (order) => `${base}/${order}/reject`,
-    completed: (order) => `${base}/${order}/completed`,
+    ordered: (order) => `${base}/${order}/ordered`,
+    receive: (order) => `${base}/${order}/receive`,
+    complete: (order) => `${base}/${order}/complete`,
     cancel: (order) => `${base}/${order}/cancel`,
     delete: (order) => `${base}/${order}`,
     statusHistory: (order) => `${base}/${order}/status-history`,

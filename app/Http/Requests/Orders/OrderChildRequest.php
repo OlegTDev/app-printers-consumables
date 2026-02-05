@@ -9,7 +9,6 @@ class OrderChildRequest extends FormRequest
     {
         return [
             'comment' => 'string|nullable',
-            'quantity' => 'required|integer|min:1',
         ];
     }
 }

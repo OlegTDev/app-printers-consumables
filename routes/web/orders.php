@@ -7,9 +7,11 @@ use App\Http\Controllers\Order\OrderSparePartDetailsController;
 use App\Http\Controllers\Order\OrderStatusHistoryController;
 
 // Order
-Route::put('orders/{order}/approve', [OrderController::class, 'approve']);
+Route::put('orders/{order}/agree', [OrderController::class, 'agree']);
 Route::put('orders/{order}/reject', [OrderController::class, 'reject']);
-Route::put('orders/{order}/completed', [OrderController::class, 'completed']);
+Route::put('orders/{order}/ordered', [OrderController::class, 'ordered']);
+Route::put('orders/{order}/receive', [OrderController::class, 'receive']);
+Route::put('orders/{order}/complete', [OrderController::class, 'complete']);
 Route::put('orders/{order}/cancel', [OrderController::class, 'cancel']);
 Route::delete('orders/{order}', [OrderController::class, 'destroy']);
 
