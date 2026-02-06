@@ -23,9 +23,6 @@ class OrderSparePartDetailsController extends Controller
 
     public function __construct()
     {
-        $this->middleware('role:admin,' . Roles::ORDER_APPROVER->value)
-            ->only(['create', 'store', 'cancel']);
-
         $this->middleware('role:admin')
             ->only(['destroy']);
     }
