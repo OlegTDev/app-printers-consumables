@@ -16,9 +16,9 @@ class OrderController extends Controller
     public function __construct()
     {
         $this->middleware('role:' . implode(',', ['admin', Roles::ORDER_APPROVER->value]))
-            ->only(['agreed', 'reject', 'ordered', 'received', 'completed']);
+            ->only(['agreed', 'reject', 'ordered', 'completed']);
         $this->middleware('role:' . implode(',', ['admin', Roles::ORDER_APPROVER->value, Roles::ORDER_EXECUTOR->value]))
-            ->only(['ordered', 'received', 'completed']);
+            ->only(['ordered', 'completed']);
     }
 
     /**
@@ -62,6 +62,7 @@ class OrderController extends Controller
      */
     public function receive(Order $order, Request $request)
     {
+        $this->authorize('update', $order);
         $this->validateStatusOrFail($order, OrderStatusEnum::STATUS_ORDERED);
         $this->saveOrder($order, OrderStatusEnum::STATUS_RECEIVED, $request->input('comment'));
 

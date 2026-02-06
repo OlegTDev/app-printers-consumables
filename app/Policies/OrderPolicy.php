@@ -14,7 +14,7 @@ class OrderPolicy
         // редактирование документа не возможно, так как заказ уже прошел процедуру согласования
         return $user->can('admin') || (
             $order->requested_by == $user->id
-            && in_array($order->status, [OrderStatusEnum::STATUS_PENDING]));
+            && \in_array($order->status, [OrderStatusEnum::STATUS_PENDING, OrderStatusEnum::STATUS_ORDERED]));
     }
 
 }

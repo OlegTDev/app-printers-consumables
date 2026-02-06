@@ -52,7 +52,7 @@ return [
             OrderStatusEnum::STATUS_COMPLETED,
             OrderStatusEnum::STATUS_CANCELLED,
         ],
-        'roles' => [Roles::ORDER_APPROVER->value, Roles::ORDER_EXECUTOR->value],
+        'roles' => [Roles::ORDER_APPROVER->value, Roles::ORDER_EXECUTOR->value, Roles::ORDER_AUTHOR->value],
         'color' => 'info',
     ],
     OrderStatusEnum::STATUS_COMPLETED => [
