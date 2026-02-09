@@ -18,6 +18,8 @@ use Illuminate\Support\Facades\DB;
  * @property string $comment
  * @property int $quantity
  * @property int $requested_by
+ * @property string $service_request_number
+ * @property string $service_request_date
  * @property string $created_at
  * @property string $updated_at
  *
@@ -33,6 +35,8 @@ final class Order extends Model
 
     protected $fillable = [
         'comment',
+        'service_request_number',
+        'service_request_date',
     ];
 
     public static function boot()
@@ -58,14 +62,16 @@ final class Order extends Model
         return $this->belongsTo(Organization::class, 'org_code');
     }
 
-    public static function createWithChildOrder(Model $subOrder, ?string $comment, ?int $quantity)
+    public static function createWithChildOrder(Model $subOrder, ?string $comment, ?string $service_request_number, ?string $service_request_date)
     {
-        DB::transaction(function () use ($subOrder, $comment) {
+        DB::transaction(function () use ($subOrder, $comment, $service_request_number, $service_request_date) {
             $order = self::create([
                 'org_code' => auth()->user()->org_code,
                 'status' => OrderStatusEnum::default(),
                 'comment' => $comment,
                 'requested_by' => auth()->user()->id,
+                'service_request_number' => $service_request_number,
+                'service_request_date' => $service_request_date,
             ]);
 
             $subOrder->order()->associate($order);

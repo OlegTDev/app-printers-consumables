@@ -18,7 +18,6 @@ import Dropdown from 'primevue/dropdown';
 import axios from 'axios';
 import { useToast } from 'primevue/usetoast';
 import TreeSelect from 'primevue/treeselect';
-import Tag from 'primevue/tag';
 
 defineOptions({
   layout: Layout,
@@ -48,6 +47,7 @@ const propsFiltersOrganizations = computed(() => {
 
 const urls = inject('urls');
 const config = inject('config');
+const moment = inject('moment');
 const toast = reactive(useToast());
 const form = reactive({
   search: props.filters?.search,
@@ -60,6 +60,9 @@ const loadDataOrgs = () => {
   axios.get(urls.users.organizations.index())
     .then((response) => {
       organizations.value = response.data.organizations;
+      if (Array.isArray(organizations.value)) {
+        organizations.value.forEach((item) => item.label = item.code);
+      }
     })
     .catch((error) => {
       toast.add({
@@ -114,7 +117,7 @@ const title = 'Заказ запчастей';
           </Button>
           <div>
             <TreeSelect selectionMode="multiple" v-model="form.organizations" :options="organizations"
-              placeholder="Организации" class="w-20rem me-2" />
+              placeholder="Организации" class="w-xs me-2" />
             <Dropdown v-model="form.status" :options="listStatuses" optionLabel="label" optionValue="key"
               placeholder="Статус" showClear class="w-20rem me-2" />
             <span class="relative">
@@ -163,6 +166,16 @@ const title = 'Заказ запчастей';
         <template #body="{ data }">
           {{ data.order.organization.name }}
           ({{ data.order.organization.code }})
+        </template>
+      </Column>
+      <Column :header="labels.order.service_request">
+        <template #body="{ data }">
+          <template v-if="data.order.service_request_number">
+            № {{ data.order.service_request_number }}
+          </template>
+          <template v-if="data.order.service_request_date">
+            от {{ moment(data.order.service_request_date).format('L') }}
+          </template>
         </template>
       </Column>
       <Column :header="labels.order.requested_by">

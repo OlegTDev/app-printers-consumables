@@ -23,6 +23,8 @@ class OrderResource extends JsonResource
             'status_label' => Order::getStatusLabelByStatus($this->status),
             'comment' => $this->comment,
             'quantity' => $this->quantity,
+            'service_request_number' => $this->service_request_number,
+            'service_request_date' => $this->service_request_date,
             'requested' => new UserResourceShort($this->requested),
             'created_at' => $this->created_at,
             'updated_at'=> $this->updated_at,

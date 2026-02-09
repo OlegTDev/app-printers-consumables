@@ -74,6 +74,8 @@ class OrderSparePartDetailsController extends Controller
             $modelOrderSparePart = $this->createOrderSparePartDetail($request);
             $this->createChildOrder($modelOrderSparePart,
                 $request->input('comment'),
+                $request->input('service_request_number'),
+                $request->input('service_request_date'),
             );
             $this->uploadFiles($modelOrderSparePart, $request);
         });
@@ -132,7 +134,7 @@ class OrderSparePartDetailsController extends Controller
         $this->authorize('update', $orderSparePartDetails->order);
 
         $orderSparePartDetails->update($request->only(['id_printers_workplace', 'call_specialist', 'id_spare_part']));
-        $orderSparePartDetails->order()->update($request->only(['quantity']));
+        $orderSparePartDetails->order()->update($request->only(['service_request_number', 'service_request_date']));
         return redirect()->route('spare-parts.show', ['orderSparePartDetails' => $orderSparePartDetails])
             ->with('success', 'Изменения сохранены!');
     }
@@ -182,9 +184,10 @@ class OrderSparePartDetailsController extends Controller
         ]));
     }
 
-    private function createChildOrder(OrderSparePartDetails $orderSparePartDetails, ?string $comment): void
+    private function createChildOrder(OrderSparePartDetails $orderSparePartDetails,
+        ?string $comment, ?string $service_request_number, ?string $service_request_date): void
     {
-        Order::createWithChildOrder($orderSparePartDetails, $comment, 1);
+        Order::createWithChildOrder($orderSparePartDetails, $comment, $service_request_number, $service_request_date);
     }
 
     private function uploadFilesIfPresent(OrderSparePartDetails $model, Request $request): void

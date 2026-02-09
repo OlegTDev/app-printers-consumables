@@ -23,7 +23,9 @@ const form = useForm({
   id_printers_workplace: props.orderSparePart?.id_printers_workplace,
   id_spare_part: props.orderSparePart?.id_spare_part,
   call_specialist: props.orderSparePart?.call_specialist ?? false,
-  comment: props.orderSparePart?.order?.comment,
+  comment: props.orderSparePart?.order.comment,
+  service_request_number: props.orderSparePart?.order.service_request_number,
+  service_request_date: props.orderSparePart?.order.service_request_date,
   files: [],
   is_new: props.isNew,
   step: step,
@@ -62,6 +64,14 @@ const emitClearFiles = () => {
 
 const emitChangeComment = (event) => {
   form.comment = event.target.value;
+}
+
+const emitChangeServiceRequestNumber = (event) => {
+  form.service_request_number = event.target.value;
+}
+
+const emitChangeServiceRequestDate = (event) => {
+  form.service_request_date = event.target.value;
 }
 
 const urlOtherConsumablesForPrinter = computed(() => {
@@ -142,13 +152,19 @@ const btnNextDisabled = computed(() => {
         <Step3
           :labelFiles="labels.files"
           :labelComment="labels.order.comment"
+          :labelServiceRequestNumber="labels.order.service_request_number"
+          :labelServiceRequestDate="labels.order.service_request_date"
 
           :selectedFiles="form.files"
           :textComment="form.comment"
+          :serviceRequestNumber="form.service_request_number"
+          :serviceRequestDate="form.service_request_date"
 
           @update:selectedFiles="emitSelectedFiles"
           @update:changeTextComment="emitChangeComment"
           @update:clearFiles="emitClearFiles"
+          @update:serviceRequestNumber="emitChangeServiceRequestNumber"
+          @update:serviceRequestDate="emitChangeServiceRequestDate"
 
           :isNew="props.isNew"
         />

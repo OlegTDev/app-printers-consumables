@@ -33,12 +33,6 @@ const props = defineProps({
   statuses: Object,
 });
 
-function getColorByStatus(status) {
-  if (status in props.statuses) {
-    return props.statuses[status]['color'];
-  }
-}
-
 const ConfirmDialog = defineAsyncComponent(() => import('../Shared/ConfirmDialog.vue'));
 
 const orderSparePartDetail = props.orderSparePartDetail.data;
@@ -239,6 +233,18 @@ const actions = {
                 <a :href="item.url_file_download" target="_blank" class="ms-2">{{ item.basename }}</a>
               </li>
             </ul>
+          </td>
+        </tr>
+        <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+          <th class="px-6 py-4">{{ labels.order.service_request_number }}</th>
+          <td class="px-6 py-4">
+            {{ orderSparePartDetail.order.service_request_number }}
+          </td>
+        </tr>
+        <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+          <th class="px-6 py-4">{{ labels.order.service_request_date }}</th>
+          <td class="px-6 py-4">
+            {{ orderSparePartDetail.order.service_request_date ? moment(orderSparePartDetail.order.service_request_date).format('L') : null }}
           </td>
         </tr>
         <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
