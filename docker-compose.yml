@@ -1,6 +1,6 @@
 services:
-  
-  nginx:    
+
+  nginx:
     build: ./docker/nginx
     volumes:
       - ./:/app
@@ -9,27 +9,18 @@ services:
       - 8080:80
     depends_on:
       - php-fpm
-  
+
   php-fpm:
     build: ./docker/php-fpm
     volumes:
       - ./:/app
     depends_on:
       - postgres
-  
+
   php-cli:
     build: ./docker/php-cli
     volumes:
       - ./:/app
-    tty: true
-  
-  node:
-    image: node:25-alpine
-    container_name: node
-    volumes:
-      - ./:/app
-    working_dir: /app
-    tty: true
 
   postgres:
     image: postgres:18-alpine
@@ -40,6 +31,6 @@ services:
     ports:
       - 5432:5432
     volumes:
-      - ./storage/pgsql:/var/lib/postgresql/data
-  
+      - ./storage/pgsql:/var/lib/postgresql
+
 
