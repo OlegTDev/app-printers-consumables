@@ -11,8 +11,8 @@ import { inject } from 'vue';
 const urls = inject('urls')
 
 const form = useForm({
-    email: 'admin@example.com',
-    password: 'secret',
+    name: null,
+    password: null,
     remember: false,
 })
 
@@ -25,23 +25,23 @@ const title = 'Аутентификация'
 <template>
     <Head :title="title" />
 
-    <div class="flex items-center justify-center p-6 min-h-screen bg-indigo-800">           
-        <Panel :header="title" class="w-full max-w-md">            
+    <div class="flex items-center justify-center p-6 min-h-screen bg-indigo-800">
+        <Panel :header="title" class="w-full max-w-md">
             <template #footer>
                 <div class="flex justify-end">
                     <Button :loading="form.processing" @click="login" class="btn-indigo" type="button" label="Вход" />
                 </div>
             </template>
             <form @submit.prevent="login">
-                <div class="grid grid-cols-1 grid-rows-1 gap-4">                    
-                    <div>  
-                        <input-text v-model="form.email" :invalid="form.errors?.email?.length > 0" 
-                            class="w-full" label="Email" type="email" autofocus autocapitalize="off" />
-                        <InlineMessage v-if="form.errors?.email" class="mt-2" severity="error">{{ form.errors?.email }}</InlineMessage>
+                <div class="grid grid-cols-1 grid-rows-1 gap-4">
+                    <div>
+                        <InputText v-model="form.name" :invalid="form.errors?.name?.length > 0"
+                            class="w-full" label="Учетная запись" type="text" autofocus />
+                        <InlineMessage v-if="form.errors?.name" class="mt-2" severity="error">{{ form.errors?.name }}</InlineMessage>
                     </div>
-                    <div>  
-                        <input-text v-model="form.password" :invalid="form.errors?.password?.length > 0" 
-                            class="w-full" label="Password" type="password" />
+                    <div>
+                        <InputText v-model="form.password" :invalid="form.errors?.password?.length > 0"
+                            class="w-full" label="Пароль" type="password" />
                         <InlineMessage v-if="form.errors?.password" class="mt-2" severity="error">{{ form.errors?.password }}</InlineMessage>
                     </div>
                     <div>
@@ -51,7 +51,7 @@ const title = 'Аутентификация'
                         </div>
                     </div>
                 </div>
-            </form>                                
+            </form>
         </Panel>
     </div>
 </template>

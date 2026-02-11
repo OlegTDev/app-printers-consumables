@@ -10,6 +10,8 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\DB;
 use Laravel\Sanctum\HasApiTokens;
+use LdapRecord\Laravel\Auth\LdapAuthenticatable;
+use LdapRecord\Laravel\Auth\AuthenticatesWithLdap;
 
 
 /**
@@ -40,9 +42,10 @@ use Laravel\Sanctum\HasApiTokens;
  * @property Organization[] $organizations
  *
  */
-class User extends Authenticatable
+class User extends Authenticatable implements LdapAuthenticatable
 {
     use HasApiTokens, HasFactory, Notifiable, SoftDeletes, UserRolesTrait, UserOrganizationsTrait;
+    use Notifiable, AuthenticatesWithLdap;
 
     /**
      * The attributes that are mass assignable.
