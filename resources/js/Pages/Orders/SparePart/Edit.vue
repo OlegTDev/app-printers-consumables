@@ -30,7 +30,7 @@ const title = 'Изменение заказа';
     { label: 'Заказ запчастей', url: urls.orders.spareParts.index() },
     {
       label: `Заказ № ${orderSparePartDetailData.order.id} от ${moment(orderSparePartDetailData.order.created_at).format('L')}`,
-      url: urls.orders.spareParts.show(orderSparePartDetailData.order.id),
+      url: urls.orders.spareParts.show(orderSparePartDetailData.id),
     },
     { label: title },
   ]" />
