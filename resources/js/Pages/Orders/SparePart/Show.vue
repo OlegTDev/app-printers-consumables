@@ -36,6 +36,7 @@ const props = defineProps({
 const ConfirmDialog = defineAsyncComponent(() => import('../Shared/ConfirmDialog.vue'));
 
 const orderSparePartDetail = props.orderSparePartDetail.data;
+const orderId = orderSparePartDetail.order.id;
 
 const title = `Заказ № ${orderSparePartDetail.order.id} от ${moment(orderSparePartDetail.order.created_at).format('L')}`
 
@@ -80,9 +81,9 @@ const actions = {
         modal: true,
       },
       data: {
-        idOrder: orderSparePartDetail.order.id,
+        idOrder: orderId,
         message: props.labels.order.comment,
-        url: createUrlWithParams(urls.orders.agree(orderSparePartDetail.id), { context: 'spare-parts' }),
+        url: createUrlWithParams(urls.orders.agree(orderId), { context: 'spare-parts' }),
         buttonLabel: 'Согласовать',
       }
     });
@@ -101,9 +102,9 @@ const actions = {
         modal: true,
       },
       data: {
-        idOrder: orderSparePartDetail.order.id,
+        idOrder: orderId,
         message: props.labels.order.comment,
-        url: createUrlWithParams(urls.orders.reject(orderSparePartDetail.id), { context: 'spare-parts' }),
+        url: createUrlWithParams(urls.orders.reject(orderId), { context: 'spare-parts' }),
         buttonLabel: 'Отказать',
         btnSeverity: 'danger',
       }
@@ -123,9 +124,9 @@ const actions = {
         modal: true,
       },
       data: {
-        idOrder: orderSparePartDetail.order.id,
+        idOrder: orderId,
         message: props.labels.order.comment,
-        url: createUrlWithParams(urls.orders.ordered(orderSparePartDetail.id), { context: 'spare-parts' }),
+        url: createUrlWithParams(urls.orders.ordered(orderId), { context: 'spare-parts' }),
         buttonLabel: 'Перевести в состояние "Заказан"',
       }
     });
@@ -144,9 +145,9 @@ const actions = {
         modal: true,
       },
       data: {
-        idOrder: orderSparePartDetail.order.id,
+        idOrder: orderId,
         message: props.labels.order.comment,
-        url: createUrlWithParams(urls.orders.receive(orderSparePartDetail.id), { context: 'spare-parts' }),
+        url: createUrlWithParams(urls.orders.receive(orderId), { context: 'spare-parts' }),
         buttonLabel: 'Перевести в состояние "Получен"',
       }
     });
@@ -165,9 +166,9 @@ const actions = {
         modal: true,
       },
       data: {
-        idOrder: orderSparePartDetail.order.id,
+        idOrder: orderId,
         message: props.labels.order.comment,
-        url: createUrlWithParams(urls.orders.complete(orderSparePartDetail.id), { context: 'spare-parts' }),
+        url: createUrlWithParams(urls.orders.complete(orderId), { context: 'spare-parts' }),
         buttonLabel: 'Исполнено',
       }
     });
