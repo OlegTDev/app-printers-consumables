@@ -30,6 +30,7 @@ export const dictionaryConsumablesUrls = (rootUrl) => {
     update: (id) => `${base}/${id}`,
     delete: (id) => `${base}/${id}`,
     other: (idPrinter) => `${base}/${idPrinter}/other`,
+    notOther: () => `${base}/not-other`,
 
     // привязанные принтеры к расходному материалу
     printers: {

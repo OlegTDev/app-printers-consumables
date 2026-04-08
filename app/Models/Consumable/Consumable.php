@@ -148,6 +148,12 @@ class Consumable extends Model
         ->where('type', ConsumableTypesEnum::other->name);
     }
 
+    public static function queryWithoutOtherTypesByPrinter()
+    {
+        return static::query()->where('type', '<>', ConsumableTypesEnum::other->name);
+    }
+
+
     /**
      * Описание расходного материала (с указанием типа, наименование и цветом (если картридж))
      * @return string

@@ -143,4 +143,10 @@ class ConsumablesController extends Controller
         return ConsumableResource::collection($items);
     }
 
+    public function notOtherConsumablesForPrinter()
+    {
+        $items = Consumable::queryWithoutOtherTypesByPrinter()->get();
+        return ConsumableResource::collection($items);
+    }
+
 }
