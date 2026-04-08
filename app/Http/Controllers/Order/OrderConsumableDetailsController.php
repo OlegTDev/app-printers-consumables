@@ -17,6 +17,13 @@ use Inertia\Inertia;
 
 class OrderConsumableDetailsController extends Controller
 {
+
+    public function __construct()
+    {
+        $this->middleware('role:admin')
+            ->only(['destroy']);
+    }
+
     /**
      * @route GET orders/consumables
      */
@@ -97,6 +104,37 @@ class OrderConsumableDetailsController extends Controller
             'cartridgeColors' => CartridgeColors::get(),
             'consumableTypes' => ConsumableTypesEnum::array(),
         ]);
+    }
+
+    /**
+     * @route GET /orders/consumables/{orderConsumableDetails}/edit
+     */
+    public function edit(OrderConsumableDetails $orderConsumableDetails)
+    {
+        $this->authorize('update', $orderConsumableDetails->order);
+
+        return Inertia::render('Orders/Consumable/Edit', [
+            'orderConsumableDetail' => new OrderConsumableResource($orderConsumableDetails),
+            'labels' => [
+                ...(array)config('labels.order_consumable'),
+                'order' => config('labels.order'),
+            ],
+            'cartridgeColors' => CartridgeColors::get(),
+            'consumableTypes' => ConsumableTypesEnum::array(),
+        ]);
+    }
+
+    /**
+     * @route PUT orders/consumables/{orderConsumableDetails}
+     */
+    public function update(OrderConsumableRequest $request, OrderConsumableDetails $orderConsumableDetails)
+    {
+        $this->authorize('update', $orderConsumableDetails->order);
+
+        $orderConsumableDetails->update($request->only(['id_consumable', 'quantity']));
+        $orderConsumableDetails->order()->update($request->only(['comment', 'service_request_number', 'service_request_date']));
+        return redirect()->route('consumables.show', ['orderConsumableDetails' => $orderConsumableDetails])
+            ->with('success', 'Изменения сохранены!');
     }
 
 
