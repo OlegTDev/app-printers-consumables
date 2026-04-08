@@ -5,7 +5,6 @@ namespace App\Models\Order;
 use App\Models\Consumable\Consumable;
 use App\Models\Consumable\ConsumableTypesEnum;
 use App\Models\Printer\PrinterWorkplace;
-use App\Models\SpareParts;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
