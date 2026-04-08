@@ -5,7 +5,7 @@ use Illuminate\Database\Eloquent\Builder;
 
 trait OrderOrgCodeFilterable
 {
-    public function scopeFilterByOrgCode(Builder $query)
+    public function scopeFilterByOrgCode(Builder $query): Builder
     {
         if (auth()->user()->hasRole(['admin', Roles::ORDER_APPROVER->value, Roles::ORDER_EXECUTOR->value])) {
             return $query;
@@ -16,7 +16,7 @@ trait OrderOrgCodeFilterable
         });
     }
 
-    public static function queryWithFilterByOrgCode()
+    public static function queryWithFilterByOrgCode(): Builder
     {
         return static::query()
             ->with('order')
