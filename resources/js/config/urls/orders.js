@@ -38,6 +38,11 @@ const ordersConsumablesUrls = (rootUrl) => {
 
   return {
     index: () => base,
+    create: () => `${base}/create`,
+    store: () => `${base}`,
+    edit: (id) => `${base}/${id}/edit`,
+    update: (id) => `${base}/${id}`,
+    show: (id) => `${base}/${id}`,
   };
 }
 

@@ -15,7 +15,7 @@ Route::put('orders/{order}/complete', [OrderController::class, 'complete']);
 Route::put('orders/{order}/cancel', [OrderController::class, 'cancel']);
 Route::delete('orders/{order}', [OrderController::class, 'destroy']);
 
-// OrderSpareParts
+// OrderSpareParts / Заказ запчастей
 Route::resource('orders/spare-parts', OrderSparePartDetailsController::class)
     ->parameters([
         'spare-parts' => 'orderSparePartDetails',
@@ -34,8 +34,11 @@ Route::post(
 // OrderStatusHistory
 Route::get('/orders/{order}/status-history', [OrderStatusHistoryController::class, 'index']);
 
-// OrderConsumables
-Route::get('orders/consumables', [OrderConsumableDetailsController::class, 'index']);
+// OrderConsumables / Заказ картриджей
+Route::resource('orders/consumables', OrderConsumableDetailsController::class)
+    ->parameters([
+        'consumables' => 'orderConsumableDetails',
+    ]);
 
-// OrderMisc
+// OrderMisc / Заказ прочих материалов
 Route::get('orders/misc', [OrderMistDetailsController::class, 'index']);
