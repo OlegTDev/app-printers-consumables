@@ -1,24 +1,22 @@
 <script setup>
 import { useForm } from '@inertiajs/inertia-vue3';
-import { computed, inject, onMounted, reactive, ref } from 'vue';
+import { inject, onMounted, reactive, ref } from 'vue';
 import Button from 'primevue/button';
 import { Inertia } from '@inertiajs/inertia';
-// import Steps from 'primevue/steps';
-// import Step1 from './Steps/Step1';
-// import Step2 from './Steps/Step2';
-// import Step3 from './Steps/Step3';
-import Message from 'primevue/message';
 import Label from '@/Shared/Label.vue';
 import Dropdown from 'primevue/dropdown';
 import { useToast } from 'primevue/usetoast';
 import consumablesService from '@/Services/consumablesService';
 import InputNumber from 'primevue/inputnumber';
-
+import Textarea from 'primevue/textarea';
+import InlineMessage from 'primevue/inlinemessage';
 
 const props = defineProps({
   isNew: Boolean,
   labels: Object,
   orderConsumable: Object,
+  consumableTypes: Object,
+  cartridgeColors: Object,
 });
 const urls = inject('urls');
 const config = inject('config');
@@ -57,51 +55,10 @@ onMounted(async () => {
   }
 });
 
-
 const onConsumableChange = (event) => {
   form.id_consumable = event.value?.id ?? null;
   delete form.errors.id_consumable;
 };
-
-
-
-// const emitPrintersWorkplacesSelected = (value) => {
-//   form.id_printers_workplace = value?.id;
-//   if (value?.id) {
-//     delete form.errors.id_printers_workplace;
-//     idConsumable.value = value?.id_printer;
-//   }
-//   form.id_spare_part = null;
-// }
-
-// const emitCallSpecialistSelected = (value) => {
-//   form.call_specialist = value;
-//   form.id_spare_part = null;
-// }
-
-// const emitConsumableSelected = (value) => {
-//   form.id_spare_part = value.id;
-//   delete form.errors.id_spare_part;
-// }
-
-// const emitSelectedFiles = (event) => {
-//   form.files = event.target.files;
-//   delete form.errors.files;
-// }
-
-
-// const emitChangeComment = (event) => {
-//   form.comment = event.target.value;
-// }
-
-// const emitChangeServiceRequestNumber = (event) => {
-//   form.service_request_number = event.target.value;
-// }
-
-// const emitChangeServiceRequestDate = (event) => {
-//   form.service_request_date = event.target.value;
-// }
-
 
 const save = () => {
   if (props.isNew) {
@@ -110,7 +67,6 @@ const save = () => {
     form.put(urls.orders.consumables.update(form.id));
   }
 };
-
 
 const home = () => {
   const url = props.isNew ? urls.orders.consumables.index()
@@ -124,16 +80,27 @@ const home = () => {
     <div class="p-10">
 
       <Label for="id_consumable">{{ labels.id_consumable }}</Label>
-      <Dropdown v-model="consumableSelected" filter showClear :options="consumablesData"
-        optionLabel="label" placeholder="Выберите расходный материал" class="w-full" @change="onConsumableChange"
+      <Dropdown v-model="consumableSelected" filter showClear :options="consumablesData" optionLabel="label"
+        placeholder="Выберите расходный материал" class="w-full" @change="onConsumableChange"
         :loading="loadingConsumables">
         <template #value="{ value, placeholder }">
           <div v-if="value" class="grid gap-y-2">
-            <div class="flex gap-x-2">
-              {{ value.name }}
-            </div>
-            <div class="text-gray-500">
-              {{ value?.description }}
+            <div class="grid grid-rows-2 gap-2">
+              <div>{{ consumableTypes[value.type] ?? value.type }}</div>
+              <div>
+                {{ value.name }}
+              </div>
+              <div v-if="value.type === 'cartridge'">
+                <div class="flex">
+                  <div :class="['rounded-full', 'size-4', 'mr-2', cartridgeColors[value.color]['bg']]"></div>
+                  <div>
+                    {{ cartridgeColors[value.color]['name'] }}
+                  </div>
+                </div>
+              </div>
+              <div class="text-gray-500">
+                {{ value.description }}
+              </div>
             </div>
           </div>
           <span v-else>
@@ -142,31 +109,50 @@ const home = () => {
         </template>
         <template #option="{ option }">
           <div v-if="option" class="grid gap-y-2">
-            <div class="flex gap-x-2">
-              {{ option.name }}
-            </div>
-            <div class="text-gray-500">
-              {{ option.description }}
+            <div class="grid grid-rows-2 gap-2">
+              <div>{{ consumableTypes[option.type] ?? option.type }}</div>
+              <div>
+                {{ option.name }}
+              </div>
+              <div v-if="option.type === 'cartridge'">
+                <div class="flex">
+                  <div :class="['rounded-full', 'size-4', 'mr-2', cartridgeColors[option.color]['bg']]"></div>
+                  <div>
+                    {{ cartridgeColors[option.color]['name'] }}
+                  </div>
+                </div>
+              </div>
+              <div class="text-gray-500">
+                {{ option.description }}
+              </div>
             </div>
           </div>
         </template>
       </Dropdown>
-
+      <div>
+        <InlineMessage v-if="form.errors?.id_consumable" class="mt-2" severity="error">{{ form.errors?.id_consumable }}
+        </InlineMessage>
+      </div>
     </div>
     <div class="p-10">
       <Label for="quantity">{{ labels.quantity }}</Label>
       <InputNumber v-model="form.quantity" placeholder="Введите количество" showButtons id="quantity" />
+      <div>
+        <InlineMessage v-if="form.errors?.quantity" class="mt-2" severity="error">{{ form.errors?.quantity }}
+        </InlineMessage>
+      </div>
     </div>
 
-    <div class="p-10 t-0" v-if="Object.keys(form.errors).length > 0">
-      <Message v-for="[field, error] in Object.entries(form.errors)" :key="field" :closable="false" severity="error">
-        {{ error }}
-      </Message>
+    <div class="p-10">
+      <Label for="comment">{{ labels.order.comment }}</Label>
+      <Textarea v-model="form.comment" class="w-full" rows="5" />
     </div>
+
     <div class="p-5 bg-gray-50 border-t border-gray-100 w-full">
       <div class="flex justify-between w-full">
         <div class="flex gap-2">
-          <Button type="submit" :loading="form.processing" icon="pi pi-save" :label="isNew ? 'Заказать' : 'Сохранить'" />
+          <Button type="submit" :loading="form.processing" icon="pi pi-save"
+            :label="isNew ? 'Заказать' : 'Сохранить'" />
         </div>
         <div>
           <Button @click="home" icon="pi pi-id-card" label="Вернуться" />

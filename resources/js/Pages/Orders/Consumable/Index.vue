@@ -132,6 +132,9 @@ const title = 'Заказ картриджей';
                 </div>
               </div>
             </div>
+            <div class="text-gray-500">
+              {{ data.consumable.description }}
+            </div>
           </div>
         </template>
       </Column>
@@ -159,7 +162,6 @@ const title = 'Заказ картриджей';
       </Column>
 
       <template #empty> Нет данных </template>
-
 
     </DataTable>
   </div>

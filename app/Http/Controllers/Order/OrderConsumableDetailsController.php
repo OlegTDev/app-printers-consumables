@@ -50,6 +50,8 @@ class OrderConsumableDetailsController extends Controller
                 ...(array)config('labels.order_consumable'),
                 'order' => config('labels.order'),
             ],
+            'cartridgeColors' => CartridgeColors::get(),
+            'consumableTypes' => ConsumableTypesEnum::array(),
         ]);
     }
 
@@ -69,6 +71,9 @@ class OrderConsumableDetailsController extends Controller
             ->with('success', 'Заявка успешно добавлена!');
     }
 
+    /**
+     * @route GET /orders/consumables/{orderConsumableDetails}
+     */
     public function show(OrderConsumableDetails $orderConsumableDetails, OrderStatusButtonService $orderStatusButtonService)
     {
         $userRoles = auth()->user()->getRoleNames();
@@ -89,6 +94,8 @@ class OrderConsumableDetailsController extends Controller
                 'order' => config('labels.order'),
                 'order_consumable' => config('labels.order_consumable'),
             ],
+            'cartridgeColors' => CartridgeColors::get(),
+            'consumableTypes' => ConsumableTypesEnum::array(),
         ]);
     }
 

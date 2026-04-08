@@ -2,7 +2,7 @@
 import Layout from '@/Shared/Layout';
 import { Head } from '@inertiajs/vue3';
 import Breadcrumbs from '@/Shared/Breadcrumbs';
-import { computed, inject } from 'vue';
+import { inject } from 'vue';
 import Form from './Form.vue';
 
 defineOptions({
@@ -13,6 +13,8 @@ const urls = inject('urls');
 
 const props = defineProps({
   labels: Object,
+  consumableTypes: Object,
+  cartridgeColors: Object,
 });
 
 const title = 'Оформление заказа картриджа';
@@ -28,7 +30,7 @@ const title = 'Оформление заказа картриджа';
 
   <div class="rounded-lg bg-white shadow-sm border border-gray-200">
 
-    <Form :isNew="true" :labels="labels" />
+    <Form :isNew="true" :labels="labels" :consumableTypes="consumableTypes" :cartridgeColors="cartridgeColors" />
 
   </div>
 </template>
