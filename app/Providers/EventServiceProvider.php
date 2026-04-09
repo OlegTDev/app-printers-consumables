@@ -2,12 +2,13 @@
 
 namespace App\Providers;
 
+use App\Events\OrderCompleted;
+use App\Events\UpdateConsumableCount;
 use App\Models\Order\Order;
 use App\Observers\OrderObserver;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
-use Illuminate\Support\Facades\Event;
 
 class EventServiceProvider extends ServiceProvider
 {
@@ -19,6 +20,9 @@ class EventServiceProvider extends ServiceProvider
     protected $listen = [
         Registered::class => [
             SendEmailVerificationNotification::class,
+        ],
+        OrderCompleted::class => [
+            UpdateConsumableCount::class,
         ],
     ];
 

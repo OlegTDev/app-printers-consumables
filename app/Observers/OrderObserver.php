@@ -2,7 +2,9 @@
 
 namespace App\Observers;
 
+use App\Events\OrderCompleted;
 use App\Models\Order\Order;
+use App\Models\Order\OrderStatusEnum;
 use App\Models\Order\OrderStatusHistory;
 
 class OrderObserver
@@ -25,6 +27,11 @@ class OrderObserver
         if ($orderOriginal['status'] != $order->status) {
             $this->createStatusHistory($order);
         }
+
+        if ($orderOriginal['status'] !== OrderStatusEnum::STATUS_COMPLETED
+            && $order->status === OrderStatusEnum::STATUS_COMPLETED) {
+            event(new OrderCompleted($order));
+        }
     }
 
     private function createStatusHistory(Order $order): void
@@ -35,6 +42,6 @@ class OrderObserver
             'id_author' => auth()->user()->id,
         ]);
         $orderStatusHistory->order()->associate($order);
-        $orderStatusHistory->save();  
+        $orderStatusHistory->save();
     }
 }
