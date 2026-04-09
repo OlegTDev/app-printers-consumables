@@ -1,7 +1,6 @@
 <?php
-namespace App\Services;
+namespace App\Services\Order;
 
-use Illuminate\Http\UploadedFile;
 
 class OrderSparePartDetailUploadFilesService
 {
@@ -10,10 +9,6 @@ class OrderSparePartDetailUploadFilesService
     {
     }
 
-    /**
-     * @param UploadedFile[] $files
-     * @return void
-     */
     public function upload(): array
     {
         $uploadedPaths = [];

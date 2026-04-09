@@ -9,7 +9,7 @@ use App\Models\Consumable\ConsumableTypesEnum;
 use App\Models\Order\Order;
 use App\Models\Order\OrderConsumableDetails;
 use App\Models\Order\Roles;
-use App\Services\OrderStatusButtonService;
+use App\Services\Order\OrderStatusButtonService;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Inertia\Inertia;
@@ -69,6 +69,7 @@ class OrderConsumableDetailsController extends Controller
     {
         $modelConsumable = $this->createOrderConsumable($request);
         $this->createChildOrder($modelConsumable,
+            $request->input('quantity', 1),
             $request->input('comment'),
             $request->input('service_request_number'),
             $request->input('service_request_date'),
@@ -131,8 +132,8 @@ class OrderConsumableDetailsController extends Controller
     {
         $this->authorize('update', $orderConsumableDetails->order);
 
-        $orderConsumableDetails->update($request->only(['id_consumable', 'quantity']));
-        $orderConsumableDetails->order()->update($request->only(['comment', 'service_request_number', 'service_request_date']));
+        $orderConsumableDetails->update($request->only(['id_consumable']));
+        $orderConsumableDetails->order()->update($request->only(['quantity', 'comment', 'service_request_number', 'service_request_date']));
         return redirect()->route('consumables.show', ['orderConsumableDetails' => $orderConsumableDetails])
             ->with('success', 'Изменения сохранены!');
     }
@@ -149,9 +150,15 @@ class OrderConsumableDetailsController extends Controller
     }
 
     private function createChildOrder(OrderConsumableDetails $orderConsumable,
-        ?string $comment, ?string $service_request_number, ?string $service_request_date): void
+        int $quantity, ?string $comment, ?string $service_request_number, ?string $service_request_date): void
     {
-        Order::createWithChildOrder($orderConsumable, $comment, $service_request_number, $service_request_date);
+        Order::createWithChildOrder(
+            subOrder: $orderConsumable,
+            comment: $comment,
+            service_request_number: $service_request_number,
+            service_request_date: $service_request_date,
+            quantity: $quantity,
+        );
     }
 
 }
