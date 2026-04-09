@@ -62,9 +62,9 @@ final class Order extends Model
         return $this->belongsTo(Organization::class, 'org_code');
     }
 
-    public static function createWithChildOrder(Model $subOrder, ?string $comment, ?string $service_request_number, ?string $service_request_date)
+    public static function createWithChildOrder(Model $subOrder, ?string $comment, ?string $service_request_number, ?string $service_request_date, int $quantity = 1)
     {
-        DB::transaction(function () use ($subOrder, $comment, $service_request_number, $service_request_date) {
+        DB::transaction(function () use ($subOrder, $comment, $service_request_number, $service_request_date, $quantity) {
             $order = self::create([
                 'org_code' => auth()->user()->org_code,
                 'status' => OrderStatusEnum::default(),
@@ -72,6 +72,7 @@ final class Order extends Model
                 'requested_by' => auth()->user()->id,
                 'service_request_number' => $service_request_number,
                 'service_request_date' => $service_request_date,
+                'quantity' => $quantity,
             ]);
 
             $subOrder->order()->associate($order);
