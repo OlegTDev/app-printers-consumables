@@ -52,7 +52,7 @@ const actions = {
       message: 'Вы уверены, что хотите удалить заказ?',
       header: 'Удаление заказа',
       accept: () => {
-        const url = createUrlWithParams(urls.orders.delete(orderSparePartDetail.id), { context: 'spare-parts' });
+        const url = createUrlWithParams(urls.orders.delete(orderId), { context: 'spare-parts' });
         Inertia.delete(url);
       },
     });
@@ -62,7 +62,7 @@ const actions = {
       message: 'Вы уверены, что хотите отменить заказ?',
       header: 'Отмена заказа',
       accept: () => {
-        const url = createUrlWithParams(urls.orders.cancel(orderSparePartDetail.id), { context: 'spare-parts' });
+        const url = createUrlWithParams(urls.orders.cancel(orderId), { context: 'spare-parts' });
         Inertia.put(url);
       },
     });
