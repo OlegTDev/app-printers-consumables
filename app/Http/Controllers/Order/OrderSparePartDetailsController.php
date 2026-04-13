@@ -33,8 +33,9 @@ class OrderSparePartDetailsController extends Controller
     public function index(Request $request)
     {
         $orders = OrderSparePartDetails::queryWithFilterByOrgCode()
+            ->filter($request->only(['search', 'status', 'organizations']))
             ->orderByDesc('id')
-            ->filter($request->only(['search', 'status', 'organizations']))->get();
+            ->get();
 
         return Inertia::render('Orders/SparePart/Index', [
             'filters' => $request->all(['search', 'status', 'organizations']),

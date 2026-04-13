@@ -16,6 +16,9 @@ trait OrderOrgCodeFilterable
         });
     }
 
+    /**
+     * @return \Illuminate\Database\Eloquent\Builder|OrderSparePartDetails
+     */
     public static function queryWithFilterByOrgCode(): Builder
     {
         return static::query()
