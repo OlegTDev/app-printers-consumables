@@ -17,6 +17,8 @@ import OrderStatus from '../Shared/OrderStatus.vue';
 import Author from '@/Shared/DataTable/Author.vue';
 import Timestamps from '@/Shared/DataTable/Timestamps.vue';
 import Tag from 'primevue/tag';
+import { useToast } from 'primevue/usetoast';
+import axios from 'axios';
 
 
 defineOptions({
@@ -48,6 +50,8 @@ const propsFiltersOrganizations = computed(() => {
 });
 
 const urls = inject('urls');
+const config = inject('config');
+const toast = reactive(useToast());
 
 const form = reactive({
   search: props.filters?.search,
@@ -56,6 +60,25 @@ const form = reactive({
 });
 
 const organizations = ref();
+const loadDataOrgs = () => {
+  axios.get(urls.users.organizations.index())
+    .then((response) => {
+      organizations.value = response.data.organizations;
+      if (Array.isArray(organizations.value)) {
+        organizations.value.forEach((item) => item.label = item.code);
+      }
+    })
+    .catch((error) => {
+      toast.add({
+        severity: 'error',
+        summary: 'Ошибка',
+        detail: error.message,
+        life: config.toast.timeLife,
+      });
+      console.error(error);
+    })
+};
+loadDataOrgs();
 
 const actions = {
   create: () => Inertia.get(urls.orders.consumables.create()),

@@ -30,9 +30,10 @@ class OrderConsumableDetailsController extends Controller
     public function index(Request $request)
     {
         $orders = OrderConsumableDetails::queryWithFilterByOrgCode()
+            ->filter($request->only(['search', 'status', 'organizations']))
             ->orderBy('id', 'desc')
             ->get();
-            //->fil
+
         return Inertia::render('Orders/Consumable/Index', [
             'filters' => $request->all(['search', 'status', 'organizations']),
             'orders' => OrderConsumableResource::collection($orders),

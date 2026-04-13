@@ -5,6 +5,7 @@ namespace App\Models\Order;
 use App\Models\Consumable\Consumable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
@@ -38,6 +39,31 @@ class OrderConsumableDetails extends Model
     public function consumable(): BelongsTo
     {
         return $this->belongsTo(Consumable::class, 'id_consumable');
+    }
+
+    public function scopeFilter(Builder $query, array $filters)
+    {
+        $query->when($filters['search'] ?? null, function (Builder $query, $search) {
+            $searchTerm = "%$search%";
+
+            $query->with(['consumable'])
+                ->where(function (Builder $query) use ($searchTerm) {
+                    $query
+                        ->whereHas('consumable', function (Builder $query) use ($searchTerm) {
+                            $query->whereAny(['name', 'description'], 'ILIKE', $searchTerm);
+                        });
+                });
+        });
+        $query->when($filters['status'] ?? null, function (Builder $query, $status) {
+            $query->whereHas('order', function (Builder $query) use ($status) {
+                $query->where('status', $status);
+            });
+        });
+        $query->when($filters['organizations'] ?? [], function (Builder $query, $organizations) {
+            $query->whereHas('order', function (Builder $query) use ($organizations) {
+                $query->whereIn('org_code', $organizations);
+            });
+        });
     }
 
 }
