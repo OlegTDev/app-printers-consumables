@@ -47,7 +47,7 @@ class LoginRequest extends FormRequest
 
         $credentials = $this->only('name', 'password');
         if (config('auth.guards.web.provider') == 'ldap') {
-            $credentials['samaccountname'] = $credentials['name'];
+            $credentials['samaccountname'] = Str::of($credentials['name'])->after('\\')->before('@')->toString();
             unset($credentials['name']);
         }
 
