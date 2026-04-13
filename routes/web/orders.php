@@ -2,7 +2,7 @@
 
 use App\Http\Controllers\Order\OrderConsumableDetailsController;
 use App\Http\Controllers\Order\OrderController;
-use App\Http\Controllers\Order\OrderMistDetailsController;
+use App\Http\Controllers\Order\OrderMiscDetailsController;
 use App\Http\Controllers\Order\OrderSparePartDetailsController;
 use App\Http\Controllers\Order\OrderStatusHistoryController;
 
@@ -41,4 +41,4 @@ Route::resource('orders/consumables', OrderConsumableDetailsController::class)
     ]);
 
 // OrderMisc / Заказ прочих материалов
-Route::get('orders/misc', [OrderMistDetailsController::class, 'index']);
+Route::resource('orders/misc', OrderMiscDetailsController::class);
