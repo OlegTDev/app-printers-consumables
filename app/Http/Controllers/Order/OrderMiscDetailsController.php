@@ -7,6 +7,8 @@ use App\Http\Requests\Orders\OrderMiscRequest;
 use App\Http\Resources\OrderMiscResource;
 use App\Models\Order\Order;
 use App\Models\Order\OrderMiscDetails;
+use App\Models\Order\Roles;
+use App\Services\Order\OrderStatusButtonService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -68,6 +70,31 @@ class OrderMiscDetailsController extends Controller
 
         return redirect()->route('misc.index')
             ->with('success', 'Заявка успешно добавлена!');
+    }
+
+    /**
+     * @route GET orders/misc/{orderMiscDetails}
+     */
+    public function show(OrderMiscDetails $orderMiscDetails, OrderStatusButtonService $orderStatusButtonService)
+    {
+        $userRoles = auth()->user()->getRoleNames();
+        $order = $orderMiscDetails->order;
+        $isAuthor = $order->requested_by === auth()->user()->id;
+        if ($isAuthor) {
+            $userRoles[] = Roles::ORDER_AUTHOR->value;
+        }
+        $buttons = $orderStatusButtonService->getAvailableButtons($order->status, $userRoles);
+
+        return Inertia::render('Orders/Misc/Show', [
+            'orderMiscDetail' => new OrderMiscResource($orderMiscDetails),
+            'statuses' => config('order_statuses'),
+            'isAuthor' => $isAuthor,
+            'buttons' => $buttons,
+            'labels' => [
+                ...(array)config('labels.order_misc'),
+                'order' => config('labels.order'),
+            ],
+        ]);
     }
 
 

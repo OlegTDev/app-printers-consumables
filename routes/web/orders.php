@@ -41,4 +41,7 @@ Route::resource('orders/consumables', OrderConsumableDetailsController::class)
     ]);
 
 // OrderMisc / Заказ прочих материалов
-Route::resource('orders/misc', OrderMiscDetailsController::class);
+Route::resource('orders/misc', OrderMiscDetailsController::class)
+    ->parameters([
+        'misc' => 'orderMiscDetails',
+    ]);
