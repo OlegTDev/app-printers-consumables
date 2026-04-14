@@ -18,7 +18,9 @@ class AuthenticatedSessionController extends Controller
      */
     public function create(Request $request)
     {
-        return Inertia::render('Auth/Login');
+        return Inertia::render('Auth/Login', [
+            'labels' => config('labels.auth'),
+        ]);
     }
 
     /**

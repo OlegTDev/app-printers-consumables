@@ -31,7 +31,13 @@ class LoginRequest extends FormRequest
         return [
             'name' => 'required|string',
             'password' => 'required|string',
+            'remember' => 'boolean',
         ];
+    }
+
+    public function attributes()
+    {
+        return config('labels.auth');
     }
 
     /**
