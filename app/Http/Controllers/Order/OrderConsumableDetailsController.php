@@ -18,12 +18,6 @@ use Inertia\Inertia;
 class OrderConsumableDetailsController extends Controller
 {
 
-    public function __construct()
-    {
-        $this->middleware('role:admin')
-            ->only(['destroy']);
-    }
-
     /**
      * @route GET orders/consumables
      */

@@ -17,6 +17,7 @@ Route::delete('orders/{order}', [OrderController::class, 'destroy']);
 
 // OrderSpareParts / Заказ запчастей
 Route::resource('orders/spare-parts', OrderSparePartDetailsController::class)
+    ->except(['destroy'])
     ->parameters([
         'spare-parts' => 'orderSparePartDetails',
     ]);
@@ -36,12 +37,14 @@ Route::get('/orders/{order}/status-history', [OrderStatusHistoryController::clas
 
 // OrderConsumables / Заказ картриджей
 Route::resource('orders/consumables', OrderConsumableDetailsController::class)
+    ->except(['destroy'])
     ->parameters([
         'consumables' => 'orderConsumableDetails',
     ]);
 
 // OrderMisc / Заказ прочих материалов
 Route::resource('orders/misc', OrderMiscDetailsController::class)
+    ->except(['destroy'])
     ->parameters([
         'misc' => 'orderMiscDetails',
     ]);

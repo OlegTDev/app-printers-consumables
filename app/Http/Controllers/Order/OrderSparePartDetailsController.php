@@ -21,12 +21,6 @@ use Inertia\Inertia;
 class OrderSparePartDetailsController extends Controller
 {
 
-    public function __construct()
-    {
-        $this->middleware('role:admin')
-            ->only(['destroy']);
-    }
-
     /**
      * @route GET orders/spare-parts
      */
