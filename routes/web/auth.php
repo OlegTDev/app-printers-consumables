@@ -11,4 +11,4 @@ Route::post('login', [AuthenticatedSessionController::class, 'store'])
     ->middleware('guest');
 
 Route::delete('logout', [AuthenticatedSessionController::class, 'destroy'])
-    ->name('logout');
+    ->name('logout.custom');
