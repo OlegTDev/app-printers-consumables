@@ -14,11 +14,6 @@ use Inertia\Inertia;
 
 class OrderMiscDetailsController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware('role:admin')
-            ->only(['destroy']);
-    }
 
     /**
      * @route GET orders/misc
@@ -95,6 +90,35 @@ class OrderMiscDetailsController extends Controller
                 'order' => config('labels.order'),
             ],
         ]);
+    }
+
+    /**
+     * @route GET orders/misc/{orderMiscDetails}/edit
+     */
+    public function edit(OrderMiscDetails $orderMiscDetails)
+    {
+        $this->authorize('update', $orderMiscDetails->order);
+
+        return Inertia::render('Orders/Misc/Edit', [
+            'orderMiscDetail' => new OrderMiscResource($orderMiscDetails),
+            'labels' => [
+                ...(array)config('labels.order_misc'),
+                'order' => config('labels.order'),
+            ],
+        ]);
+    }
+
+    /**
+     * @route PUT orders/misc/{orderMiscDetails}
+     */
+    public function update(OrderMiscRequest $request, OrderMiscDetails $orderMiscDetails)
+    {
+        $this->authorize('update', $orderMiscDetails->order);
+
+        $orderMiscDetails->update($request->only(['name', 'description']));
+        $orderMiscDetails->order()->update($request->only(['comment']));
+        return redirect()->route('misc.show', ['orderMiscDetails' => $orderMiscDetails])
+            ->with('success', 'Изменения сохранены!');
     }
 
 

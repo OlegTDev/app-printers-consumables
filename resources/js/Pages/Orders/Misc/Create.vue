@@ -12,11 +12,9 @@ defineOptions({
 const urls = inject('urls');
 
 const props = defineProps({
-  misc: Object,
   labels: Object,
 });
 
-const miscData = computed(() => props.misc?.data || []);
 const title = 'Оформление заказа';
 </script>
 <template>
@@ -30,7 +28,7 @@ const title = 'Оформление заказа';
 
   <div class="rounded-lg bg-white shadow-sm border border-gray-200">
 
-    <Form :isNew="true" :misc="miscData" :labels="labels" />
+    <Form :isNew="true" :labels="labels" />
 
   </div>
 </template>
