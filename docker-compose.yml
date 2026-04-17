@@ -1,36 +1,45 @@
 services:
 
-  nginx:
-    build: ./docker/nginx
-    volumes:
-      - ./:/app
-      - ./docker/nginx/conf.d/default.conf:/etc/nginx/conf.d/default.conf
-    ports:
-      - 8080:80
-    depends_on:
-      - php-fpm
+    nginx:
+        build: ./docker/common/nginx
+        env_file: .env.docker
+        volumes:
+            - ./:/app
+            - ./docker/dev/nginx/conf.d/default.conf:/etc/nginx/conf.d/default.conf
+        ports:
+            - 8080:80
+        depends_on:
+            - php-fpm
 
-  php-fpm:
-    build: ./docker/php-fpm
-    volumes:
-      - ./:/app
-    depends_on:
-      - postgres
+    php-fpm:
+        build:
+            dockerfile: ./docker/common/php-fpm/Dockerfile
+            target: dev
+            args:
+                - PHP_FPM_VERSION=${PHP_FPM_VERSION}
+        env_file: .env.docker
+        volumes:
+            - ./:/app
+        depends_on:
+            - postgres
 
-  php-cli:
-    build: ./docker/php-cli
-    volumes:
-      - ./:/app
+    php-cli:
+        build:
+            dockerfile: ./docker/common/php-cli/Dockerfile
+            target: dev
+            args:
+                - PHP_CLI_VERSION=${PHP_CLI_VERSION}
+        env_file: .env.docker
+        volumes:
+            - ./:/app
 
-  postgres:
-    image: postgres:18-alpine
-    environment:
-      POSTGRES_DB: test_db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: secret
-    ports:
-      - 5432:5432
-    volumes:
-      - ./storage/pgsql:/var/lib/postgresql
-
-
+    postgres:
+        image: postgres:18-alpine
+        environment:
+            POSTGRES_DB: ${DB_DATABASE}
+            POSTGRES_USER: ${DB_USERNAME}
+            POSTGRES_PASSWORD: ${DB_PASSWORD}
+        ports:
+            - 5432:5432
+        volumes:
+            - ./storage/pgsql:/var/lib/postgresql

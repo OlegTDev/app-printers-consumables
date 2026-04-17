@@ -1,0 +1,5 @@
+ARG NODE_VERSION=25
+
+FROM node:${NODE_VERSION}-alpine
+
+WORKDIR /app
