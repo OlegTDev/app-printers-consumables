@@ -1,5 +1,5 @@
 <script setup>
-import { useForm } from '@inertiajs/inertia-vue3';
+import { useForm } from '@inertiajs/vue3';
 import Button from 'primevue/button';
 import InlineMessage from 'primevue/inlinemessage';
 import InputNumber from 'primevue/inputnumber';
@@ -14,23 +14,23 @@ const consumableCountId = dialogRef.value.data.consumableCountId;
 const consumableCountValue = dialogRef.value.data.consumableCountValue;
 const consumableCountLabels = dialogRef.value.data.consumableCountLabels;
 
-const form = useForm({   
+const form = useForm({
     id_consumable: consumableCountId,
-    count: consumableCountValue,    
+    count: consumableCountValue,
 });
 
-const save = () => {        
+const save = () => {
     const url = urls.consumables.counts.correct(consumableCountId);
     form.post(url, {
-        onSuccess: () => {            
+        onSuccess: () => {
             LogActions.save(url, 'POST', 'Корректировка количества расходных материалов', {
                 id_consumable: form.id_consumable,
-                count: form.count,                
+                count: form.count,
             });
 
             dialogRef.value.close();
         },
-    })    
+    })
 };
 
 </script>

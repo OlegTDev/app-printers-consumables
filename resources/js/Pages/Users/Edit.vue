@@ -1,22 +1,19 @@
 <script setup>
-import { Head, useForm } from '@inertiajs/inertia-vue3'
+import { Head, useForm, router } from '@inertiajs/vue3'
 import Layout from '@/Shared/Layout'
 import TrashedMessage from '@/Shared/TrashedMessage'
 import Breadcrumbs from '@/Shared/Breadcrumbs'
 import Panel from 'primevue/panel'
-import FileUpload from 'primevue/fileupload'
-import { Inertia } from '@inertiajs/inertia'
 import Checkbox from 'primevue/checkbox'
-import { ref, computed, inject, onMounted, reactive } from 'vue'
+import { ref, computed, inject, reactive } from 'vue'
 import Menu from 'primevue/menu'
 import ProgressSpinner from 'primevue/progressspinner'
 import Button from 'primevue/button'
-import TreeSelect from 'primevue/treeselect'
 
 const props = defineProps({
     user: Object,
     roles: Object,
-    organizations: Object,    
+    organizations: Object,
 });
 
 defineOptions({
@@ -45,7 +42,7 @@ const form = useForm({
     password: '',
     photo: null,
     selectedRoles: userRoles,
-    selectedOrganizations: userOrganizations,    
+    selectedOrganizations: userOrganizations,
 });
 const formFields = reactive({
     name: form.name,
@@ -74,7 +71,7 @@ const destroy = () => {
         form.delete(url, {
             onSuccess: () => {
                 LogActions.save(url, 'DELETE', 'Удаление пользователя', formFields);
-                Inertia.get(urls.users.edit(user.id));
+                router.get(urls.users.edit(user.id));
             },
         })
     }
@@ -85,7 +82,7 @@ const restore = () => {
         form.put(url, {
             onSuccess: () => {
                 LogActions.save(url, 'PUT', 'Восстановление пользователя', formFields);
-                Inertia.get(urls.users.edit(user.id));
+                router.get(urls.users.edit(user.id));
             },
         })
     }
@@ -93,26 +90,26 @@ const restore = () => {
 
 const uploadFile = async(event) => {
     form.photo = event.files[0]
-    update()    
+    update()
 }
 
-const isSelectedAdmin = computed(() => {    
+const isSelectedAdmin = computed(() => {
     return form.selectedRoles.indexOf('admin') >= 0
 })
 
 const classLabelWeight = 'w-1/6';
 
 </script>
-<template>    
+<template>
 
     <div>
         <Head :title="title" />
-        
+
         <Breadcrumbs :home="{ label: 'Главная', url: urls.home }" :items="[
             { label: 'Пользователи', url: urls.users.index() },
             { label: form.name }
         ]" />
-        
+
         <trashed-message v-if="user.deleted_at" class="mb-6 text-lg" @restore="restore"> Пользователь был удален. </trashed-message>
 
         <Panel>
@@ -126,15 +123,15 @@ const classLabelWeight = 'w-1/6';
                 </button>
                 <Menu ref="menu" :model="menuItems" popup />
             </template>
-            
+
             <div class="w-full">
-                
-                <!-- <div class="mb-5 flex">                   
+
+                <!-- <div class="mb-5 flex">
                     <div :class="classLabelWeight">
                         <img v-if="user.photo" class="block rounded-full" :src="user.photo" />
                     </div>
                     <div class="w-1/3">
-                        <FileUpload 
+                        <FileUpload
                             mode="basic"
                             type="file"
                             accept="image/*"
@@ -146,7 +143,7 @@ const classLabelWeight = 'w-1/6';
                             uploadLabel="Загрузить"
                         >
                         </FileUpload>
-                    </div>                        
+                    </div>
                 </div> -->
 
                 <div class="flex mb-6">
@@ -207,14 +204,14 @@ const classLabelWeight = 'w-1/6';
                                             {{ role.description }}
                                         </label>
                                     </template>
-                                </div>                            
+                                </div>
                             </div>
                             <div v-else>
                                 <div v-if="user.roles.length == 0" class="text-orange-600">
                                     Роли не назначены
                                 </div>
                                 <ul v-else>
-                                    <li v-for="role in user.roles" class="mt-2">
+                                    <li v-for="role in user.roles" class="mt-2" :key="role">
                                         <span class="pi pi-users me-1"></span>
                                         {{ role.description }}
                                     </li>
@@ -226,16 +223,16 @@ const classLabelWeight = 'w-1/6';
                     <div class="flex mb-6" v-if="!isSelectedAdmin">
                         <div class="w-1/6 text-gray-500 font-semibold">Контекст</div>
 
-                        <div v-if="auth.can('admin')">                            
+                        <div v-if="auth.can('admin')">
                             <div v-for="organization in organizations" :key="organization.code" class="mb-2">
                                 <Checkbox v-model="form.selectedOrganizations" :inputId="organization.code" name="organizations" :value="organization.code" />
                                 <label :for="organization.code" class="ml-2 cursor-pointer">
                                     {{ `${organization.name} (${organization.code})` }}
                                 </label>
-                                <div class="my-2" v-if="organization.children.length > 0">                                    
-                                    <div v-for="subOrganization in organization.children" :key="subOrganization.code" class="ms-5 mb-2">                                       
+                                <div class="my-2" v-if="organization.children.length > 0">
+                                    <div v-for="subOrganization in organization.children" :key="subOrganization.code" class="ms-5 mb-2">
                                         <Checkbox v-model="form.selectedOrganizations" :inputId="subOrganization.code" name="organizations" :value="subOrganization.code" />
-                                        <label :for="subOrganization.code" class="ml-2 cursor-pointer">                                            
+                                        <label :for="subOrganization.code" class="ml-2 cursor-pointer">
                                             {{ `${subOrganization.name} (${subOrganization.code})` }}
                                         </label>
                                     </div>
@@ -244,12 +241,12 @@ const classLabelWeight = 'w-1/6';
                         </div>
                         <div v-else>
                             <ul>
-                                <li v-for="organization in organizations" class="mt-2">
+                                <li v-for="organization in organizations" class="mt-2" :key="organization.code">
                                     <span class="pi pi-building me-1"></span>
                                     {{ organization.name }}
                                     <template v-if="organization.children.length > 0">
                                         <ul class="ms-5">
-                                            <li v-for="subOrganization in organization.children" class="mt-2">
+                                            <li v-for="subOrganization in organization.children" class="mt-2" :key="subOrganization.code">
                                                 <span class="pi pi-building me-1"></span>
                                                 {{ subOrganization.name }}
                                             </li>
@@ -266,8 +263,8 @@ const classLabelWeight = 'w-1/6';
                     <Button :loading="form.processing" class="font-bold" type="button" @click="update" label="Сохранить" />
                 </div>
 
-            </div>            
+            </div>
         </Panel>
-        
-    </div>    
+
+    </div>
 </template>

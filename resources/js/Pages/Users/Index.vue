@@ -1,11 +1,10 @@
 <script setup>
-import { Head } from '@inertiajs/inertia-vue3'
+import { Head, router } from '@inertiajs/vue3'
 import pickBy from 'lodash/pickBy'
 import Layout from '@/Shared/Layout'
 import throttle from 'lodash/throttle'
 import Tag from 'primevue/tag'
 import { inject, reactive, ref, watch } from 'vue'
-import { Inertia } from '@inertiajs/inertia'
 import { onMounted } from 'vue'
 import { initFlowbite } from 'flowbite'
 import DataTable from 'primevue/datatable'
@@ -21,7 +20,7 @@ import Button from 'primevue/button'
 const props = defineProps({
     filters: Object,
     users: Array,
-    roles: Array,    
+    roles: Array,
 })
 
 defineOptions({
@@ -40,7 +39,7 @@ const form = reactive({
 watch(
     () => form,
     throttle(() => {
-        Inertia.get(urls.users.index(), pickBy(form), { preserveState: true })
+        router.get(urls.users.index(), pickBy(form), { preserveState: true })
     }, 150),
     { deep: true }
 )
@@ -50,16 +49,16 @@ onMounted(() => {
 })
 
 const create = () => {
-    Inertia.get(urls.users.create())
+    router.get(urls.users.create())
 }
 
 const onRowSelect = (event) => {
-    Inertia.get(urls.users.edit(event.data.id))
+    router.get(urls.users.edit(event.data.id))
 }
 
 const refTableUsers = ref(null);
 
-const onPageChange = () => {    
+const onPageChange = () => {
     const elementTableUsers = refTableUsers.value.$el;
     if (elementTableUsers) {
         elementTableUsers.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -78,7 +77,7 @@ const title = 'Пользователи'
         ]" />
 
         <div class="flex justify-stretch bg-white rounded-md shadow overflow-hidden mt-4">
-            <DataTable 
+            <DataTable
                 ref="refTableUsers"
                 :value="users"
                 paginator :rows="10"
@@ -97,15 +96,15 @@ const title = 'Пользователи'
                                 <InputText v-model="form.search" placeholder="Поиск"></InputText>
                             </IconField>
                         </div>
-                    </div>               
+                    </div>
                 </template>
-                
+
                 <Column field="org_code" header="Код НО" />
                 <Column field="name" header="Учетная запись">
                     <template #body="{ data }">
                         <div class="flex items-center">
                             <img v-if="data.photo" class="block -my-2 mr-2 w-5 h-5 rounded-full" :src="data.photo" />
-                            {{ data.name }}                            
+                            {{ data.name }}
                         </div>
                     </template>
                 </Column>
@@ -122,7 +121,7 @@ const title = 'Пользователи'
                             {{ data.lotus_mail }}
                         </div>
                     </template>
-                </Column>                
+                </Column>
                 <Column header="Роли" class="w-64">
                     <template #body="{ data }">
                         <ul v-if="data.roles?.length > 0">
@@ -156,5 +155,5 @@ const title = 'Пользователи'
                 </Column>
             </DataTable>
         </div>
-    </div>    
+    </div>
 </template>

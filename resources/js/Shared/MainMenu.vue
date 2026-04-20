@@ -1,6 +1,5 @@
 <script setup>
-import { Link } from '@inertiajs/inertia-vue3';
-import { usePage } from '@inertiajs/inertia-vue3';
+import { Link, usePage } from '@inertiajs/vue3';
 import { inject } from 'vue';
 
 const page = usePage();
@@ -8,7 +7,7 @@ const urls = inject('urls');
 const auth = inject('auth');
 
 const isUrl = (...urls) => {
-  let currentUrl = page.url.value;
+  let currentUrl = page.url;
   if (urls[0] === '/') {
     return currentUrl === '/'
   }

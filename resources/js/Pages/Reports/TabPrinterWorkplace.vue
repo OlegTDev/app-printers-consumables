@@ -30,7 +30,6 @@ const exportToExcel = () => {
     loading.value = true;
     displayErrors.value = [];
     axios.post(props.url, form.value, { responseType: 'blob' })
-        //.then((response) => downloadFile(response.data, 'printers-workplace.xlsx'))
         .then((response) => emit('downloadFile', response.data, 'printers-workplace.xlsx'))
         .catch((error) => {
             console.log(error);

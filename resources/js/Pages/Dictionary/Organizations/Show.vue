@@ -1,10 +1,9 @@
 <script setup>
 import Layout from '@/Shared/Layout';
 import { inject } from 'vue';
-import { Head } from '@inertiajs/inertia-vue3';
+import { Head, router } from '@inertiajs/vue3';
 import Breadcrumbs from '@/Shared/Breadcrumbs';
 import Card from 'primevue/card';
-import { Inertia } from '@inertiajs/inertia';
 import { useConfirm } from "primevue/useconfirm";
 import Button from 'primevue/button';
 import Detail from '@/Shared/Detail.vue';
@@ -24,7 +23,7 @@ const labels = props.labels;
 const confirm = useConfirm();
 
 const title = `${organization.name} (${organization.code})`;
-const goToEdit = () => Inertia.get(urls.dictionary.organizations.edit(organization.code));
+const goToEdit = () => router.get(urls.dictionary.organizations.edit(organization.code));
 
 const LogActions = inject('LogActions');
 
@@ -34,19 +33,19 @@ const deleteOrganization = () => {
         header: 'Удаление записи',
         accept: () => {
             const url = urls.dictionary.organizations.delete(organization.code);
-            Inertia.delete(url, {
+            router.delete(url, {
                 onSuccess: () => {
                     LogActions.save(url, 'DELETE', 'Удаление организации', organization);
                 },
             });
         },
-    });    
+    });
 };
 </script>
 
 <template>
 
-    <Head :title="title" /> 
+    <Head :title="title" />
 
     <Breadcrumbs :home="{ label: 'Главная', url: urls.home }" :items="[
         { label: 'Справочники' },
@@ -59,13 +58,13 @@ const deleteOrganization = () => {
         <template #content>
 
             <Detail :items="[
-                { label: labels.code, value: organization.code }, 
+                { label: labels.code, value: organization.code },
                 { label: labels.parent, value: organization.parent },
                 { label: labels.name, value: organization.name },
                 { label: labels.created_at, value: organization.created_at, format: 'date' },
                 { label: labels.updated_at, value: organization.updated_at, format: 'date' },
-            ]">        
-            </Detail>            
+            ]">
+            </Detail>
 
             <div class="flex justify-between mt-10">
                 <Button class="font-bold" @click="goToEdit">Редактировать</Button>

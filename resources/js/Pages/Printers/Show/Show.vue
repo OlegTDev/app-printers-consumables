@@ -1,5 +1,5 @@
 <script setup>
-import { Head } from '@inertiajs/inertia-vue3'
+import { Head } from '@inertiajs/vue3'
 import Layout from '@/Shared/Layout'
 import { inject } from 'vue'
 import Breadcrumbs from '@/Shared/Breadcrumbs'
@@ -45,25 +45,25 @@ const title = `${printer.vendor} ${printer.model} (${printerWorkplace.location})
         ]" />
 
         <TabView :lazy="true">
-            
+
             <TabPanel header="Информация о принтере">
                 <TabPrinterInfo :urls="urls" :title="title" :printer="printer" :printerLabels="printerLabels"
                     :printerWorkplaceLabels="printerWorkplaceLabels" :printerWorkplace="printerWorkplace"
                     :organization="organization" :auth="auth" />
             </TabPanel>
-            
+
             <TabPanel header="Расходные материалы">
                 <TabConsumables :consumables="consumables" :consumableLabels="consumableLabels"
                     :cartridgeColors="cartridgeColors" :consumableCountLabels="consumableCountLabels"
                     :consumableTypes="consumableTypes" />
             </TabPanel>
-            
+
             <TabPanel header="Установленные расходные материалы">
                 <TabConsumablesInstalled :urls="urls" :printerId="printerWorkplace.id"
                     :cartridgeColors="cartridgeColors" :consumableTypes="consumableTypes"
                     :consumableLabels="consumableLabels" :consumableCountLabels="consumableCountLabels" />
             </TabPanel>
-            
+
         </TabView>
 
     </div>

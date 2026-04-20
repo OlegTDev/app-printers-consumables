@@ -2,7 +2,7 @@
 import { inject, onMounted, reactive, ref, watch } from 'vue';
 import Button from 'primevue/button';
 import Dropdown from 'primevue/dropdown';
-import { useForm } from '@inertiajs/inertia-vue3';
+import { useForm, router } from '@inertiajs/vue3';
 import Label from '@/Shared/Label';
 import InlineMessage from 'primevue/inlinemessage';
 import axios from 'axios';
@@ -10,7 +10,6 @@ import IconColorPrint from '@/Shared/IconColorPrint'
 import { useToast } from 'primevue/usetoast';
 import InputNumber from 'primevue/inputnumber';
 import Message from 'primevue/message';
-import { Inertia } from '@inertiajs/inertia';
 
 const urls = inject('urls');
 const config = inject('config');
@@ -30,7 +29,7 @@ const consumableSelected = ref();
 let consumableTypes = null;
 let cartridgeColors = null;
 
-const form = useForm({   
+const form = useForm({
     id_printer_workplace: null,
     id_consumable_count: null,
     count: 1,
@@ -46,22 +45,22 @@ onMounted(() => {
                 printersWorkplacesData.value = []
                 response.data.forEach(item => {
                     printersWorkplacesData.value.push({
-                        id: item.id, 
-                        id_printer: item.printer.id,                   
+                        id: item.id,
+                        id_printer: item.printer.id,
                         location: item.location,
                         vendor: item.printer.vendor,
                         model: item.printer.model,
                         is_color_print: item.printer.is_color_print,
                         inventory_number: item.inventory_number,
                         serial_number: item.serial_number,
-                        label: `${item.location} ${item.printer.vendor} ${item.printer.model} ${item.inventory_number} ${item.serial_number}`,                        
+                        label: `${item.location} ${item.printer.vendor} ${item.printer.model} ${item.inventory_number} ${item.serial_number}`,
                     })
                 })
                 if (!printersWorkplacesData.value.length) {
                     printersWorkplacesIsEmpty.value = true
                 }
                 else {
-                    printersWorkplacesIsEmpty.value = false                    
+                    printersWorkplacesIsEmpty.value = false
                 }
             }
             else {
@@ -132,14 +131,14 @@ const save = () => {
     const url = urls.consumables.counts.subtract(idConsumable, idConsumableCount);
     form.post(url, {
         onSuccess: () => {
-            // статистика посещения            
+            // статистика посещения
             LogActions.save('POST', 'Вычитание расходного материала', {
                 idConsumable: idConsumable,
                 idConsumableCount: idConsumableCount,
             });
-            
+
             dialogRef.value.close();
-            Inertia.get(window.location.href);
+            router.get(window.location.href);
         },
     })
 }
@@ -147,7 +146,7 @@ const save = () => {
 watch(
     () => printersWorkplacesSelected.value,
     (item) => {
-        form.id_printer_workplace = item?.id    
+        form.id_printer_workplace = item?.id
     }
 )
 watch(
@@ -159,18 +158,18 @@ watch(
 
 </script>
 <template>
-    <form @submit.prevent="save">       
-        <div class="grid gap-y-5">                        
-            <div class="grid grid-cols-none gap-x-6">                
-                <Label for="id_printer_workplace">Выберите принтер</Label>                 
-                <Dropdown 
+    <form @submit.prevent="save">
+        <div class="grid gap-y-5">
+            <div class="grid grid-cols-none gap-x-6">
+                <Label for="id_printer_workplace">Выберите принтер</Label>
+                <Dropdown
                     :invalid="form.errors?.id_printer_workplace != null"
                     v-model="printersWorkplacesSelected"
                     filter
                     :options="printersWorkplacesData"
-                    optionLabel="label"                    
+                    optionLabel="label"
                     placeholder="Выберите принтер"
-                    class="w-full"       
+                    class="w-full"
                     @change="onChangePrinterWorkplace"
                     :loading="loadingPrinters"
                 >
@@ -182,7 +181,7 @@ watch(
                             </div>
                             <div class="flex gap-x-2">
                                 {{ `${slotProps.value.vendor} ${slotProps.value.model}` }}
-                                <span v-if="slotProps.value.is_color_print"> 
+                                <span v-if="slotProps.value.is_color_print">
                                     <IconColorPrint class="h-4 w-4" />
                                 </span>
                             </div>
@@ -205,27 +204,27 @@ watch(
                                 <span v-if="slotProps.option.is_color_print">
                                     <IconColorPrint class="h-4 w-4" />
                                 </span>
-                            </div>  
+                            </div>
                             <div class="text-gray-500">
                                 инвентарный: {{ slotProps.option.inventory_number }}, серийный: {{ slotProps.option.serial_number }}
-                            </div>                              
+                            </div>
                         </div>
                     </template>
                 </Dropdown>
                 <div>
-                    <InlineMessage v-if="form.errors?.id_printer_workplace" class="mt-2" severity="error">{{ form.errors?.id_printer_workplace }}</InlineMessage>               
+                    <InlineMessage v-if="form.errors?.id_printer_workplace" class="mt-2" severity="error">{{ form.errors?.id_printer_workplace }}</InlineMessage>
                 </div>
             </div>
 
             <div v-if="printersWorkplacesSelected" class="grid gap-y-5">
-                <div class="grid grid-cols-none gap-x-6 gap-y-8">                    
+                <div class="grid grid-cols-none gap-x-6 gap-y-8">
                     <div v-if="consumableIsEmpty">
                         <Message severity="warn" :closable="false" class="w-full">
                             Нет расходных материалов
                         </Message>
                     </div>
                     <div v-else>
-                        <Label for="id_consumable_count">Выберите расходный материал</Label>                 
+                        <Label for="id_consumable_count">Выберите расходный материал</Label>
                         <Dropdown
                             :invalid="form.errors?.id_consumable_count != null"
                             v-model="consumableSelected"
@@ -233,7 +232,7 @@ watch(
                             :options="consumableData"
                             optionLabel="label"
                             placeholder="Выберите расходный материал"
-                            class="w-full"                                   
+                            class="w-full"
                             optionDisabled="isDisabled"
                             :loading="loadingConsumables"
                         >
@@ -249,7 +248,7 @@ watch(
                                             <div>
                                                 {{ cartridgeColors[slotProps.value.color]['name'] }}
                                             </div>
-                                        </div>   
+                                        </div>
                                     </div>
                                     <div v-if="slotProps.value.count > 0" class="text-gray-400">
                                         Доступно: {{ slotProps.value.count }}
@@ -274,15 +273,15 @@ watch(
                                             <div>
                                                 {{ cartridgeColors[slotProps.option.color]['name'] }}
                                             </div>
-                                        </div>   
-                                    </div>  
+                                        </div>
+                                    </div>
                                     <div v-if="slotProps.option.count > 0" class="text-gray-400">
                                         Доступно: {{ slotProps.option.count }}
                                     </div>
                                     <div v-else class="text-red-600">
                                         Отсутствует
                                     </div>
-                                </div>                              
+                                </div>
                             </template>
                         </Dropdown>
                         <div>
@@ -290,25 +289,25 @@ watch(
                         </div>
                     </div>
                 </div>
-                <div v-if="!consumableIsEmpty" class="grid grid-cols-none gap-x-6 gap-y-8">                    
-                    <div>                        
-                        <Label for="count">Количество</Label>                        
-                        <InputNumber 
+                <div v-if="!consumableIsEmpty" class="grid grid-cols-none gap-x-6 gap-y-8">
+                    <div>
+                        <Label for="count">Количество</Label>
+                        <InputNumber
                             class="w-full"
-                            v-model="form.count" 
-                            placeholder="Количество" 
-                            :invalid="form.errors?.count?.length > 0"                            
+                            v-model="form.count"
+                            placeholder="Количество"
+                            :invalid="form.errors?.count?.length > 0"
                         />
                         <InlineMessage v-if="form.errors?.count" class="mt-2" severity="error">{{ form.errors?.count }}</InlineMessage>
-                    </div>                   
+                    </div>
                 </div>
             </div>
 
-            <div v-if="consumableSelected && !consumableIsEmpty" class1="flex justify-start gap-x-2 p-5 bg-gray-50 border-t border-gray-100 w-full mt-4">                
+            <div v-if="consumableSelected && !consumableIsEmpty" class1="flex justify-start gap-x-2 p-5 bg-gray-50 border-t border-gray-100 w-full mt-4">
                 <Button type="submit" :loading="form.processing" icon="pi pi-save" label="Сохранить" />
             </div>
 
-        </div>        
-        
+        </div>
+
     </form>
 </template>

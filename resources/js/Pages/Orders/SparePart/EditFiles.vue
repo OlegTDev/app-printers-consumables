@@ -1,13 +1,11 @@
 <script setup>
 import Layout from '@/Shared/Layout';
-import { Head } from '@inertiajs/vue3';
+import { Head, useForm, router } from '@inertiajs/vue3';
 import Breadcrumbs from '@/Shared/Breadcrumbs';
 import { computed, inject, ref } from 'vue';
 import Label from '@/Shared/Label.vue';
 import Panel from 'primevue/panel';
-import { useForm } from '@inertiajs/inertia-vue3';
 import Button from 'primevue/button';
-import { Inertia } from '@inertiajs/inertia';
 import { useConfirm } from 'primevue/useconfirm';
 
 defineOptions({
@@ -47,7 +45,7 @@ const deleteFile = (idFile) => {
     header: 'Отмена заказа',
     accept: () => {
       const url = urls.orders.spareParts.deleteFile(orderSparePartDetailData.value.id, idFile);
-      Inertia.delete(url, {
+      router.delete(url, {
         preserveScroll: true,
       });
     },
@@ -55,7 +53,7 @@ const deleteFile = (idFile) => {
 };
 
 const home = () => {
-  Inertia.get(urls.orders.spareParts.show(orderSparePartDetailData.value.id));
+  router.get(urls.orders.spareParts.show(orderSparePartDetailData.value.id));
 }
 
 </script>

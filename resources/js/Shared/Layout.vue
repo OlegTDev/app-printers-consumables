@@ -1,5 +1,5 @@
 <script setup>
-import { Link } from '@inertiajs/inertia-vue3'
+import { Link } from '@inertiajs/vue3'
 import Logo from '@/Shared/Logo'
 import Dropdown from '@/Shared/Dropdown'
 import MainMenu from '@/Shared/MainMenu'
@@ -33,8 +33,8 @@ const openOrganizationsDialog = () => {
                 '960px': '75vw',
                 '640px': '90vw'
             },
-            modal: true,            
-        },      
+            modal: true,
+        },
         data: {
             'auth': props.auth,
         }
@@ -67,7 +67,7 @@ const openOrganizationsDialog = () => {
                         </dropdown>
                     </div>
                     <div
-                        class="md:text-md flex items-center justify-between p-4 w-full text-sm bg-white border-b md:px-12 md:py-0">                       
+                        class="md:text-md flex items-center justify-between p-4 w-full text-sm bg-white border-b border-b-gray-200 md:px-12 md:py-0">
                         <div>
                             <h1 class="ps-3 text-2xl font-extrabold text-gray-800">
                                 {{ props.appName }}
@@ -80,7 +80,7 @@ const openOrganizationsDialog = () => {
                                     {{ auth.user.org_code }}
                                 </div>
                             </Button>
-                            
+
                             <dropdown class="ms-6 mt-1" placement="bottom-end">
                                 <template #default>
                                     <Button text size="small" plain>
@@ -104,7 +104,7 @@ const openOrganizationsDialog = () => {
                         </div>
                     </div>
                 </div>
-                <div class="md:flex md:flex-grow md:overflow-hidden">                    
+                <div class="md:flex md:flex-grow md:overflow-hidden">
                     <main-menu id="sidebar-multi-level-sidebar" class="hidden flex-shrink-0 p-12 w-56 bg-indigo-800 overflow-y-auto md:block text-indigo-300" aria-label="Sidebar"></main-menu>
                     <div class="px-4 py-8 md:flex-1 md:p-12 md:overflow-y-auto" scroll-region>
                         <flash-messages />

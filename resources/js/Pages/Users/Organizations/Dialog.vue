@@ -2,7 +2,7 @@
 import { inject, ref, onMounted } from 'vue'
 import axios from 'axios'
 import ProgressSpinner from 'primevue/progressspinner'
-import { Inertia } from '@inertiajs/inertia'
+import { router } from '@inertiajs/vue3'
 import Message from 'primevue/message'
 import TreeTable from 'primevue/treetable'
 import Column from 'primevue/column'
@@ -18,7 +18,7 @@ let organizationLabels = {}
 const selectedOrganization = ref()
 const saving = ref(false)
 
-onMounted(() => {        
+onMounted(() => {
     selectedOrganization.value = dialogRef.value.data.auth.user.org_code
     loadData()
 })
@@ -29,9 +29,9 @@ const loadData = () => {
     loading.value = true
     errorMessage.value = null
     axios.get(urls.users.organizations.index())
-        .then((response) => {            
+        .then((response) => {
             organizations.value = response.data.organizations;
-            organizationLabels = response.data.organizationLabels;            
+            organizationLabels = response.data.organizationLabels;
         })
         .catch((error) => {
             console.log(error)
@@ -48,14 +48,14 @@ const change = (code, event) => {
     if (code !== selectedOrganization.value) {
         saving.value = true;
         const url = urls.users.organizations.change(code);
-        Inertia.post(url, {}, {
+        router.post(url, {}, {
             onFinish: () => {
                 LogActions.save(url, 'POST', 'Изменение организации у пользователя', {
                     code: code,
                 });
-                
-                dialogClose();                
-                Inertia.get(window.location.href);                
+
+                dialogClose();
+                router.get(window.location.href);
             }
         })
     }
@@ -70,14 +70,14 @@ const change = (code, event) => {
     <Message v-else-if="errorMessage" severity="error" :closable="false">
         {{ errorMessage }}
     </Message>
-    
-    <TreeTable v-else 
-        :value="organizations" 
-        tableStyle="min-width: 50rem" 
-        class="m-4" 
-        selectionMode="single"                 
-        dataKey="code" 
-    >  
+
+    <TreeTable v-else
+        :value="organizations"
+        tableStyle="min-width: 50rem"
+        class="m-4"
+        selectionMode="single"
+        dataKey="code"
+    >
         <Column field="code" :header="organizationLabels.code" sortable expander />
         <Column field="name" :header="organizationLabels.name" sortable />
         <Column header="">
@@ -90,6 +90,6 @@ const change = (code, event) => {
                 </Button>
             </template>
         </Column>
-    </TreeTable> 
-    
+    </TreeTable>
+
 </template>

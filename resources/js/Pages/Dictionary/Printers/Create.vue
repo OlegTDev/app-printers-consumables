@@ -1,5 +1,5 @@
 <script setup>
-import { Head } from '@inertiajs/inertia-vue3'
+import { Head } from '@inertiajs/vue3'
 import Layout from '@/Shared/Layout'
 import Form from './Form'
 import { inject, reactive, ref } from 'vue'
@@ -20,14 +20,14 @@ const urls = inject('urls');
 </script>
 
 <template>
-    <Head :title="title" />        
+    <Head :title="title" />
 
     <Breadcrumbs :home="{ label: 'Главная', url: urls.home }" :items="[
         { label: 'Принтеры (справочник)', url: urls.dictionary.printers.index() },
         { label: title },
     ]" />
 
-    <Form :isNew="true" :labels="labels" :printer="{ vendor: null, name: null, is_color_print: false }" :manufacturers="manufacturers"></Form>    
+    <Form :isNew="true" :labels="labels" :printer="{ vendor: null, name: null, is_color_print: false }" :manufacturers="manufacturers"></Form>
 
 </template>
 

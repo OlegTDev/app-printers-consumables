@@ -3,7 +3,7 @@ import Layout from '@/Shared/Layout';
 import { useConfirm } from 'primevue/useconfirm';
 import { useDialog } from 'primevue/usedialog';
 import { defineAsyncComponent, inject, ref } from 'vue';
-import { Head } from '@inertiajs/vue3';
+import { Head, router } from '@inertiajs/vue3';
 import Breadcrumbs from '@/Shared/Breadcrumbs';
 import Card from 'primevue/card';
 import Tag from 'primevue/tag';
@@ -12,7 +12,6 @@ import Author from '@/Shared/DataTable/Author.vue';
 import OrderStatus from '../Shared/OrderStatus.vue';
 import Button from 'primevue/button';
 import { createUrlWithParams } from '@/config/urls';
-import { Inertia } from '@inertiajs/inertia';
 
 defineOptions({
   layout: Layout,
@@ -43,7 +42,7 @@ const title = `Заказ № ${orderConsumableDetail.order.id} от ${moment(or
 
 const actions = {
   edit: () => {
-    Inertia.get(urls.orders.consumables.edit(orderConsumableDetail.id));
+    router.get(urls.orders.consumables.edit(orderConsumableDetail.id));
   },
   delete: () => {
     confirm.require({
@@ -51,7 +50,7 @@ const actions = {
       header: 'Удаление заказа',
       accept: () => {
         const url = createUrlWithParams(urls.orders.delete(orderId), { context: 'consumables' });
-        Inertia.delete(url);
+        router.delete(url);
       },
     });
   },
@@ -61,7 +60,7 @@ const actions = {
       header: 'Отмена заказа',
       accept: () => {
         const url = createUrlWithParams(urls.orders.cancel(orderId), { context: 'consumables' });
-        Inertia.put(url);
+        router.put(url);
       },
     });
   },

@@ -1,14 +1,13 @@
 <script setup>
 import Layout from '@/Shared/Layout';
 import { defineAsyncComponent, inject } from 'vue';
-import { Head } from '@inertiajs/vue3';
+import { Head, router } from '@inertiajs/vue3';
 import Breadcrumbs from '@/Shared/Breadcrumbs';
 import Card from 'primevue/card';
 import PrinterWorkplace from '@/Shared/DataTable/PrinterWorkplace';
 import OrderStatus from '../Shared/OrderStatus';
 import Author from '@/Shared/DataTable/Author';
 import Button from 'primevue/button';
-import { Inertia } from '@inertiajs/inertia';
 import { useDialog } from 'primevue/usedialog';
 import OrderStatusHistory from '../Shared/OrderStatusHistory.vue';
 import { useConfirm } from 'primevue/useconfirm';
@@ -42,10 +41,10 @@ const title = `Заказ № ${orderSparePartDetail.order.id} от ${moment(ord
 
 const actions = {
   edit: () => {
-    Inertia.get(urls.orders.spareParts.edit(orderSparePartDetail.id));
+    router.get(urls.orders.spareParts.edit(orderSparePartDetail.id));
   },
   editFiles: () => {
-    Inertia.get(urls.orders.spareParts.editFiles(orderSparePartDetail.id));
+    router.get(urls.orders.spareParts.editFiles(orderSparePartDetail.id));
   },
   delete: () => {
     confirm.require({
@@ -53,7 +52,7 @@ const actions = {
       header: 'Удаление заказа',
       accept: () => {
         const url = createUrlWithParams(urls.orders.delete(orderId), { context: 'spare-parts' });
-        Inertia.delete(url);
+        router.delete(url);
       },
     });
   },
@@ -63,7 +62,7 @@ const actions = {
       header: 'Отмена заказа',
       accept: () => {
         const url = createUrlWithParams(urls.orders.cancel(orderId), { context: 'spare-parts' });
-        Inertia.put(url);
+        router.put(url);
       },
     });
   },

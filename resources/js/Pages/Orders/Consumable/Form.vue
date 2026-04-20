@@ -1,8 +1,7 @@
 <script setup>
-import { useForm } from '@inertiajs/inertia-vue3';
+import { useForm, router } from '@inertiajs/vue3';
 import { inject, onMounted, reactive, ref } from 'vue';
 import Button from 'primevue/button';
-import { Inertia } from '@inertiajs/inertia';
 import Label from '@/Shared/Label.vue';
 import Dropdown from 'primevue/dropdown';
 import { useToast } from 'primevue/usetoast';
@@ -71,7 +70,7 @@ const save = () => {
 const home = () => {
   const url = props.isNew ? urls.orders.consumables.index()
     : urls.orders.consumables.show(form.id);
-  Inertia.get(url);
+  router.get(url);
 }
 
 </script>

@@ -1,15 +1,6 @@
-/* Reset */
-@import 'tailwindcss/base';
-@import 'reset';
 
-/* Components */
-@import 'tailwindcss/components';
-@import 'buttons';
-@import 'form';
+@import 'tailwindcss';
+@import "tailwindcss-primeui";
+@import 'tw-animate-css';
 
-/* Utilities */
-@import 'tailwindcss/utilities';
-
-@import 'base';
-@import 'colors';
-
+@custom-variant dark (&:where(.dark, .dark *));

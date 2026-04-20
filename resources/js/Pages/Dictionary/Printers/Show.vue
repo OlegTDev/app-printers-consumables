@@ -1,10 +1,9 @@
 <script setup>
 import Layout from '@/Shared/Layout';
 import { inject } from 'vue';
-import { Head } from '@inertiajs/inertia-vue3';
+import { Head, router } from '@inertiajs/vue3';
 import Breadcrumbs from '@/Shared/Breadcrumbs';
 import Card from 'primevue/card';
-import { Inertia } from '@inertiajs/inertia';
 import { useConfirm } from "primevue/useconfirm";
 import Button from 'primevue/button';
 import DataTable from 'primevue/datatable';
@@ -34,7 +33,7 @@ const printerLabels = props.printerLabels;
 const confirm = useConfirm();
 
 const title = `${printer.vendor} ${printer.model}`;
-const goToEdit = () => Inertia.get(urls.dictionary.printers.edit(printer.id));
+const goToEdit = () => router.get(urls.dictionary.printers.edit(printer.id));
 
 const LogActions = inject('LogActions');
 
@@ -44,17 +43,17 @@ const deletePrinter = () => {
         header: 'Удаление записи',
         accept: () => {
             const url = urls.dictionary.printers.delete(printer.id);
-            Inertia.delete(url, {
+            router.delete(url, {
                 onSuccess: () => {
                     LogActions.save(url, 'DELETE', 'Удаление принтера', printer);
                 },
             });
         },
-    })    
+    })
 };
 
 const createRelation = () => {
-    Inertia.get(urls.dictionary.printers.consumables.index(printer.id));
+    router.get(urls.dictionary.printers.consumables.index(printer.id));
 };
 
 const deleteRelation = (id) => {
@@ -63,20 +62,20 @@ const deleteRelation = (id) => {
         header: 'Удаление связи',
         accept: () => {
             const url = urls.dictionary.printers.consumables.delete(printer.id, id);
-            Inertia.delete(url, {
+            router.delete(url, {
                 onSuccess: () => {
                     LogActions.save(url, 'DELETE', 'Удаление связи с расходным материалом', Object.assign(printer, { id_consumable: id }));
                 },
             });
         },
-    })    
+    })
 };
 
 </script>
 
 <template>
 
-    <Head :title="title" /> 
+    <Head :title="title" />
 
     <Breadcrumbs :home="{ label: 'Главная', url: urls.home }" :items="[
         { label: 'Справочники', },
@@ -115,9 +114,9 @@ const deleteRelation = (id) => {
                         {{ printerLabels.author }}
                     </th>
                     <td class="px-6 py-4">
-                        <div>                            
+                        <div>
                             {{ printer.author?.fio ?? printer.author?.name }}
-                        </div> 
+                        </div>
                     </td>
                 </tr>
                 <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
@@ -129,7 +128,7 @@ const deleteRelation = (id) => {
                             <i class="far fa-calendar"></i>
                             {{ moment(printer.created_at).fromNow() }}
                             ({{ moment(printer.created_at).format('LLLL') }})
-                        </div> 
+                        </div>
                     </td>
                 </tr>
                 <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
@@ -138,7 +137,7 @@ const deleteRelation = (id) => {
                     </th>
                     <td class="px-6 py-4">
                         <div>
-                            <i class="far fa-calendar-alt"></i>      
+                            <i class="far fa-calendar-alt"></i>
                             {{ moment(printer.updated_at).fromNow() }}
                             ({{ moment(printer.updated_at).format('LLLL') }})
                         </div>
@@ -153,7 +152,7 @@ const deleteRelation = (id) => {
         </template>
     </Card>
 
-    <Card class="mt-2">        
+    <Card class="mt-2">
         <template #content>
             <DataTable :value="consumables">
                 <template #header>
@@ -161,8 +160,8 @@ const deleteRelation = (id) => {
                     <div class="flex justify-between mt-5">
                         <Button v-if="auth.can('admin', 'editor-dictionary')" type="button" severity="info" @click="createRelation">
                             Добавить привязку к расходному материалу
-                        </Button>                        
-                    </div>                
+                        </Button>
+                    </div>
                 </template>
 
                 <Column header="#" headerStyle="width:3rem">
@@ -187,13 +186,13 @@ const deleteRelation = (id) => {
                                     <div>
                                         {{ props.cartridgeColors[data.color]['name'] }}
                                     </div>
-                                </div>               
+                                </div>
                             </div>
                         </div>
                     </template>
                 </Column>
                 <Column header="" v-if="auth.can('admin', 'editor-dictionary')">
-                    <template #body="{ data }">                                                 
+                    <template #body="{ data }">
                         <Button severity="danger" type="button" v-tooltip="`Удалить привязку`" @click="deleteRelation(data.id)">
                             <i class="fas fa-times"></i>
                         </Button>

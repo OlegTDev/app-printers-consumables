@@ -84,9 +84,9 @@ const exportToExcel = () => {
 
             <div class="mt-3" v-if="!form.withoutPeriod">
                 с <input type="date" v-model="form.dateFrom" :disabled="form.withoutPeriod"
-                    class="bg-white border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" />
+                    class="bg-white border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2" />
                 по <input type="date" v-model="form.dateTo" :disabled="form.withoutPeriod"
-                    class="bg-white border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" />
+                    class="bg-white border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2" />
             </div>
         </Panel>
         <Message v-if="displayErrors.length > 0" severity="error" :closable="false">

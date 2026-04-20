@@ -1,13 +1,12 @@
 <script setup>
 import Layout from '@/Shared/Layout';
-import { Head } from '@inertiajs/vue3';
+import { Head, router } from '@inertiajs/vue3';
 import { defineAsyncComponent, inject } from 'vue';
 import Breadcrumbs from '@/Shared/Breadcrumbs';
 import Card from 'primevue/card';
 import OrderStatus from '../Shared/OrderStatus';
 import Author from '@/Shared/DataTable/Author';
 import Button from 'primevue/button';
-import { Inertia } from '@inertiajs/inertia';
 import { useDialog } from 'primevue/usedialog';
 import OrderStatusHistory from '../Shared/OrderStatusHistory.vue';
 import { useConfirm } from 'primevue/useconfirm';
@@ -40,10 +39,10 @@ const title = `Заказ № ${orderMiscDetail.order.id} от ${moment(orderMis
 
 const actions = {
   edit: () => {
-    Inertia.get(urls.orders.misc.edit(orderMiscDetail.id));
+    router.get(urls.orders.misc.edit(orderMiscDetail.id));
   },
   editFiles: () => {
-    Inertia.get(urls.orders.misc.editFiles(orderMiscDetail.id));
+    router.get(urls.orders.misc.editFiles(orderMiscDetail.id));
   },
   delete: () => {
     confirm.require({
@@ -51,7 +50,7 @@ const actions = {
       header: 'Удаление заказа',
       accept: () => {
         const url = createUrlWithParams(urls.orders.delete(orderId), { context: 'misc' });
-        Inertia.delete(url);
+        router.delete(url);
       },
     });
   },
@@ -61,7 +60,7 @@ const actions = {
       header: 'Отмена заказа',
       accept: () => {
         const url = createUrlWithParams(urls.orders.cancel(orderId), { context: 'misc' });
-        Inertia.put(url);
+        router.put(url);
       },
     });
   },

@@ -1,11 +1,8 @@
 <script setup>
-import { useForm } from '@inertiajs/inertia-vue3';
-import { computed, inject, reactive, ref } from 'vue';
+import { useForm, router } from '@inertiajs/vue3';
+import { inject, reactive } from 'vue';
 import Button from 'primevue/button';
-import { Inertia } from '@inertiajs/inertia';
-import Message from 'primevue/message';
 import { useToast } from 'primevue/usetoast';
-import Dropdown from 'primevue/dropdown';
 import InputText from 'primevue/inputtext';
 import Textarea from 'primevue/textarea';
 import InlineMessage from 'primevue/inlinemessage';
@@ -41,7 +38,7 @@ const save = () => {
 const home = () => {
   const url = props.isNew ? urls.orders.misc.index()
     : urls.orders.misc.show(form.id);
-  Inertia.get(url);
+  router.get(url);
 }
 
 </script>

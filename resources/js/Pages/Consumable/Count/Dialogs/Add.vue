@@ -1,5 +1,5 @@
 <script setup>
-import { useForm } from '@inertiajs/inertia-vue3';
+import { useForm } from '@inertiajs/vue3';
 import { inject } from 'vue';
 import InputNumber from 'primevue/inputnumber';
 import InlineMessage from 'primevue/inlinemessage';
@@ -10,14 +10,14 @@ const urls = inject('urls');
 const dialogRef = inject('dialogRef');
 const consumableCountLabels = dialogRef.value.data.consumableCountLabels;
 
-const form = useForm({   
+const form = useForm({
     id_consumable: dialogRef.value.data.idConsumable,
     count: 1,
     selectedOrganizations: [dialogRef.value.data.organizations],
 });
 const LogActions = inject('LogActions');
 
-const save = () => {        
+const save = () => {
     const url = urls.consumables.counts.update(dialogRef.value.data.id);
     form.put(url, {
         onSuccess: () => {
@@ -29,7 +29,7 @@ const save = () => {
 
             dialogRef.value.close();
         },
-    })    
+    })
 };
 
 </script>
@@ -39,10 +39,10 @@ const save = () => {
         <div class="grid gap-x-6 gap-y-8">
             <div>
                 <Label for="count">{{ consumableCountLabels.count }}</Label>
-                <InputNumber 
+                <InputNumber
                     class="w-full"
-                    v-model="form.count" 
-                    :placeholder="consumableCountLabels.count" 
+                    v-model="form.count"
+                    :placeholder="consumableCountLabels.count"
                     :invalid="form.errors?.count?.length > 0"
                 />
                 <InlineMessage v-if="form.errors?.count" class="mt-2" severity="error">{{ form.errors?.count }}</InlineMessage>

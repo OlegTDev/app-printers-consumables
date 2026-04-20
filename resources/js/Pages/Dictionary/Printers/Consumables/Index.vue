@@ -1,12 +1,11 @@
 <script setup>
-import { Head, Link } from '@inertiajs/inertia-vue3'
+import { Head, Link, router } from '@inertiajs/vue3'
 import Layout from '@/Shared/Layout'
 import { watch, reactive, inject } from 'vue'
 import Breadcrumbs from '@/Shared/Breadcrumbs'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import Button from 'primevue/button'
-import { Inertia } from '@inertiajs/inertia'
 import TableTitle from '@/Shared/TableTitle'
 import InputText from 'primevue/inputtext'
 import pickBy from 'lodash/pickBy'
@@ -14,8 +13,8 @@ import throttle from 'lodash/throttle'
 
 const props = defineProps({
     printer: Object,
-    filters: Object,    
-    consumables: Object,    
+    filters: Object,
+    consumables: Object,
     consumableTypes: Object,
     consumableLabels: Object,
     cartridgeColors: Object,
@@ -37,7 +36,7 @@ const form = reactive({
 watch(
     () => form,
     throttle(() => {
-        Inertia.get(urls.dictionary.printers.consumables.index(printer.id), pickBy(form), { preserveState: true });
+        router.get(urls.dictionary.printers.consumables.index(printer.id), pickBy(form), { preserveState: true });
     }, 150),
     { deep: true }
 );
@@ -46,17 +45,17 @@ const LogActions = inject('LogActions');
 
 const addConsumable = (id) => {
     const url = urls.dictionary.printers.consumables.add(printer.id, id);
-    Inertia.post(url, {
+    router.post(url, {
         onSuccess: () => {
             LogActions.save(url, 'POST', 'Добавление привязки к расходному материалу', Object.assign(printer, { id_consumable: id }));
-            Inertia.get(urls.dictionary.printers.show(printer.id));
+            router.get(urls.dictionary.printers.show(printer.id));
         },
     })
 };
 
 </script>
 <template>
-    
+
     <Head :title="title" />
 
     <Breadcrumbs :home="{ label: 'Главная', url: urls.dictionary.home }" :items="[
@@ -69,7 +68,7 @@ const addConsumable = (id) => {
         <DataTable :value="consumables"
             paginator :rows="10"
             dataKey="id" :metaKeySelection="false"
-            class="w-full" tableStyle="min-width: 50rem" selectionMode="single"            
+            class="w-full" tableStyle="min-width: 50rem" selectionMode="single"
         >
             <template #header>
                 <TableTitle class="border-b border-gray-200 pb-2">{{ title }}</TableTitle>
@@ -79,12 +78,12 @@ const addConsumable = (id) => {
                             <i class="fas fa-chevron-circle-left me-3"></i>
                             Назад
                         </Button>
-                    </Link>                                       
+                    </Link>
                     <span class="relative">
                         <i class="fas fa-search absolute top-2/4 -mt-2 left-3 text-surface-400"></i>
                         <InputText v-model="form.search" placeholder="Поиск" class="pl-10 font-normal"/>
                     </span>
-                </div>                
+                </div>
             </template>
             <Column header="#" headerStyle="width:3rem">
                 <template #body="slotProps">
@@ -108,7 +107,7 @@ const addConsumable = (id) => {
                                 <div>
                                     {{ props.cartridgeColors[data.color]['name'] }}
                                 </div>
-                            </div>               
+                            </div>
                         </div>
                     </div>
                 </template>
@@ -121,10 +120,10 @@ const addConsumable = (id) => {
                     </Button>
                 </template>
             </Column>
-            
+
             <template #empty> Нет данных </template>
 
-        </DataTable>       
-    </div>        
-    
+        </DataTable>
+    </div>
+
 </template>

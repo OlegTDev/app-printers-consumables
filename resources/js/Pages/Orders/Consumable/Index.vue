@@ -1,13 +1,12 @@
 <script setup>
 import Layout from '@/Shared/Layout';
-import { Head } from '@inertiajs/vue3';
+import { Head, router } from '@inertiajs/vue3';
 import Breadcrumbs from '@/Shared/Breadcrumbs';
 import Button from 'primevue/button';
 import Dropdown from 'primevue/dropdown';
 import InputText from 'primevue/inputtext';
 import TableTitle from '@/Shared/TableTitle';
 import DataTable from 'primevue/datatable';
-import { Inertia } from '@inertiajs/inertia';
 import { computed, inject, reactive, ref, watch } from 'vue';
 import { throttle } from 'lodash';
 import { pickBy } from 'lodash';
@@ -81,12 +80,12 @@ const loadDataOrgs = () => {
 loadDataOrgs();
 
 const actions = {
-  create: () => Inertia.get(urls.orders.consumables.create()),
-  show: (id) => Inertia.get(urls.orders.consumables.show(id)),
+  create: () => router.get(urls.orders.consumables.create()),
+  show: (id) => router.get(urls.orders.consumables.show(id)),
 };
 
 const onRowSelect = (event) => {
-  Inertia.get(urls.orders.consumables.show(event.data.id));
+  router.get(urls.orders.consumables.show(event.data.id));
 }
 
 watch(
@@ -94,7 +93,7 @@ watch(
   throttle(() => {
     const picked = pickBy(form);
     picked.organizations = Object.keys(picked.organizations ?? {});
-    Inertia.get(urls.orders.consumables.index(), pickBy(picked), { preserveState: true });
+    router.get(urls.orders.consumables.index(), pickBy(picked), { preserveState: true });
   }, 150),
   { deep: true }
 );

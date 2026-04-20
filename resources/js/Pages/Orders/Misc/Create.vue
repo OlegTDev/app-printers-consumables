@@ -2,7 +2,7 @@
 import Layout from '@/Shared/Layout';
 import { Head } from '@inertiajs/vue3';
 import Breadcrumbs from '@/Shared/Breadcrumbs';
-import { computed, inject } from 'vue';
+import { inject } from 'vue';
 import Form from './Form.vue';
 
 defineOptions({

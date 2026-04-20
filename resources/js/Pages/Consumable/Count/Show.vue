@@ -1,5 +1,5 @@
 <script setup>
-import { Head, useForm } from '@inertiajs/inertia-vue3'
+import { Head, useForm } from '@inertiajs/vue3'
 import Layout from '@/Shared/Layout'
 import Breadcrumbs from '@/Shared/Breadcrumbs'
 import { inject, ref, defineAsyncComponent, computed } from 'vue'
@@ -9,7 +9,7 @@ import Chip from 'primevue/chip'
 import DetailViewer from '@/Shared/DetailViewer'
 import Button from 'primevue/button'
 import { useDialog } from 'primevue/usedialog'
-import ShowJournal from './ShowJournal.vue'
+import ShowJournal from './ShowJournal'
 import TabView from 'primevue/tabview'
 import TabPanel from 'primevue/tabpanel'
 import Checkbox from 'primevue/checkbox'
@@ -121,7 +121,7 @@ const saveOrganizations = () => {
     const url = urls.consumables.counts.updateOrganizations(props.consumableCount.id);
     form.put(url, {
         onSuccess: () => {
-            // статистика посещения            
+            // статистика посещения
             LogActions.save(url, 'PUT', 'Обновление списка организаций', {
                 id_consumable: form.id_consumable,
                 selected_organizations: form.selectedOrganizations,

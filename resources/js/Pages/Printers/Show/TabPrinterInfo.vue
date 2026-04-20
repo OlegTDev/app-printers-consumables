@@ -1,7 +1,7 @@
 <script setup>
 import Card from 'primevue/card';
 import DetailViewer from '@/Shared/DetailViewer';
-import { Inertia } from '@inertiajs/inertia';
+import { router } from '@inertiajs/vue3';
 import { inject } from 'vue';
 import Button from 'primevue/button';
 import { useConfirm } from 'primevue/useconfirm';
@@ -21,13 +21,13 @@ const confirm = useConfirm();
 const LogActions = inject('LogActions');
 
 const actions = {
-    edit: () => Inertia.get(props.urls.printers.edit(props.printerWorkplace.id)),
+    edit: () => router.get(props.urls.printers.edit(props.printerWorkplace.id)),
     delete: () => confirm.require({
         message: 'Вы уверены, что хотите удалить?',
         header: 'Удаление',
         accept: () => {
             const url = props.urls.printers.delete(props.printerWorkplace.id);
-            Inertia.delete(url, {
+            router.delete(url, {
                 onSuccess: () => {
                     LogActions.save(url, 'DELETE', 'Удаление принтера с рабочего места', printerWorkplace);
                 },

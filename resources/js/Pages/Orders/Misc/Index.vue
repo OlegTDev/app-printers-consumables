@@ -1,6 +1,6 @@
 <script setup>
 import Layout from '@/Shared/Layout';
-import { Head } from '@inertiajs/vue3';
+import { Head, router } from '@inertiajs/vue3';
 import Breadcrumbs from '@/Shared/Breadcrumbs';
 import DataTable from 'primevue/datatable';
 import { computed, inject, reactive, ref, watch } from 'vue';
@@ -14,7 +14,6 @@ import Column from 'primevue/column';
 import OrderStatus from '../Shared/OrderStatus.vue';
 import Author from '@/Shared/DataTable/Author.vue';
 import Timestamps from '@/Shared/DataTable/Timestamps.vue';
-import { Inertia } from '@inertiajs/inertia';
 import { throttle } from 'lodash';
 import { pickBy } from 'lodash';
 import axios from 'axios';
@@ -48,7 +47,6 @@ const propsFiltersOrganizations = computed(() => {
 
 const urls = inject('urls');
 const config = inject('config');
-const moment = inject('moment');
 const toast = reactive(useToast());
 const form = reactive({
   search: props.filters?.search,
@@ -80,12 +78,12 @@ loadDataOrgs();
 
 
 const actions = {
-  create: () => Inertia.get(urls.orders.misc.create()),
-  show: (id) => Inertia.get(urls.orders.misc.show(id)),
+  create: () => router.get(urls.orders.misc.create()),
+  show: (id) => router.get(urls.orders.misc.show(id)),
 };
 
 const onRowSelect = (event) => {
-  Inertia.get(urls.orders.misc.show(event.data.id));
+  router.get(urls.orders.misc.show(event.data.id));
 }
 
 watch(
@@ -93,7 +91,7 @@ watch(
   throttle(() => {
     const picked = pickBy(form);
     picked.organizations = Object.keys(picked.organizations ?? {});
-    Inertia.get(urls.orders.misc.index(), pickBy(picked), { preserveState: true });
+    router.get(urls.orders.misc.index(), pickBy(picked), { preserveState: true });
   }, 150),
   { deep: true }
 );

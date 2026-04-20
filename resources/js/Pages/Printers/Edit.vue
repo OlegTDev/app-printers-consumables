@@ -1,5 +1,5 @@
 <script setup>
-import { Head } from '@inertiajs/inertia-vue3'
+import { Head } from '@inertiajs/vue3'
 import Layout from '@/Shared/Layout'
 import { inject } from 'vue'
 import Breadcrumbs from '@/Shared/Breadcrumbs'
@@ -19,8 +19,8 @@ const title = 'Редактирование';
 
 </script>
 <template>
-    
-    <Head :title="title" />        
+
+    <Head :title="title" />
 
     <Breadcrumbs :home="{ label: 'Главная', url: urls.home }" :items="[
         { label: 'Принтеры', url: urls.printers.index() },
@@ -28,13 +28,13 @@ const title = 'Редактирование';
         { label: title },
     ]" />
 
-    <Form 
-        :isNew="false" 
-        :labels="labels" 
-        :printers="printers" 
+    <Form
+        :isNew="false"
+        :labels="labels"
+        :printers="printers"
         :printerWorkplace="printerWorkplace"
         :organizations="organizations"
-    ></Form>        
-    
+    ></Form>
+
 </template>
 

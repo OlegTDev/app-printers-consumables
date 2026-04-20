@@ -1,8 +1,7 @@
 <script setup>
-import { useForm } from '@inertiajs/inertia-vue3';
+import { useForm, router } from '@inertiajs/vue3';
 import { computed, inject, ref } from 'vue';
 import Button from 'primevue/button';
-import { Inertia } from '@inertiajs/inertia';
 import Steps from 'primevue/steps';
 import Step1 from './Steps/Step1';
 import Step2 from './Steps/Step2';
@@ -17,6 +16,13 @@ const props = defineProps({
   orderSparePart: Object,
 });
 const urls = inject('urls');
+
+const step = ref(0);
+const steps = ref([
+  { label: 'Выбор принтера' },
+  { label: 'Вызов специалиста / Выбор запчасти, количество' },
+  { label: props.isNew ? 'Загрузка акта, комментарий' : 'Комментарий' },
+]);
 
 const form = useForm({
   id: props.orderSparePart?.id,
@@ -89,12 +95,7 @@ const save = () => {
   }
 };
 
-const step = ref(0);
-const steps = ref([
-  { label: 'Выбор принтера' },
-  { label: 'Вызов специалиста / Выбор запчасти, количество' },
-  { label: props.isNew ? 'Загрузка акта, комментарий' : 'Комментарий' },
-]);
+
 
 const next = () => {
   step.value++;
@@ -107,7 +108,7 @@ const prev = () => {
 const home = () => {
   const url = props.isNew ? urls.orders.spareParts.index()
     : urls.orders.spareParts.show(form.id);
-  Inertia.get(url);
+  router.get(url);
 }
 
 const btnNextDisabled = computed(() => {

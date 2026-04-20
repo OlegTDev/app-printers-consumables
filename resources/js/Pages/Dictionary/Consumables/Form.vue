@@ -1,5 +1,5 @@
 <script setup>
-import { useForm } from '@inertiajs/inertia-vue3'
+import { useForm } from '@inertiajs/vue3'
 import Layout from '@/Shared/Layout'
 import Dropdown from 'primevue/dropdown'
 import InputText from 'primevue/inputtext'
@@ -16,18 +16,18 @@ defineOptions({
 const props = defineProps({
     isNew: Boolean,
     consumable: Object,
-    consumableTypes: Object,   
+    consumableTypes: Object,
     labels: Object,
     cartridgeColors: Object,
 });
 
 const consumable = reactive(props.consumable);
 const urls = inject('urls');
-const form = useForm({    
+const form = useForm({
     type: consumable.type,
     name: consumable.name,
     color: consumable.color,
-    description: consumable.description,    
+    description: consumable.description,
 });
 
 const consumableTypes = computed(() => {
@@ -61,11 +61,11 @@ const formFields = reactive({
     description: form.description,
 });
 
-const save = () => {    
+const save = () => {
     if (props.isNew) {
         const url = urls.dictionary.consumables.store();
         form.post(url, { onSuccess: () => {
-            LogActions.save(url, 'POST', 'Создание расходного материала', formFields);    
+            LogActions.save(url, 'POST', 'Создание расходного материала', formFields);
         }});
     }
     else {
@@ -78,10 +78,10 @@ const save = () => {
 
 </script>
 
-<template>   
+<template>
     <form @submit.prevent="save">
         <div class="rounded-lg bg-white shadow-sm border border-gray-200">
-            
+
             <div class="p-10">
 
                 <div class="grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
@@ -104,28 +104,28 @@ const save = () => {
                 <div class="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
                     <div class="sm:col-span-4">
                         <Label for="name">{{ labels.name }}</Label>
-                        <InputText 
+                        <InputText
                             class="w-full"
-                            v-model="form.name" 
-                            :placeholder="labels.name" 
-                            :invalid="form.errors?.name?.length > 0" 
+                            v-model="form.name"
+                            :placeholder="labels.name"
+                            :invalid="form.errors?.name?.length > 0"
                         />
                         <InlineMessage v-if="form.errors?.name" class="mt-2" severity="error">{{ form.errors?.name }}</InlineMessage>
                     </div>
                 </div>
-                            
+
                 <div v-if="form.type === 'cartridge'" class="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
                     <div class="sm:col-span-4">
                         <Label for="color">{{ labels.color }}</Label>
-                        <Dropdown 
-                            v-model="form.color" 
-                            :options="colors" 
-                            :invalid="form.errors?.color?.length > 0" 
-                            optionValue="code" 
-                            optionLabel="name" 
-                            :placeholder="labels.color" 
+                        <Dropdown
+                            v-model="form.color"
+                            :options="colors"
+                            :invalid="form.errors?.color?.length > 0"
+                            optionValue="code"
+                            optionLabel="name"
+                            :placeholder="labels.color"
                             class="w-full"
-                        >                            
+                        >
                         </Dropdown>
                         <InlineMessage v-if="form.errors?.color" class="mt-2" severity="error">{{ form.errors?.color }}</InlineMessage>
                     </div>
@@ -134,21 +134,21 @@ const save = () => {
                 <div class="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
                     <div class="sm:col-span-4">
                         <Label for="name">{{ labels.description }}</Label>
-                        <Textarea 
+                        <Textarea
                             class="w-full"
                             v-model="form.description"
                             rows="5"
-                            :placeholder="labels.description" 
-                            :invalid="form.errors?.description?.length > 0" 
+                            :placeholder="labels.description"
+                            :invalid="form.errors?.description?.length > 0"
                         />
                         <InlineMessage v-if="form.errors?.description" class="mt-2" severity="error">{{ form.errors?.description }}</InlineMessage>
                     </div>
-                </div>               
+                </div>
 
-            </div>           
-            
+            </div>
+
             <div class="flex items-center justify-between p-5 py-4 bg-gray-50 border-t border-gray-100 w-full">
-                <Button :loading="form.processing" class="font-bold" type="submit" label="Сохранить" />                
+                <Button :loading="form.processing" class="font-bold" type="submit" label="Сохранить" />
             </div>
 
         </div>

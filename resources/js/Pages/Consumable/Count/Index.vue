@@ -1,6 +1,6 @@
 <script setup>
 import { computed, inject, reactive, ref, watch } from 'vue';
-import { Head } from '@inertiajs/inertia-vue3'
+import { Head, router } from '@inertiajs/vue3'
 import Layout from '@/Shared/Layout'
 import InputText from 'primevue/inputtext'
 import IconField from 'primevue/iconfield'
@@ -10,7 +10,6 @@ import DataTable from 'primevue/datatable'
 import Badge from 'primevue/badge'
 import Column from 'primevue/column'
 import Button from 'primevue/button'
-import { Inertia } from '@inertiajs/inertia'
 import TableTitle from '@/Shared/TableTitle'
 import pickBy from 'lodash/pickBy'
 import throttle from 'lodash/throttle'
@@ -18,7 +17,7 @@ import Dropdown from 'primevue/dropdown'
 
 
 defineOptions({
-    layout: Layout,    
+    layout: Layout,
 });
 const props = defineProps({
     consumablesCounts: Array,
@@ -40,10 +39,10 @@ const form = reactive({
     consumableType: filters.consumableType,
 });
 
-const consumableTypesDropdown = computed(() => {   
+const consumableTypesDropdown = computed(() => {
     let res = []
     Object.keys(props.consumableTypes).forEach((key) => {
-        res.push({ value: key, name: props.consumableTypes[key] })        
+        res.push({ value: key, name: props.consumableTypes[key] })
     })
     return res
 });
@@ -51,19 +50,19 @@ const consumableTypesDropdown = computed(() => {
 watch(
     () => form,
     throttle(() => {
-        Inertia.get(urls.consumables.counts.index(), pickBy(form), { preserveState: true })
+        router.get(urls.consumables.counts.index(), pickBy(form), { preserveState: true })
     }, 150),
     { deep: true }
 )
 
 const actions = {
-    create: () => Inertia.get(urls.consumables.counts.create()),
-    show: (event) => Inertia.get(urls.consumables.counts.show(event.data.id)),
+    create: () => router.get(urls.consumables.counts.create()),
+    show: (event) => router.get(urls.consumables.counts.show(event.data.id)),
 };
 
 const refTableConsumableCount = ref(null);
 
-const onPageChange = () => {    
+const onPageChange = () => {
     const elementTableConsumableCount = refTableConsumableCount.value.$el;
     if (elementTableConsumableCount) {
         elementTableConsumableCount.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -73,30 +72,30 @@ const onPageChange = () => {
 </script>
 <template>
 
-    <Head :title="title" />    
+    <Head :title="title" />
 
     <Breadcrumbs :home="{ label: 'Главная', url: urls.home }" :items="[
         { label: title },
     ]" />
 
     <div class="flex justify-stretch bg-white rounded-md shadow overflow-hidden mt-4">
-        
+
         <DataTable :value="consumablesCounts"
             ref="refTableConsumableCount"
-            paginator 
-            :rows="10" 
-            dataKey="id" 
+            paginator
+            :rows="10"
+            dataKey="id"
             :metaKeySelection="false"
-            class="w-full" 
-            tableStyle="min-width: 50rem" 
+            class="w-full"
+            tableStyle="min-width: 50rem"
             selectionMode="single"
-            @rowSelect="actions.show"    
+            @rowSelect="actions.show"
             @page="onPageChange"
         >
             <template #header>
                 <TableTitle class="border-b border-gray-200 pb-2">{{ title }}</TableTitle>
                 <div class="flex justify-between mt-5">
-                    
+
                     <Button v-if="auth.can('admin', 'add-consumables')" severity="info" @click="actions.create">
                         Добавить
                     </Button>
@@ -108,24 +107,24 @@ const onPageChange = () => {
                             </InputIcon>
                             <InputText v-model="form.search" placeholder="Поиск" />
                         </IconField>
-                        
-                        <Dropdown 
+
+                        <Dropdown
                             class="w-72"
-                            v-model="form.consumableType" 
-                            showClear 
-                            :options="consumableTypesDropdown" 
-                            optionLabel="name" 
-                            optionValue="value" 
-                            :placeholder="consumableLabels.type" 
+                            v-model="form.consumableType"
+                            showClear
+                            :options="consumableTypesDropdown"
+                            optionLabel="name"
+                            optionValue="value"
+                            :placeholder="consumableLabels.type"
                         />
                     </div>
-                    
-                </div>                
+
+                </div>
             </template>
             <Column header="#" headerStyle="width:3rem">
                 <template #body="slotProps">
                     {{ slotProps.index + 1 }}
-                </template>                        
+                </template>
             </Column>
             <Column :header="consumableLabels.type" field="consumable.type">
                 <template #body="{ data }">
@@ -144,7 +143,7 @@ const onPageChange = () => {
                                 <div>
                                     {{ cartridgeColors[data.consumable.color]['name'] }}
                                 </div>
-                            </div>               
+                            </div>
                         </div>
                     </div>
                 </template>
@@ -153,8 +152,8 @@ const onPageChange = () => {
                 <template #body="{ data }">
                     <Badge :value="data.count" size="large" :severity="data.count <= 1 ? 'danger' : (data.count < 10 ? 'warning' : 'success')"></Badge>
                 </template>
-            </Column>           
-            
+            </Column>
+
             <template #empty> Нет данных </template>
 
         </DataTable>

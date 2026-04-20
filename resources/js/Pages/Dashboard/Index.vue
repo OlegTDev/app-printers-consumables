@@ -1,7 +1,7 @@
 <script setup>
 import Layout from '@/Shared/Layout';
-import { Head } from '@inertiajs/inertia-vue3';
-import LastOperationsInstalled from './LastOperationsInstalled.vue';
+import { Head } from '@inertiajs/vue3';
+import LastOperationsInstalled from './LastOperationsInstalled';
 import Chart from './Chart.vue';
 import { inject } from 'vue';
 

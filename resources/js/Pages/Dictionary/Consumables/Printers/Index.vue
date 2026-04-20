@@ -1,12 +1,11 @@
 <script setup>
-import { Head, Link } from '@inertiajs/inertia-vue3'
 import Layout from '@/Shared/Layout'
 import { watch, reactive, inject } from 'vue'
 import Breadcrumbs from '@/Shared/Breadcrumbs'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import Button from 'primevue/button'
-import { Inertia } from '@inertiajs/inertia'
+import { router } from '@inertiajs/vue3'
 import TableTitle from '@/Shared/TableTitle'
 import InputText from 'primevue/inputtext'
 import pickBy from 'lodash/pickBy'
@@ -15,8 +14,8 @@ import throttle from 'lodash/throttle'
 const props = defineProps({
     printers: Object,
     labels: Object,
-    filters: Object,    
-    consumable: Object,    
+    filters: Object,
+    consumable: Object,
     consumableTypeValue: String,
 });
 
@@ -36,7 +35,7 @@ const form = reactive({
 watch(
     () => form,
     throttle(() => {
-        Inertia.get(urls.dictionary.consumables.printers.index(consumable.id), pickBy(form), { preserveState: true })
+        router.get(urls.dictionary.consumables.printers.index(consumable.id), pickBy(form), { preserveState: true })
     }, 150),
     { deep: true }
 );
@@ -45,17 +44,17 @@ const LogActions = inject('LogActions');
 
 const addPrinter = (id) => {
     const url = urls.dictionary.consumables.printers.add(consumable.id, id);
-    Inertia.post(url, {
+    router.post(url, {
         onSuccess: () => {
             LogActions.save(url, 'POST', 'Добавление связи с принтером', Object.assign(consumable, { id_printer: id }));
-            Inertia.get(urls.dictionary.components.show(consumable.id));
+            router.get(urls.dictionary.components.show(consumable.id));
         },
     })
 };
 
 </script>
 <template>
-    
+
     <Head :title="title" />
 
     <Breadcrumbs :home="{ label: 'Главная', url: '/' }" :items="[
@@ -68,7 +67,7 @@ const addPrinter = (id) => {
         <DataTable :value="printers"
             paginator :rows="10"
             dataKey="id" :metaKeySelection="false"
-            class="w-full" tableStyle="min-width: 50rem" selectionMode="single"            
+            class="w-full" tableStyle="min-width: 50rem" selectionMode="single"
         >
             <template #header>
                 <TableTitle class="border-b border-gray-200 pb-2">{{ title }}</TableTitle>
@@ -79,12 +78,12 @@ const addPrinter = (id) => {
                             Назад
                         </Button>
                     </Link>
-                    <div v-else></div>                    
+                    <div v-else></div>
                     <span class="relative">
                         <i class="fas fa-search absolute top-2/4 -mt-2 left-3 text-surface-400"></i>
                         <InputText v-model="form.search" placeholder="Поиск" class="pl-10 font-normal"/>
                     </span>
-                </div>                
+                </div>
             </template>
             <Column header="#" headerStyle="width:3rem">
                 <template #body="slotProps">
@@ -97,7 +96,7 @@ const addPrinter = (id) => {
                 <template #body="{ data }">
                     {{ data.is_color_print ? 'Да' : 'Нет' }}
                 </template>
-            </Column>            
+            </Column>
             <Column header="" v-if="auth.can('admin', 'editor-dictionary')">
                 <template #body="{ data }">
                     <Button @click="addPrinter(data.id)">
@@ -106,10 +105,10 @@ const addPrinter = (id) => {
                     </Button>
                 </template>
             </Column>
-            
+
             <template #empty> Нет данных </template>
 
-        </DataTable>       
-    </div>        
-    
+        </DataTable>
+    </div>
+
 </template>

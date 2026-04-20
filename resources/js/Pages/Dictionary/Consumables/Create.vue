@@ -1,5 +1,5 @@
 <script setup>
-import { Head } from '@inertiajs/inertia-vue3'
+import { Head } from '@inertiajs/vue3'
 import Layout from '@/Shared/Layout'
 import Form from './Form'
 import { inject, reactive } from 'vue'
@@ -22,20 +22,20 @@ const cartridgeColors = reactive(props.cartridgeColors);
 </script>
 
 <template>
-    <Head :title="title" />        
+    <Head :title="title" />
 
     <Breadcrumbs :home="{ label: 'Главная', url: urls.home }" :items="[
         { label: 'Расходные материалы (справочник)', url: urls.dictionary.consumables.index() },
         { label: title },
     ]" />
 
-    <Form 
-        :isNew="true" 
-        :labels="labels" 
+    <Form
+        :isNew="true"
+        :labels="labels"
         :consumable="{ type: null, name: null, color: null, description: null }"
         :cartridgeColors="cartridgeColors"
         :consumableTypes="consumableTypes"
-    ></Form>    
+    ></Form>
 
 </template>
 

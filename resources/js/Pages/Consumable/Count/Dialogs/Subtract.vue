@@ -3,7 +3,7 @@ import axios from 'axios';
 import { useToast } from 'primevue/usetoast';
 import { inject, onMounted, reactive, ref, watch } from 'vue';
 import Dropdown from 'primevue/dropdown';
-import { useForm } from '@inertiajs/inertia-vue3';
+import { useForm } from '@inertiajs/vue3';
 import Label from '@/Shared/Label';
 import InlineMessage from 'primevue/inlinemessage';
 import ProgressSpinner from 'primevue/progressspinner';
@@ -25,11 +25,11 @@ const isEmpty = ref(false);
 watch(
     () => selectedPrinter.value,
     (item) => {
-        form.id_printer_workplace = item?.id    
+        form.id_printer_workplace = item?.id
     }
 );
 
-const form = useForm({   
+const form = useForm({
     id_consumable_count: dialogRef.value.data.idConsumableCount,
     id_printer_workplace: null,
     count: 1,
@@ -53,7 +53,7 @@ onMounted(() => {
                         model: item.model,
                         is_color_print: item.is_color_print,
                         inventory_number: item.inventory_number,
-                        serial_number: item.serial_number,                        
+                        serial_number: item.serial_number,
                     })
                 })
                 if (!printersWorkplaces.value.length) {
@@ -63,7 +63,7 @@ onMounted(() => {
             else {
                 isEmpty.value = true
             }
-        })      
+        })
         .catch((error) => {
             toast.add({
                 severity: 'error',
@@ -72,13 +72,13 @@ onMounted(() => {
                 life: config.toast.timeLife,
             })
             console.error(error)
-        })  
+        })
         .finally(() => loading.value = false)
 });
 
 const LogActions = inject('LogActions');
 
-const save = () => {            
+const save = () => {
     const idConsumable = dialogRef.value.data.idConsumable;
     const idConsumableCount = dialogRef.value.data.idConsumableCount;
     const url = urls.consumables.counts.subtract(idConsumable, idConsumableCount);
@@ -88,7 +88,7 @@ const save = () => {
                 id_consumable: form.id_consumable,
                 count: form.count,
                 id_printer_workplace: form.id_printer_workplace,
-            });    
+            });
 
             dialogRef.value.close();
         },
@@ -98,7 +98,7 @@ const save = () => {
 </script>
 <template>
     <form @submit.prevent="save">
-                
+
         <div v-if="loading">
             <ProgressSpinner style="width: 50px; height: 50px" strokeWidth="8" class="fill-surface-0 dark:fill-surface-800"
                 animationDuration=".5s" aria-label="Custom ProgressSpinner" />
@@ -106,14 +106,14 @@ const save = () => {
 
         <div v-else-if="isEmpty">
             <Message severity="warn" :closable="false">
-                Нет привязки принтеров к данному расходному материалу и текущей организации, либо нет таких принтеров на рабочих местах!                
+                Нет привязки принтеров к данному расходному материалу и текущей организации, либо нет таких принтеров на рабочих местах!
             </Message>
         </div>
 
         <div v-else class="grid gap-y-8">
             <div class="grid gap-x-6">
                 <Label for="id_printer_workplace">Принтер</Label>
-                <Dropdown 
+                <Dropdown
                     :invalid="form.errors?.id_printer_workplace != null"
                     v-model="selectedPrinter"
                     filter
@@ -131,7 +131,7 @@ const save = () => {
                             </div>
                             <div class="flex gap-x-4">
                                 {{ `${slotProps.value.vendor} ${slotProps.value.model}` }}
-                                <span v-if="slotProps.value.is_color_print"> 
+                                <span v-if="slotProps.value.is_color_print">
                                     <IconColorPrint class="h-4 w-4" />
                                 </span>
                             </div>
@@ -151,13 +151,13 @@ const save = () => {
                             </div>
                             <div class="flex gap-x-4">
                                 {{ `${slotProps.option.vendor} ${slotProps.option.model}` }}
-                                <span v-if="slotProps.option.is_color_print"> 
+                                <span v-if="slotProps.option.is_color_print">
                                     <IconColorPrint class="h-4 w-4" />
                                 </span>
-                            </div>  
+                            </div>
                             <div class="text-gray-500">
                                 инвентарный: {{ slotProps.option.inventory_number }}, серийный: {{ slotProps.option.serial_number }}
-                            </div>                              
+                            </div>
                         </div>
                     </template>
                 </Dropdown>
@@ -167,13 +167,13 @@ const save = () => {
                     </InlineMessage>
                 </div>
             </div>
-            <div class="grid grid-cols-none gap-x-6">                                              
-                <Label for="count">Количество</Label>                        
-                <InputNumber 
+            <div class="grid grid-cols-none gap-x-6">
+                <Label for="count">Количество</Label>
+                <InputNumber
                     class="w-full"
-                    v-model="form.count" 
-                    placeholder="Количество" 
-                    :invalid="form.errors?.count?.length > 0"                            
+                    v-model="form.count"
+                    placeholder="Количество"
+                    :invalid="form.errors?.count?.length > 0"
                 />
                 <div>
                     <InlineMessage v-if="form.errors?.count" class="mt-2" severity="error">{{ form.errors?.count }}</InlineMessage>
