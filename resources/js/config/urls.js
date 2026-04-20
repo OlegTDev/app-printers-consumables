@@ -7,7 +7,6 @@ import {
   dictionaryPrintersUrls,
   dictionaryConsumablesUrls,
   dictionaryOrganizationsUrls,
-  dictionarySparePartsUrls,
 } from './urls/dictionary';
 import { reportsUrls } from './urls/reports';
 import { ordersUrls } from './urls/orders';
