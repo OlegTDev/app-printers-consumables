@@ -15,7 +15,7 @@ RUN apk add --no-cache \
         libpq-dev \
         openldap-dev \
         zlib-dev \
-    && docker-php-ext-install -j$(nproc) pdo pdo_pgsql pgsql ldap gd zip \
+    && docker-php-ext-install -j$(nproc) pdo pdo_pgsql pgsql ldap gd zip opcache \
     && apk del .build-deps
 
 ARG USER_ID=1000
@@ -46,12 +46,15 @@ FROM base AS prod
 RUN mv $PHP_INI_DIR/php.ini-production $PHP_INI_DIR/php.ini
 
 RUN { \
+        echo 'opcache.enable=1'; \
+        echo 'opcache.enable_cli=1'; \
         echo 'opcache.memory_consumption=128'; \
         echo 'opcache.interned_strings_buffer=8'; \
-        echo 'opcache.max_accelerated_files=4000'; \
-        echo 'opcache.revalidate_freq=2'; \
+        echo 'opcache.max_accelerated_files=10000'; \
+        # Идеально для контейнеров (PHP не будет тратить время на проверку изменений файлов):
+        echo 'opcache.validate_timestamps=0'; \
         echo 'opcache.fast_shutdown=1'; \
-        echo 'opcache.enable_cli=1'; \
     } > /usr/local/etc/php/conf.d/docker-php-ext-opcache.ini
+
 
 USER app
