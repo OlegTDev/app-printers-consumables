@@ -18,6 +18,7 @@ services:
     build:
       context: ./
       dockerfile: docker/prod/php-fpm/Dockerfile
+      target: prod
       args:
         - REGISTRY=${REGISTRY}
         - VERSION_TAG=${VERSION_TAG}
@@ -51,6 +52,7 @@ services:
     build:
       context: ./
       dockerfile: docker/prod/php-cli/Dockerfile
+      target: prod
       args:
         - REGISTRY=${REGISTRY}
         - VERSION_TAG=${VERSION_TAG}
