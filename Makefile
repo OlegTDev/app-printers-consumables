@@ -46,7 +46,7 @@ php-fpm-build:
 		-f ./docker/common/php-fpm/Dockerfile .
 
 php-fpm-save-image-to-file:
-	docker save -o ./docker/images/var/php-pgsql-ldap-fpm:${PHP_FPM_TAG}.tar app-printers-consumable-php-fpm:${PHP_FPM_TAG}
+	docker save -o ./docker/var/php-pgsql-ldap-fpm_${PHP_FPM_TAG}.tar php-pgsql-ldap-fpm:${PHP_FPM_TAG}
 
 php-fpm-remove-images:
 	docker rmi -f php-pgsql-ldap-fpm:${PHP_FPM_TAG}
@@ -62,7 +62,7 @@ php-cli-build:
 		-f ./docker/common/php-cli/Dockerfile .
 
 php-cli-save-image-to-file:
-	docker save -o ./docker/images/var/php-pgsql-ldap-cli:${PHP_CLI_TAG}.tar app-printers-consumable-php-cli:${PHP_CLI_TAG}
+	docker save -o ./docker/var/php-pgsql-ldap-cli_${PHP_CLI_TAG}.tar php-pgsql-ldap-cli:${PHP_CLI_TAG}
 
 php-cli-remove-images:
 	docker rmi -f php-pgsql-ldap-cli:${PHP_CLI_TAG}
@@ -78,7 +78,7 @@ node-build:
 		-f ./docker/common/node/Dockerfile .
 
 node-save-image-to-file:
-	docker save -o ./docker/images/var/node:${NODE_TAG}.tar node:${NODE_TAG}
+	docker save -o ./docker/var/node_${NODE_TAG}.tar node:${NODE_TAG}
 
 node-remove-images:
 	docker rmi -f node:${NODE_TAG}
@@ -90,10 +90,10 @@ nginx-build:
 	docker build \
 		--build-arg NGINX_VERSION=${NGINX_VERSION} \
 		-t nginx:${NGINX_TAG} \
-		-f ./docker/images/nginx/Dockerfile .
+		-f ./docker/common/nginx/Dockerfile .
 
 nginx-save-image-to-file:
-	docker save -o ./docker/images/var/nginx:${NGINX_TAG}.tar nginx:${NGINX_TAG}
+	docker save -o ./docker/var/nginx_${NGINX_TAG}.tar nginx:${NGINX_TAG}
 
 nginx-remove-images:
 	docker rmi -f nginx:${NGINX_TAG}
@@ -106,10 +106,10 @@ postgres-build:
 	docker build \
 		--build-arg POSTGRES_VERSION=${POSTGRES_VERSION} \
 		-t postgres:${POSTGRES_TAG} \
-		-f ./docker/images/postgres/Dockerfile .
+		-f ./docker/common/postgres/Dockerfile .
 
 postgres-save-image-to-file:
-	docker save -o ./docker/images/var/postgres:${POSTGRES_TAG}.tar postgres:${POSTGRES_TAG}
+	docker save -o ./docker/var/postgres_${POSTGRES_TAG}.tar postgres:${POSTGRES_TAG}
 
 postgres-remove-images:
 	docker rmi -f postgres:${POSTGRES_TAG}
