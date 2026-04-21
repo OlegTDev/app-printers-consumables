@@ -10,6 +10,7 @@
 .DS_Store
 .env
 .env.backup
+.env.docker
 .phpunit.result.cache
 .php-cs-fixer.php
 .php-cs-fixer.cache
