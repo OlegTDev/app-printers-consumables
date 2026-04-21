@@ -41,14 +41,15 @@ php-fpm-create: php-fpm-build php-fpm-save-image-to-file php-fpm-remove-images
 php-fpm-build:
 	docker build \
 		--build-arg PHP_FPM_VERSION=${PHP_FPM_VERSION} \
-		-t app-printers-consumable-php-fpm:${PHP_FPM_TAG} \
-		-f ./docker/images/php-fpm/Dockerfile .
+		--target prod \
+		-t php-pgsql-ldap-fpm:${PHP_FPM_TAG} \
+		-f ./docker/common/php-fpm/Dockerfile .
 
 php-fpm-save-image-to-file:
-	docker save -o ./docker/images/var/app-printers-consumable-php-fpm:${PHP_FPM_TAG}.tar app-printers-consumable-php-fpm:${PHP_FPM_TAG}
+	docker save -o ./docker/images/var/php-pgsql-ldap-fpm:${PHP_FPM_TAG}.tar app-printers-consumable-php-fpm:${PHP_FPM_TAG}
 
 php-fpm-remove-images:
-	docker rmi -f app-printers-consumable-php-fpm:${PHP_FPM_TAG}
+	docker rmi -f php-pgsql-ldap-fpm:${PHP_FPM_TAG}
 
 # PHP-CLI
 php-cli-create: php-cli-build php-cli-save-image-to-file php-cli-remove-images
@@ -56,14 +57,15 @@ php-cli-create: php-cli-build php-cli-save-image-to-file php-cli-remove-images
 php-cli-build:
 	docker build \
 		--build-arg PHP_CLI_VERSION=${PHP_CLI_VERSION} \
-		-t app-printers-consumable-php-cli:${PHP_CLI_TAG} \
-		-f ./docker/images/php-cli/Dockerfile .
+		--target prod \
+		-t php-pgsql-ldap-cli:${PHP_CLI_TAG} \
+		-f ./docker/common/php-cli/Dockerfile .
 
 php-cli-save-image-to-file:
-	docker save -o ./docker/images/var/app-printers-consumable-php-cli:${PHP_CLI_TAG}.tar app-printers-consumable-php-cli:${PHP_CLI_TAG}
+	docker save -o ./docker/images/var/php-pgsql-ldap-cli:${PHP_CLI_TAG}.tar app-printers-consumable-php-cli:${PHP_CLI_TAG}
 
 php-cli-remove-images:
-	docker rmi -f app-printers-consumable-php-cli:${PHP_CLI_TAG}
+	docker rmi -f php-pgsql-ldap-cli:${PHP_CLI_TAG}
 
 
 # NODE
@@ -72,14 +74,14 @@ node-create: node-build node-save-image-to-file node-remove-images
 node-build:
 	docker build \
 		--build-arg NODE_VERSION=${NODE_VERSION} \
-		-t app-printers-consumable-node:${NODE_TAG} \
-		-f ./docker/images/node/Dockerfile .
+		-t node:${NODE_TAG} \
+		-f ./docker/common/node/Dockerfile .
 
 node-save-image-to-file:
-	docker save -o ./docker/images/var/app-printers-consumable-node:${NODE_TAG}.tar app-printers-consumable-node:${NODE_TAG}
+	docker save -o ./docker/images/var/node:${NODE_TAG}.tar node:${NODE_TAG}
 
 node-remove-images:
-	docker rmi -f app-printers-consumable-node:${NODE_TAG}
+	docker rmi -f node:${NODE_TAG}
 
 # NGINX
 nginx-create: nginx-build nginx-save-image-to-file nginx-remove-images
@@ -87,14 +89,14 @@ nginx-create: nginx-build nginx-save-image-to-file nginx-remove-images
 nginx-build:
 	docker build \
 		--build-arg NGINX_VERSION=${NGINX_VERSION} \
-		-t app-printers-consumable-nginx:${NGINX_TAG} \
+		-t nginx:${NGINX_TAG} \
 		-f ./docker/images/nginx/Dockerfile .
 
 nginx-save-image-to-file:
-	docker save -o ./docker/images/var/app-printers-consumable-nginx:${NGINX_TAG}.tar app-printers-consumable-nginx:${NGINX_TAG}
+	docker save -o ./docker/images/var/nginx:${NGINX_TAG}.tar nginx:${NGINX_TAG}
 
 nginx-remove-images:
-	docker rmi -f app-printers-consumable-nginx:${NGINX_TAG}
+	docker rmi -f nginx:${NGINX_TAG}
 
 
 # POSTGRES
@@ -103,27 +105,30 @@ postgres-create: postgres-build postgres-save-image-to-file postgres-remove-imag
 postgres-build:
 	docker build \
 		--build-arg POSTGRES_VERSION=${POSTGRES_VERSION} \
-		-t app-printers-consumable-postgres:${POSTGRES_TAG} \
+		-t postgres:${POSTGRES_TAG} \
 		-f ./docker/images/postgres/Dockerfile .
 
 postgres-save-image-to-file:
-	docker save -o ./docker/images/var/app-printers-consumable-postgres:${POSTGRES_TAG}.tar app-printers-consumable-postgres:${POSTGRES_TAG}
+	docker save -o ./docker/images/var/postgres:${POSTGRES_TAG}.tar postgres:${POSTGRES_TAG}
 
 postgres-remove-images:
-	docker rmi -f app-printers-consumable-postgres:${POSTGRES_TAG}
+	docker rmi -f postgres:${POSTGRES_TAG}
 
 #################### IMAGES END ######################
 
 
 composer-install-dev:
-	docker run --rm -v ./:/app -w /app app-printers-consumable-php-cli:${PHP_CLI_TAG} composer install --no-scripts
+	docker run --rm -v ./:/app -w /app php-pgsql-ldap-cli:${PHP_CLI_TAG} composer install --no-scripts
 
 npm-install-dev:
-	docker run --rm -v ./:/app -w /app app-printers-consumable-node:${PHP_CLI_TAG} npm install
+	docker run --rm -v ./:/app -w /app node:${PHP_CLI_TAG} npm install
 
 
 composer-install-prod:
-	docker run --rm -v ./:/app -w /app app-printers-consumable-php-cli:${PHP_CLI_TAG} composer install --no-dev --optimize-autoloader --no-scripts
+	docker run --rm -v ./:/app -w /app php-pgsql-ldap-cli:${PHP_CLI_TAG} composer install --no-dev --optimize-autoloader --no-scripts
 
 npm-install-prod:
-	docker run --rm -v ./:/app -w /app app-printers-consumable-node:${PHP_CLI_TAG} npm ci --omit=dev
+	docker run --rm -v ./:/app -w /app node:${PHP_CLI_TAG} npm ci
+
+npm-build:
+	docker run --rm -v ./:/app -w /app node:${PHP_CLI_TAG} npm run build

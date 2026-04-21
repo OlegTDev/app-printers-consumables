@@ -20,23 +20,38 @@ RUN apk add --no-cache \
 
 ARG USER_ID=1000
 ARG GROUP_ID=1000
+
 RUN addgroup -g ${GROUP_ID} app && \
     adduser -u ${USER_ID} -G app -s /bin/sh -D app
 
-USER app
-
 WORKDIR /app
+RUN chown app:app /app
 
 COPY --from=composer:2 /usr/bin/composer /usr/local/bin/composer
 
 EXPOSE 9000
 
 
-
+# DEV
 FROM base AS dev
+
 RUN mv $PHP_INI_DIR/php.ini-development $PHP_INI_DIR/php.ini
 
+USER app
 
 
+# PROD
 FROM base AS prod
+
 RUN mv $PHP_INI_DIR/php.ini-production $PHP_INI_DIR/php.ini
+
+RUN { \
+        echo 'opcache.memory_consumption=128'; \
+        echo 'opcache.interned_strings_buffer=8'; \
+        echo 'opcache.max_accelerated_files=4000'; \
+        echo 'opcache.revalidate_freq=2'; \
+        echo 'opcache.fast_shutdown=1'; \
+        echo 'opcache.enable_cli=1'; \
+    } > /usr/local/etc/php/conf.d/docker-php-ext-opcache.ini
+
+USER app

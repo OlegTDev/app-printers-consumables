@@ -1,6 +1,6 @@
 ARG PHP_CLI_VERSION=8.3
 
-FROM php:${PHP_CLI_VERSION}-cli-alpine as base
+FROM php:${PHP_CLI_VERSION}-cli-alpine AS base
 
 RUN apk add --no-cache \
         libpng \
@@ -20,22 +20,27 @@ RUN apk add --no-cache \
 
 ARG USER_ID=1000
 ARG GROUP_ID=1000
+
 RUN addgroup -g ${GROUP_ID} app && \
     adduser -u ${USER_ID} -G app -s /bin/sh -D app
 
-USER app
-
 WORKDIR /app
+RUN chown app:app /app
 
 COPY --from=composer:2 /usr/bin/composer /usr/local/bin/composer
 
 
-
+# DEV
 FROM base AS dev
+
 RUN mv $PHP_INI_DIR/php.ini-development $PHP_INI_DIR/php.ini
 
+USER app
 
 
+# PROD
 FROM base AS prod
+
 RUN mv $PHP_INI_DIR/php.ini-production $PHP_INI_DIR/php.ini
 
+USER app
