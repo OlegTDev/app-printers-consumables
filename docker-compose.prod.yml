@@ -27,6 +27,8 @@ services:
       - postgres
     networks:
       - app-network
+    volumes:
+      - ./storage:/app/storage
 
   postgres:
     build:
