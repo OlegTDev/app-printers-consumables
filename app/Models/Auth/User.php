@@ -185,5 +185,26 @@ class User extends Authenticatable implements LdapAuthenticatable
         return $result;
     }
 
+    public function getFirstAvailableOrganization(string $defaultCode): string
+    {
+        if ($this->isAvailableByOrgCode($this->org_code)) {
+            return $this->org_code;
+        }
+
+        $query = Organization::query();
+        if (!$this->hasRole('admin')) {
+            $query->join('users_organizations', 'users_organizations.org_code', '=', 'organizations.code')
+                ->where('users_organizations.id_user', $this->id);
+        }
+
+        $organizations = $query->pluck('code')->toArray();
+
+        if (in_array($defaultCode, $organizations)) {
+            return $defaultCode;
+        }
+
+        return (string)reset($organizations) ?: '';
+    }
+
 
 }

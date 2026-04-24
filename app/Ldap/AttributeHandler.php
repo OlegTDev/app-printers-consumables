@@ -7,7 +7,8 @@ class AttributeHandler
 {
     public function handle(\LdapRecord\Models\ActiveDirectory\User $ldapUser, DatabaseUser $databaseUser)
     {
-        $databaseUser->org_code = $this->getOrgCodeBySAMAccountName($ldapUser->getFirstAttribute('sAMAccountName'));
+        $code = $databaseUser->getFirstAvailableOrganization($this->getOrgCodeBySAMAccountName($ldapUser->getFirstAttribute('sAMAccountName')));
+        $databaseUser->org_code = $code;
     }
 
     private function getOrgCodeBySAMAccountName(string $sAMAccountName): string
