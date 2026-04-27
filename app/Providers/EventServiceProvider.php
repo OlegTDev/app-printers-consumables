@@ -6,6 +6,7 @@ use App\Events\OrderCompleted;
 use App\Events\UpdateConsumableCount;
 use App\Models\Order\Order;
 use App\Observers\OrderObserver;
+use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
@@ -23,6 +24,9 @@ class EventServiceProvider extends ServiceProvider
         ],
         OrderCompleted::class => [
             UpdateConsumableCount::class,
+        ],
+        Login::class => [
+            \App\Listeners\ClearUserOrgCache::class,
         ],
     ];
 

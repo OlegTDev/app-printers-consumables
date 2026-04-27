@@ -2,20 +2,31 @@
 namespace App\Ldap;
 
 use App\Models\Auth\User as DatabaseUser;
+use App\Services\Access\OrganizationAccessService;
 
 class AttributeHandler
 {
+    public function __construct(private OrganizationAccessService $organizationAccessService)
+    {}
+
     public function handle(\LdapRecord\Models\ActiveDirectory\User $ldapUser, DatabaseUser $databaseUser)
     {
-        $code = $databaseUser->getFirstAvailableOrganization($this->getOrgCodeBySAMAccountName($ldapUser->getFirstAttribute('sAMAccountName')));
-        $databaseUser->org_code = $code;
+        if ($databaseUser->org_code) {
+            $orgCodeByName = $databaseUser->org_code;
+        } else {
+            $orgCodeByName = $this->getOrgCodeBySAMAccountName($ldapUser->getFirstAttribute('sAMAccountName'));
+        }
+        if (!$this->organizationAccessService->isAvailableByOrgCode($orgCodeByName, $databaseUser->isAdmin(), $databaseUser->id)) {
+            $orgCodeByName = $this->organizationAccessService->getUserAvailableFirstCode($databaseUser->isAdmin(), $databaseUser->id);
+        }
+        $databaseUser->org_code = $orgCodeByName ?? '';
     }
 
-    private function getOrgCodeBySAMAccountName(string $sAMAccountName): string
+    private function getOrgCodeBySAMAccountName(string $sAMAccountName): ?string
     {
         if (preg_match('/^n?\d{4}/i', $sAMAccountName, $matches) && isset($matches[0])) {
             return $matches[0];
         }
-        return '0000';
+        return null;
     }
 }

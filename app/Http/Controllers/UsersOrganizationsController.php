@@ -3,38 +3,60 @@
 namespace App\Http\Controllers;
 
 use App\Models\Organization;
-use Illuminate\Support\Facades\Auth;
+use App\Services\Access\OrganizationAccessService;
+use App\Services\Query\OrganizationQueryService;
+use App\Services\Query\UserQueryService;
 
-/**
- * Управление списком организаций привязанных к текущему пользователю Auth::user()
- */
+
 class UsersOrganizationsController extends Controller
 {
-    
-    /**
-     * Список организаций привязанных к текущему пользователю
-     * @return array
-     */
-    public function index()
+
+    public function __construct(private OrganizationAccessService $organizationAccessService)
     {
+    }
+
+    private function getUserIdAndIsAdmin(): array
+    {
+        /** @var \App\Models\Auth\User $auth */
+        $auth = auth()->user();
         return [
-            'organizations' => Auth::user()->availableOrganizations(),
-            'organizationLabels' => Organization::labels(),
+            $auth->id,
+            $auth->isAdmin(),
         ];
     }
 
     /**
-     * Установка списка организаций @param Organization $organization
-     * текущему пользователю
-     * @return \Illuminate\Http\RedirectResponse|null
+     * @route GET /users/organizations
      */
-    public function change(Organization $organization)
-    {                
-        if (Auth::user()->isAvailableByOrgCode($organization->code)) {
-            Auth::user()->changeSelectedOrganization($organization->code);
+    public function index(OrganizationQueryService $organizationQueryService): \Illuminate\Http\JsonResponse
+    {
+        [$userId, $isAdmin] = $this->getUserIdAndIsAdmin();
+
+        $availableOrgCodes = $this->organizationAccessService->getUserAvailableCodes($isAdmin, $userId);
+        $availableOrganizations = $organizationQueryService->getOrganizationsByCodes($availableOrgCodes);
+        return response()->json([
+            'organizations' => $availableOrganizations,
+            'labels' => config('labels.organization'),
+        ]);
+    }
+
+    /**
+     * @route POST /users/organizations/{organization}
+     */
+    public function change(Organization $organization, UserQueryService $userQueryService): \Illuminate\Http\RedirectResponse
+    {
+        [$userId, $isAdmin] = $this->getUserIdAndIsAdmin();
+        $code = $organization->code;
+
+        if ($this->organizationAccessService->isAvailableByOrgCode($code, $isAdmin, $userId)) {
+            if ($userQueryService->changeUserOrganization($userId, $code)) {
+                return redirect()->back()
+                    ->with('success', "Выбрана организация с кодом {$code}!");
+            }
             return redirect()->back()
-                ->with('success', "Выбрана организация с кодом {$organization->code}!");       
+            ->with('error', "Не удалось изменить организацию на {$code}!");
         }
+        abort(403, "У пользователя {$userId} нет доступа к организации {$code}");
     }
 
 }
