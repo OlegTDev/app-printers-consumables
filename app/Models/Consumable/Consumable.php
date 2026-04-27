@@ -6,7 +6,6 @@ use App\Models\Auth\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Printer\Printer;
 use App\Models\Printer\PrinterWorkplace;
@@ -33,7 +32,7 @@ use Illuminate\Support\Facades\DB;
  */
 class Consumable extends Model
 {
-    use HasFactory;//, SoftDeletes;
+    use HasFactory;
 
     /**
      * {@inheritDoc}
@@ -106,15 +105,13 @@ class Consumable extends Model
             ->get();
     }
 
-    /**
-     * Принтеры не привязанные к этому расходному материалу
-     * @return Builder
-     */
-    public function printersNotIn()
+    public function printersNotIn(): Builder
     {
-        return Printer::whereDoesntHave('consumables', fn(Builder $query) =>
+        /** @var Builder $printer */
+        $printer = Printer::whereDoesntHave('consumables', fn(Builder $query) =>
             $query->where('consumables.id', $this->id)
         );
+        return $printer;
     }
 
     /**
@@ -126,18 +123,12 @@ class Consumable extends Model
     }
 
 
-    /**
-     * Фильтр
-     * @param Builder $query
-     * @param array $filter
-     */
     public function scopeFilter(Builder $query, array $filters)
     {
         $query->with('author');
         $query->when($filters['search'] ?? null, function (Builder $query, $search) {
             $query->whereAny(['name'], 'ILIKE', "%$search%");
         });
-        $query->orderByDesc('created_at')->orderByDesc('updated_at');
     }
 
     public static function queryWithOtherTypesByPrinter(int $idPrinter)

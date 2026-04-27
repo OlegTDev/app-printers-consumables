@@ -9,8 +9,7 @@ use App\Models\Consumable\CartridgeColors;
 use App\Models\Consumable\Consumable;
 use App\Models\Consumable\ConsumableTypesEnum;
 use App\Models\Printer\Printer;
-use Illuminate\Database\Eloquent\Casts\Json;
-use Illuminate\Support\Facades\Request;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 /**
@@ -19,14 +18,20 @@ use Inertia\Inertia;
 class ConsumablesController extends Controller
 {
     /**
-     * Список расходных материалов
-     * @return \Inertia\Response
+     * @route GET /dictionary/consumables
      */
-    public function index()
+    public function index(Request $request): \Inertia\Response
     {
+        $field = $request->input('sortField', 'id');
+        $order = $request->input('sortOrder', '1') == '1' ? 'asc' : 'desc';
+        $consumables = Consumable::filter($request->only(['search']))
+            ->orderBy($field, $order)
+            ->paginate(config('per_page.dictionary_consumables'))
+            ->withQueryString();
+
         return Inertia::render('Dictionary/Consumables/Index', [
-            'consumables' => Consumable::filter(Request::only(['search']))->get(),
-            'filters' => Request::all(['search']),
+            'consumables' => $consumables,
+            'filters' => $request->only(['search', 'sortField', 'sortOrder']),
             'consumableTypes' => ConsumableTypesEnum::array(),
             'cartridgeColors' => CartridgeColors::get(),
             'labels' => config('labels.consumable'),
