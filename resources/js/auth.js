@@ -1,16 +1,15 @@
+import { usePage } from '@inertiajs/vue3';
+
 export class Auth {
+  can(...roles) {
+    const page = usePage();
+    const userRoles = page.props.auth?.user?.roles ?? [];
 
-    constructor(roles) {
-        this.roles = roles
+    for (let i = 0; i < roles.length; i++) {
+      if (userRoles.indexOf(roles[i]) >= 0) {
+        return true;
+      }
     }
-
-    can (...roles) {        
-        for(let i=0; i<roles.length; i++) {
-            if (this.roles.indexOf(roles[i]) >= 0) {
-                return true;
-            }
-        }
-        return false;
-    }    
-
+    return false;
+  }
 }

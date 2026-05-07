@@ -63,7 +63,7 @@ createInertiaApp({
       .provide('moment', moment)
       .provide('config', config)
       .provide('urls', urls)
-      .provide('auth', new Auth(props.initialPage.props?.auth?.user?.roles ?? []))
+      .provide('auth', new Auth())
       .provide('LogActions', new LogActions(props.initialPage.props?.auth?.user))
       .mount(el);
 

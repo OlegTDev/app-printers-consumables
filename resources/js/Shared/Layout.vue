@@ -1,21 +1,18 @@
 <script setup>
-import { Link } from '@inertiajs/vue3';
+import { router } from '@inertiajs/vue3';
 import Logo from '@/Shared/Logo';
-import Dropdown from '@/Shared/Dropdown';
 import MainMenu from '@/Shared/MainMenu';
 import FlashMessages from '@/Shared/FlashMessages';
-import { defineAsyncComponent, inject, onMounted } from 'vue';
-import { initFlowbite } from 'flowbite';
+import { defineAsyncComponent, inject, ref } from 'vue';
 import Button from 'primevue/button';
 import { useDialog } from 'primevue/usedialog';
+import Menubar from 'primevue/menubar';
+import Avatar from 'primevue/avatar';
+import Menu from 'primevue/menu';
 
 const props = defineProps({
   auth: Object,
   appName: String,
-});
-
-onMounted(() => {
-  initFlowbite();
 });
 
 /** @type {typeof import('@/config/urls').urls} */
@@ -43,109 +40,86 @@ const openOrganizationsDialog = () => {
     },
   });
 };
+
+const profileMenu = ref([
+  {
+    label: 'Профиль',
+    icon: 'pi pi-user-edit',
+    command: () => {
+      router.get(urls.users.edit(props.auth.user.id));
+    },
+  },
+  {
+    label: 'Выход',
+    icon: 'pi pi-sign-out',
+    command: () => {
+      router.delete(urls.auth.logout());
+    },
+  },
+]);
+const profileMenuToggled = ref();
+const toggleProfileMenu = (event) => {
+    profileMenuToggled.value.toggle(event);
+};
+
 </script>
 
 <template>
-  <div>
-    <div id="dropdown" />
-    <div class="md:flex md:flex-col">
-      <div class="md:flex md:flex-col md:h-screen">
-        <div class="md:flex md:shrink-0">
-          <div
-            class="flex items-center justify-between px-6 bg-indigo-900 md:shrink-0 md:justify-center md:w-56"
+  <div class="flex flex-col h-screen bg-gray-100">
+    <Menubar class="shrink-0 h-14">
+      <template #start>
+        <div class="flex items-center gap-3">
+          <logo class="w-10 h-10" />
+        </div>
+        <h1 class="ps-3 text-2xl font-extrabold">
+          {{ props.appName }}
+        </h1>
+      </template>
+      <template #end>
+        <div class="flex items-center gap-4">
+          <Button
+            v-tooltip.bottom="`Текущая организация`"
+            severity="secondary"
+            class="font-bold"
+            @click="openOrganizationsDialog"
           >
-            <Link class="mt-1" href="/">
-              <logo class="fill-white" width="120" height="28" />
-            </Link>
-            <dropdown class="md:hidden" placement="bottom-end">
-              <template #default>
-                <svg
-                  class="w-6 h-6 fill-white"
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 20 20"
-                >
-                  <path d="M0 3h20v2H0V3zm0 6h20v2H0V9zm0 6h20v2H0v-2z" />
-                </svg>
-              </template>
-              <template #dropdown>
-                <div class="mt-2 px-8 py-4 bg-indigo-800 rounded shadow-lg">
-                  <main-menu />
-                </div>
-              </template>
-            </dropdown>
-          </div>
-          <div
-            class="text-md flex items-center justify-between p-4 w-full text-sm bg-white border-b border-b-gray-200 px-12 py-0"
+            <i class="pi pi-building-columns" />
+            {{ auth?.user?.org_code }}
+          </Button>
+          <div class="h-6 w-px bg-gray-200 mx-2" />
+          <Avatar
+            v-tooltip="`${auth?.user?.fio ? auth.user.fio : ''} (${auth?.user?.name})`"
+            aria-controls="overlay_menu_profile"
+            class="font-extrabold cursor-pointer"
+            shape="circle"
+            @click="toggleProfileMenu"
           >
-            <div>
-              <h1 class="ps-3 text-2xl font-extrabold text-gray-800">
-                {{ props.appName }}
-              </h1>
-            </div>
-            <div class="font-bold">
-              <Button
-                v-tooltip="`Текущая организация`"
-                text
-                size="small"
-                plain
-                @click="openOrganizationsDialog"
-              >
-                <div class="flex gap-2 underline decoration-dashed">
-                  <i class="pi pi-building" />
-                  {{ auth.user.org_code }}
-                </div>
-              </Button>
+            <i class="pi pi-user" />
+          </Avatar>
+          <Menu id="overlay_menu_profile" ref="profileMenuToggled" :model="profileMenu" :popup="true" />
+        </div>
+      </template>
+    </Menubar>
+    <div class="flex flex-1 overflow-hidden">
+      <aside class="hidden md:flex flex-col w-64 bg-indigo-800 overflow-y-auto">
+        <MainMenu class="flex-1 px-4 py-6" />
+      </aside>
 
-              <dropdown class="ms-6 mt-1" placement="bottom-end">
-                <template #default>
-                  <Button text size="small" plain>
-                    <div class="flex gap-x-2">
-                      <i class="pi pi-user" />
-                      <span v-if="auth.user.fio">{{ auth.user.fio }}</span>
-                      <span v-else>{{ auth.user.name }}</span>
-                      <i class="pi pi-angle-down" />
-                    </div>
-                  </Button>
-                </template>
-                <template #dropdown>
-                  <div class="mt-2 py-2 text-sm bg-white rounded shadow-xl">
-                    <Link
-                      class="block px-6 py-2 hover:text-white hover:bg-indigo-500"
-                      :href="urls.users.edit(auth.user.id)"
-                    >
-                      Профиль
-                    </Link>
-                    <Link
-                      href="/logout"
-                      as="button"
-                      class="block px-6 py-2 w-full text-left hover:text-white hover:bg-indigo-500"
-                      method="delete"
-                    >
-                      Выход
-                    </Link>
-                  </div>
-                </template>
-              </dropdown>
-            </div>
-          </div>
-        </div>
-        <div class="md:flex md:grow md:overflow-hidden">
-          <MainMenu
-            id="sidebar-multi-level-sidebar"
-            class="hidden shrink-0 p-12 w-56 bg-indigo-800 overflow-y-auto md:block text-indigo-300"
-            aria-label="Sidebar"
-          />
-          <div
-            class="px-4 py-8 md:flex-1 md:p-12 md:overflow-y-auto"
-            scroll-region
-          >
-            <flash-messages />
-            <slot />
-          </div>
-        </div>
-      </div>
+      <main class="flex-1 overflow-y-auto p-8" scroll-region>
+        <FlashMessages />
+        <slot />
+      </main>
     </div>
   </div>
   <DynamicDialog />
   <ConfirmDialog />
 </template>
+<style>
+.p-menubar {
+    background-color: var(--color-gray-50) !important;
+    color: var(--color-surface-700) !important;
+    border: 1px solid var(--color-gray-200) !important;
+    border-radius: 0 !important;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, .1);
+}
+</style>
