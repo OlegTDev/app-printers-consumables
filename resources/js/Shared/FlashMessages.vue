@@ -9,42 +9,41 @@ const toast = reactive(useToast());
 const defaultLife = 5000;
 
 watch(
-    () => page.props.flash,
-    (flash) => {
+  () => page.props.flash,
+  (flash) => {
 
-        if (page.props?.errors) {
-            Object.values(page.props.errors).forEach((value) => {
-                toast.add({
-                    severity: 'error',
-                    summary: 'Ошибки',
-                    detail: value,
-                    life: defaultLife,
-                })
-            })
-        }
-        if (flash.error) {
-            toast.add({
-                severity: 'error',
-                summary: 'Произошла ошибка',
-                detail: flash.error,
-                life: defaultLife,
-            })
-        }
-        if (flash.success) {
-            toast.add({
-                severity: 'success',
-                summary: 'Операция выполнена успешно',
-                detail: flash.success,
-                life: defaultLife,
-            })
-        }
-    },
-    { deep: true }
+    if (page.props?.errors) {
+      Object.values(page.props.errors).forEach((value) => {
+        toast.add({
+          severity: 'error',
+          summary: 'Ошибки',
+          detail: value,
+          life: defaultLife,
+        })
+      })
+    }
+    if (flash.error) {
+      toast.add({
+        severity: 'error',
+        summary: 'Произошла ошибка',
+        detail: flash.error,
+        life: defaultLife,
+      })
+    }
+    if (flash.success) {
+      toast.add({
+        severity: 'success',
+        summary: 'Операция выполнена успешно',
+        detail: flash.success,
+        life: defaultLife,
+      })
+    }
+  },
+  { deep: true }
 )
 
 </script>
 
 <template>
-    <Toast position="bottom-right" />
+  <Toast position="bottom-right" />
 </template>
-
