@@ -9,7 +9,7 @@ import { inject } from 'vue';
 import FloatLabel from 'primevue/floatlabel';
 import Message from 'primevue/message';
 
-const props = defineProps({
+defineProps({
   labels: Object,
 });
 
