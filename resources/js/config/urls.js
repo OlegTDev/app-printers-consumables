@@ -49,12 +49,12 @@ export const urls = {
     save: 'http://86000-app045:4785/view/save',
   },
 
-}
+};
 
 export const createUrlWithParams = (path, params) => {
   let url = new URL(path, window.location.origin);
   Object.entries(params).forEach(([key, value]) => {
     url.searchParams.set(key, value);
-  })
+  });
   return url;
-}
+};
