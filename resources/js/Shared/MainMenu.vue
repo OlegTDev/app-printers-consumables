@@ -1,15 +1,13 @@
 <script setup>
-import { Link, usePage } from '@inertiajs/vue3';
-import { computed, inject, onMounted, ref } from 'vue';
+import { Link } from '@inertiajs/vue3';
+import { computed, onMounted, ref } from 'vue';
 import { useNavigation } from '@/Composables/useNavigation';
 import { useAuth } from '@/Composables/useAuth';
-
-const page = usePage();
-/** @type {typeof import('@/config/urls').urls} */
-const urls = inject('urls');
+import { useConfig } from '@/Composables/useConfig';
 
 const { isActiveUrl } = useNavigation();
-const { isAdmin, can } = useAuth();
+const { can } = useAuth();
+const { urls } = useConfig();
 
 const classIsActive = `text-white`;
 const classIsInactive = `text-indigo-300 group-hover:text-white`;
@@ -24,11 +22,11 @@ const toggleMenu = (id) => {
   } else {
     openMenus.value.push(id);
   }
-}
+};
 
 const isOpen = (id) => {
   return openMenus.value.includes(id);
-}
+};
 
 const menu = computed(() => [
   {
@@ -135,6 +133,15 @@ const menu = computed(() => [
       },
     ],
   },
+  {
+    id: '07',
+    name: 'Отчеты',
+    icon: 'far fa-file-excel me-3 w-5 h-5',
+    href: urls.reports.index(),
+    active: isActiveUrl(urls.reports.index()),
+    show: true,
+    dropdown: false,
+  },
 ]);
 
 onMounted(() => {
@@ -142,7 +149,7 @@ onMounted(() => {
     if (item.dropdown && item.active) {
       openMenus.value.push(item.id);
     }
-  })
+  });
 });
 </script>
 <template>
