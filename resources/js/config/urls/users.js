@@ -14,4 +14,4 @@ export const usersUrls = (rootUrl) => {
       change: (id) => `${base}/organizations/${id}`,
     },
   };
-}
+};

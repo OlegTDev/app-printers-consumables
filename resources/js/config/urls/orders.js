@@ -44,7 +44,7 @@ const ordersConsumablesUrls = (rootUrl) => {
     update: (id) => `${base}/${id}`,
     show: (id) => `${base}/${id}`,
   };
-}
+};
 
 const ordersMiscUrls = (rootUrl) => {
   const base = `${rootUrl}orders/misc`;
@@ -57,4 +57,4 @@ const ordersMiscUrls = (rootUrl) => {
     update: (id) => `${base}/${id}`,
     show: (id) => `${base}/${id}`,
   };
-}
+};

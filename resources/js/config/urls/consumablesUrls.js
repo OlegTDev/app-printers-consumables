@@ -14,10 +14,10 @@ export const consumablesUrls = (rootUrl) => {
 
       // сохранение вычитаемого расходного материала
       subtract: (consumable, count) => `/consumables/${consumable}/counts/${count}/installed`,
-      
+
       // валидация формы добавления количества расходного материала
       validate: () => `${base}/validate`,
-      
+
       // поиск такого же расходного материала и с той же организацией
       // для дальнейшего прибавления количества, а не создания новой записи
       checkExists: () => `${base}/check-exists`,
@@ -27,12 +27,12 @@ export const consumablesUrls = (rootUrl) => {
       installed: () => `${base}/installed/last`,
       installMaster: () => `${base}/installed/master`,
 
-      // список расходных материалов, привязанных к принтеру idPrinter     
+      // список расходных материалов, привязанных к принтеру idPrinter
       listByPrinter: (idPrinter) => `${base}/list-by-printer/${idPrinter}`,
 
       // журналы движения количества расходных материалов
       journal: {
-        // журнал добавления расходных материалов                
+        // журнал добавления расходных материалов
         added: {
           index: (idConsumable, idConsumableCount) => `/consumables/${idConsumable}/counts/${idConsumableCount}/added`,
           redo: (idConsumable, idConsumableCount, id) => `/consumables/${idConsumable}/counts/${idConsumableCount}/added/${id}`,
@@ -45,4 +45,4 @@ export const consumablesUrls = (rootUrl) => {
       },
     },
   };
-}
+};

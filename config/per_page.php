@@ -1,6 +1,6 @@
 <?php
 
-$default = 4;
+$default = 10;
 
 return [
     'default' => $default,

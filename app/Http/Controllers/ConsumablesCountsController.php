@@ -12,6 +12,7 @@ use App\Models\Consumable\ConsumableCountAdded;
 use App\Models\Consumable\ConsumableTypesEnum;
 use App\Models\Organization;
 use App\Models\Printer\Printer;
+use App\Services\Query\ConsumableCountQueryService;
 use Illuminate\Support\Facades\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -63,28 +64,11 @@ class ConsumablesCountsController extends Controller
      * @param Printer $printer
      * @return array
      */
-    public function listByPrinter(Printer $printer)
+    public function listByPrinter(Printer $printer, ConsumableCountQueryService $consumableCountQueryService)
     {
         return
         [
-            'data' => DB::table('consumables_counts')
-                ->select([
-                    'consumables_counts.id',
-                    'consumables_counts.id_consumable',
-                    'consumables_counts.count',
-                    'consumables.type',
-                    'consumables.name',
-                    'consumables.color',
-                ])->distinct()
-                    ->join('consumables', 'consumables.id', '=', 'consumables_counts.id_consumable')
-                    ->join('consumables_counts_organizations', 'consumables_counts_organizations.id_consumable_count', '=', 'consumables_counts.id')
-                    ->join('printers_consumables', 'printers_consumables.id_consumable', '=', 'consumables.id')
-                    ->join('printers', 'printers.id', '=', 'printers_consumables.id_printer')
-                    ->join('printers_workplace', 'printers_workplace.id_printer', '=', 'printers.id')
-                ->where('printers_workplace.org_code', '=', Auth::user()->org_code)
-                ->where('consumables_counts_organizations.org_code', '=', Auth::user()->org_code)
-                ->where('printers.id', '=', $printer->id)
-                ->get(),
+            'consumables' => $consumableCountQueryService->getConsumableCountByPrinterWorkplace($printer->id, Auth::user()->org_code),
             'consumableTypes' => ConsumableTypesEnum::array(),
             'cartridgeColors' => CartridgeColors::get(),
         ];
