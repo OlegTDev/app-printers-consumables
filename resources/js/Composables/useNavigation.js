@@ -9,7 +9,7 @@ export function useNavigation() {
       return currentUrl === '/';
     }
     return currentUrl.startsWith(url);
-  }
+  };
 
   return { isActiveUrl };
 }

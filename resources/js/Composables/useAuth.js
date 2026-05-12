@@ -9,7 +9,7 @@ export function useAuth() {
 
   const can = (...roles) => {
     return roles.some(role => userRoles.value.includes(role));
-  }
+  };
 
   return {
     user,
