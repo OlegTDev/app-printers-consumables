@@ -9,7 +9,7 @@
 Клонировать репозиторий:
 
 ```sh
-git clone https://github.com/totall/app-printers-consumables.git app-printers-consumables
+git clone https://github.com/OlegTDev/app-printers-consumables.git app-printers-consumables
 cd app-printers-consumables
 ```
 
