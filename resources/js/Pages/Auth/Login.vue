@@ -5,16 +5,15 @@ import Button from 'primevue/button';
 import InputText from 'primevue/inputtext';
 import Checkbox from 'primevue/checkbox';
 import Label from '@/Shared/Label';
-import { inject } from 'vue';
 import FloatLabel from 'primevue/floatlabel';
 import Message from 'primevue/message';
+import { useConfig } from '@/Composables/useConfig';
 
 defineProps({
   labels: Object,
 });
 
-/** @type {typeof import('@/config/urls').urls} */
-const urls = inject('urls');
+const { urls } = useConfig();
 
 const form = useForm({
   name: null,
