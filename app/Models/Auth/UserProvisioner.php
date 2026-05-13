@@ -8,17 +8,11 @@ use Illuminate\Support\Str;
 
 /**
  * Поиск/создание пользователя в БД
- * Используется при аутентификации и создании нового пользователя
  */
 class UserProvisioner
 {
 
-    /**
-     * Поиск пользователя в БД
-     * Если пользователя нет, то создается новый
-     * @return User
-     */
-    public function get(string $username, string $domain, $userAttributes): User
+    public function get(string $username, string $domain, array $userAttributes): User
     {
         $user = $this->find($username);
 
@@ -27,7 +21,7 @@ class UserProvisioner
         } else {
             $this->updateUser($user, $userAttributes);
         }
-                
+
         if ($user->isDirty()) {
             $user->save();
         }
@@ -35,24 +29,13 @@ class UserProvisioner
         return $user;
     }
 
-    /**
-     * Поиск пользователя в БД
-     * @param string $username имя пользователя
-     * @return User
-     */
-    public function find(string $username)
+    public function find(string $username): ?User
     {
         return User::where('name', $username)->first();
     }
 
-    /**
-     * Создание нового пользователя
-     * @param string $username имя пользователя
-     * @param string $domain имя домена
-     * @param array $attributes данные пользователя
-     * @return User
-     */
-    public function createUser(string $username, string $domain, $attributes): User
+
+    public function createUser(string $username, string $domain, array $attributes): User
     {
         return new User([
             'name' => $username,
@@ -66,16 +49,10 @@ class UserProvisioner
             'post' => $attributes['title'],
             'telephone' => $attributes['telephoneNumber'],
             'lotus_mail' => $attributes['mail'],
-            'members' => $attributes['memberOf'],
+            'members' => $attributes['memberOf'] ?? [],
         ]);
     }
 
-    /**
-     * Обновление данных пользователя
-     * @param User $model модель пользователя
-     * @param array $attributes данные пользователя
-     * @return void
-     */
     public function updateUser(User $model, array $attributes): void
     {
         $model->fill([
@@ -90,10 +67,6 @@ class UserProvisioner
         ]);
     }
 
-    /**
-     * Генерация пароля для нового пользователя
-     * @return string
-     */
     private function generateUserPassword(): string
     {
         return Str::password(16);

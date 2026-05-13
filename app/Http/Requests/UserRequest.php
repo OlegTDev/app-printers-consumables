@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Auth;
 
 /**
  * Пользователь
- * 
+ *
  * @property string $name
  * @property string $domain
  */
@@ -32,7 +32,7 @@ class UserRequest extends FormRequest
     {
         return [
             'name' => ['required', 'max:50', 'unique:users'],
-            'domain' => ['required', 'max:50'],
+            'domain' => ['string', 'max:50'],
         ];
     }
 

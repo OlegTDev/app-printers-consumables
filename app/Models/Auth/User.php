@@ -57,6 +57,14 @@ class User extends Authenticatable implements LdapAuthenticatable
         'email',
         'password',
         'org_code',
+        'domain',
+        'company',
+        'fio',
+        'department',
+        'post',
+        'telephone',
+        'lotus_mail',
+        'members',
     ];
 
     /**
@@ -93,7 +101,7 @@ class User extends Authenticatable implements LdapAuthenticatable
 
     /**
      * @param Builder $query
-     * @param array $filter
+     * @param array $filters
      * @return void
      */
     public function scopeFilter(Builder $query, array $filters): void
