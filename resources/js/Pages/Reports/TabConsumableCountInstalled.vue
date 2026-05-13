@@ -1,105 +1,98 @@
 <script setup>
+import { useDate } from '@/Composables/useDate';
 import axios from 'axios';
 import Button from 'primevue/button';
 import Checkbox from 'primevue/checkbox';
 import Message from 'primevue/message';
 import Panel from 'primevue/panel';
-import { useToast } from 'primevue/usetoast';
-import { inject, reactive, ref } from 'vue';
+import { ref } from 'vue';
+import { useReportError } from './Composables/useReportErrors';
+import InputGroup from 'primevue/inputgroup';
+import InputGroupAddon from 'primevue/inputgroupaddon';
+import DatePicker from 'primevue/datepicker';
 
 
 const props = defineProps({
-    url: String,
-    organizations: Object,
+  url: String,
+  organizations: Object,
 });
-const toast = reactive(useToast());
-const config = inject('config');
-const moment = inject('moment');
+const { handleError, displayErrors } = useReportError();
+const { moment, formatDate } = useDate();
+
 const emit = defineEmits(['downloadFile']);
 const form = ref({
-    selectedOrganizations: Object.values(props.organizations).map((item) => item.code),
-    withoutPeriod: false,
-    dateFrom: moment().subtract(1, 'months').format('YYYY-MM-DD'),
-    dateTo: moment().format('YYYY-MM-DD'),
+  selectedOrganizations: Object.values(props.organizations).map((item) => item.code),
+  withoutPeriod: false,
+  dateFrom: moment().subtract(1, 'months').toDate(),
+  dateTo: moment().toDate(),
 });
 const loading = ref(false);
-const displayErrors = ref([]);
 
-// запрос на экспорт файла
-const exportToExcel = () => {
-    loading.value = true;
-    displayErrors.value = [];
-    axios.post(props.url, form.value, { responseType: 'blob' })
-        .then((response) => emit('downloadFile', response.data, 'consumable-installed-count.xlsx'))
-        .catch((error) => {
-            console.log(error);
-            if (error.response.status == 500) {
-                toast.add({
-                    severity: 'error',
-                    summary: 'Ошибка',
-                    detail: error.response.statusText,
-                    life: config.toast.timeLife,
-                })
-                return;
-            }
-            try {
-                error.response.data.text().then((text) => {
-                    const json = JSON.parse(text);
-                    if (!json['errors']) {
-                        return;
-                    }
+const exportToExcel = async () => {
+  loading.value = true;
+  displayErrors.value = [];
 
-                    const errors = json.errors;
-                    const arrErrors = Object.values(errors);
-                    if (Array.isArray(arrErrors)) {
-                        displayErrors.value = arrErrors;
-                    }
-                });
-            }
-            catch (e) { }
-        })
-        .finally(() => {
-            loading.value = false;
-        });
-}
+  try {
+    const response = await axios.post(props.url, {
+      ...form.value,
+      dateFrom: formatDate(form.value.dateFrom, 'YYYY-MM-DD'),
+      dateTo: formatDate(form.value.dateTo, 'YYYY-MM-DD'),
+    }, { responseType: 'blob' });
+    emit('downloadFile', response.data, 'consumable-installed-count.xlsx');
+  }
+  catch (error) {
+    handleError(error);
+  }
+  finally {
+    loading.value = false;
+  }
+};
 </script>
 <template>
-    <form @submit.prevent="exportToExcel">
-        <Panel header="Список организаций">
-            <div v-for="organization in organizations" :key="organization.code" class="flex items-center mt-2">
-                <Checkbox v-model="form.selectedOrganizations" :id="organization.code" name="organizations"
-                    :value="organization.code" />
-                <label :for="organization.code" class="ml-2 cursor-pointer">
-                    {{ organization.label }}
-                </label>
-            </div>
-        </Panel>
-        <Panel header="Период" class="mt-4">
-            <div class="flex items-center mt-2">
-                <Checkbox v-model="form.withoutPeriod" inputId="withoutPeriod" :binary="true" />
-                <label for="withoutPeriod" class="ml-2 cursor-pointer">
-                    Без учета периода
-                </label>
-            </div>
+  <form @submit.prevent="exportToExcel">
+    <Panel header="Список организаций">
+      <div v-for="organization in organizations" :key="organization.code" class="flex items-center mt-2">
+        <Checkbox
+          :id="organization.code"
+          v-model="form.selectedOrganizations"
+          name="organizations"
+          :value="organization.code"
+        />
+        <label :for="organization.code" class="ml-2 cursor-pointer">
+          {{ organization.label }}
+        </label>
+      </div>
+    </Panel>
+    <Panel header="Период" class="mt-4">
+      <div class="flex items-center mt-2">
+        <Checkbox v-model="form.withoutPeriod" input-id="without-period-consumable-installed" :binary="true" />
+        <label for="without-period-consumable-installed" class="ml-2 cursor-pointer">
+          Без учета периода
+        </label>
+      </div>
 
-            <div class="mt-3" v-if="!form.withoutPeriod">
-                с <input type="date" v-model="form.dateFrom" :disabled="form.withoutPeriod"
-                    class="bg-white border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2" />
-                по <input type="date" v-model="form.dateTo" :disabled="form.withoutPeriod"
-                    class="bg-white border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2" />
-            </div>
-        </Panel>
-        <Message v-if="displayErrors.length > 0" severity="error" :closable="false">
-            <ul>
-                <template v-for="errors of displayErrors">
-                    <li v-for="error of errors">
-                        {{ error }}
-                    </li>
-                </template>
-            </ul>
-        </Message>
-        <div class="mt-4">
-            <Button :loading="loading" icon="pi pi-file-excel" label="Экспорт" type="submit" />
-        </div>
-    </form>
+      <div v-if="!form.withoutPeriod" class="mt-3 grid grid-cols-6 gap-2">
+        <InputGroup>
+          <InputGroupAddon>с</InputGroupAddon>
+          <DatePicker v-model="form.dateFrom" date-format="dd.mm.yy" />
+        </InputGroup>
+        <InputGroup>
+          <InputGroupAddon>по</InputGroupAddon>
+          <DatePicker v-model="form.dateTo" date-format="dd.mm.yy" />
+        </InputGroup>
+      </div>
+    </Panel>
+    <Message v-if="displayErrors.length > 0" severity="error" :closable="false">
+      <ul>
+        <template v-for="errors of displayErrors">
+          <li v-for="error of errors" :key="error">
+            {{ error }}
+          </li>
+        </template>
+      </ul>
+    </Message>
+    <div class="mt-4">
+      <Button :loading="loading" icon="pi pi-file-excel" label="Экспорт" type="submit" />
+    </div>
+  </form>
 </template>
