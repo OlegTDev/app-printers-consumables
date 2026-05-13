@@ -3,9 +3,6 @@ import js from '@eslint/js';
 
 export default [
   js.configs.recommended,
-  {
-    ignores: ['storage/**', 'node_modules/**', 'dist/**'],
-  },
   ...pluginVue.configs['flat/recommended'],
   {
     rules: {
