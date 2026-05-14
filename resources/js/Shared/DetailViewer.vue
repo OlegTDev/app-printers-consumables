@@ -1,27 +1,53 @@
 <script setup>
-import { inject } from 'vue';
+import { useDate } from '@/Composables/useDate';
 
-const props = defineProps({    
-    items: Array,
-})
-const moment = inject('moment')
+defineOptions({
+  inheritAttrs: false,
+});
+
+defineProps({
+  items: {
+    type: Array,
+    required: true,
+    default: () => [],
+  },
+  classRow: {
+    type: [String, Object, Array],
+    default: '',
+  },
+});
+
+const { fromNow, formatDate } = useDate();
 </script>
 <template>
-    <table class="w-1/2 text-left text-gray-700" :class="$attrs.classTable">        
-        <tr class="bg-white border-b" :class="$attrs.classRow" v-for="item in items" :key="item.value">
-            <th class="px-6 py-4" :class="item?.classTh">
-                {{ item.label }}                
-            </th>
-            <td class="px-6 py-4" :class="item?.classTd">
-                <template v-if="item?.is_date ?? false">
-                    <i :class="item.icon" v-if="item?.icon"></i>
-                    {{ moment(item.value).fromNow() }}
-                    ({{ moment(item.value).format('LLLL') }})
-                </template>
-                <template v-else>
-                    {{ item.value }}
-                </template>
-            </td>
-        </tr>
-    </table>
+  <table
+    class="w-1/2 text-left text-gray-700"
+    :class="classRow"
+  >
+    <tr
+      v-for="item in items"
+      :key="item.value"
+      class="bg-white border-b border-b-gray-200"
+      :class="$attrs.classRow"
+    >
+      <th
+        scope="row"
+        class="px-6 py-4"
+        :class="item?.classTh"
+      >
+        {{ item.label }}
+      </th>
+
+      <td class="px-6 py-4" :class="item?.classTd">
+        <template v-if="item.value && (item?.is_date ?? false)">
+          <i v-if="item?.icon" :class="item.icon" />
+          {{ fromNow(item.value) }}
+          ({{ formatDate(item.value) }})
+        </template>
+        <template v-else>
+          {{ item.value }}
+        </template>
+      </td>
+    </tr>
+  </table>
 </template>
