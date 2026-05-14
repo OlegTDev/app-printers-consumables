@@ -1,145 +1,199 @@
 <script setup>
-import InputText from 'primevue/inputtext'
-import InlineMessage from 'primevue/inlinemessage'
-import Label from '@/Shared/Label'
-import { inject, onMounted, reactive, ref } from 'vue'
-import { useForm } from '@inertiajs/vue3'
-import Button from 'primevue/button'
-import Dropdown from 'primevue/dropdown'
-import TreeSelect from 'primevue/treeselect'
+import InputText from 'primevue/inputtext';
+import Label from '@/Shared/Label';
+import { onMounted, ref, watch } from 'vue';
+import { useForm } from '@inertiajs/vue3';
+import Button from 'primevue/button';
+import TreeSelect from 'primevue/treeselect';
+import { useConfig } from '@/Composables/useConfig';
+import { useAuth } from '@/Composables/useAuth';
+import Select from 'primevue/select';
+import Card from '@/Shared/Card.vue';
+import FieldRowVertical from '@/Shared/Form/FieldRowVertical.vue';
+import Message from 'primevue/message';
+
+const { user } = useAuth();
 
 const props = defineProps({
-    labels: Object,
-    printers: Object,
-    printerWorkplace: Object,
-    organizations: Array,
-    isNew: Boolean,
+  labels: {
+    type: Object,
+    required: true,
+  },
+  printers: {
+    type: Object,
+    required: true,
+  },
+  organizations: {
+    type: Array,
+    required: true,
+  },
+  isNew: {
+    type: Boolean,
+    default: true,
+  },
+  printerWorkplace: {
+    type: Object,
+    default: () => ({
+      id: null,
+      id_printer: null,
+      location: null,
+      serial_number: null,
+      inventory_number: null,
+      org_code: null,
+    }),
+  },
 });
-const urls = inject('urls');
-const printerWorkplace = reactive(props.printerWorkplace);
+const { urls } = useConfig();
 
 const form = useForm({
-    id: printerWorkplace.id,
-    id_printer: printerWorkplace.id_printer,
-    location: printerWorkplace.location,
-    serial_number: printerWorkplace.serial_number,
-    inventory_number: printerWorkplace.inventory_number,
-    org_code: printerWorkplace.org_code,
+  id: props.printerWorkplace.id,
+  id_printer: props.printerWorkplace.id_printer,
+  location: props.printerWorkplace.location,
+  serial_number: props.printerWorkplace.serial_number,
+  inventory_number: props.printerWorkplace.inventory_number,
+  org_code: props.printerWorkplace.org_code ?? user.value?.org_code,
 });
 
-const formFields = reactive({
-    id: form.id,
-    id_printer: form.id_printer,
-    location: form.location,
-    serial_number: form.serial_number,
-    inventory_number: form.inventory_number,
-    org_code: form.org_code,
-})
+const organizationSelected = ref({});
 
-// статистика посещения
-const LogActions = inject('LogActions');
+onMounted(() => {
+  if (form.org_code) {
+    organizationSelected.value = { [form.org_code]: true };
+  }
+});
 
-const isNew = printerWorkplace.id === null;
-const save = () => {
-    if (isNew) {
-        form.post(urls.printers.store(), { onSuccess: () => {
-            LogActions.save('POST', 'Сохранение нового принтера на рабочем месте', formFields);
-        }})
-    }
-    else {
-        form.put(urls.printers.update(printerWorkplace.id), { onSuccess: () => {
-            LogActions.save('PUT', 'Обновление принтера на рабочем месте', formFields);
-        }});
-    }
+const organizationChange = (value) => {
+  form.org_code = value ? Object.keys(value).shift() : null;
 };
 
-const organizationSelected = ref()
-const organizationChange = (value) => {
-    form.org_code = Object.keys(value).shift();
-}
-onMounted(() => {
-    organizationSelected.value = { [printerWorkplace.org_code]: true };
-});
+const save = () => {
+  if (props.isNew) {
+    form.post(urls.printers.store());
+  }
+  else {
+    form.put(urls.printers.update(props.printerWorkplace.id));
+  }
+};
 
-
+watch(
+  () => ({ ...form.data() }),
+  (newValues, oldValues) => {
+    Object.keys(newValues).forEach((key) => {
+      if (newValues[key] !== oldValues[key] && form.errors[key]) {
+        form.errors[key] = null;
+      }
+    });
+  },
+  { deep: true }
+);
 </script>
 <template>
-    <form @submit.prevent="save">
-        <div class="rounded-lg bg-white shadow-sm border border-gray-200">
+  <form @submit.prevent="save">
+    <Card class="mb-4">
+      <template #default>
+        <div class="w-1/2 grid gap-y-10">
+          <FieldRowVertical>
+            <template #label>
+              <Label for="id_printer">{{ labels.id_printer }}</Label>
+            </template>
+            <template #field>
+              <Select
+                id="id_printer"
+                v-model="form.id_printer"
+                filter
+                :options="printers"
+                option-label="name"
+                option-value="id"
+                placeholder="Выберите принтер"
+              />
+            </template>
+            <template #message>
+              <Message v-if="form.errors?.id_printer" class="mt-2" severity="error">
+                {{ form.errors?.id_printer }}
+              </Message>
+            </template>
+          </FieldRowVertical>
 
-            <div class="p-10">
+          <FieldRowVertical>
+            <template #label>
+              <Label for="org_code">{{ labels.org_code }}</Label>
+            </template>
+            <template #field>
+              <TreeSelect
+                v-model="organizationSelected"
+                :options="organizations"
+                placeholder="Выберите организацию"
+                selection-mode="single"
+                :meta-keys-selection="false"
+                show-clear
+                @update:model-value="organizationChange"
+              />
+            </template>
+            <template #message>
+              <Message v-if="form.errors?.org_code" class="mt-2" severity="error">
+                {{ form.errors?.org_code }}
+              </Message>
+            </template>
+          </FieldRowVertical>
 
-                <div class="grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
-                    <div class="sm:col-span-4">
-                        <Label for="id_printer">{{ labels.id_printer }}</Label>
-                        <Dropdown v-model="form.id_printer" filter :options="printers" optionLabel="name" optionValue="id" placeholder="Выберите принтер" class="w-full" />
-                        <InlineMessage v-if="form.errors?.id_printer" class="mt-2" severity="error">{{ form.errors?.id_printer }}</InlineMessage>
-                    </div>
-                </div>
+          <FieldRowVertical>
+            <template #label>
+              <Label for="location">{{ labels.location }}</Label>
+            </template>
+            <template #field>
+              <InputText
+                v-model="form.location"
+                :placeholder="labels.location"
+                :invalid="form.errors?.location?.length > 0"
+              />
+            </template>
+            <template #message>
+              <Message v-if="form.errors?.location" class="mt-2" severity="error">
+                {{ form.errors?.location }}
+              </Message>
+            </template>
+          </FieldRowVertical>
 
-                <div class="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
-                    <div class="sm:col-span-4">
-                        <Label for="org_code">{{ labels.org_code }}</Label>
-                        <TreeSelect
-                            v-model="organizationSelected"
-                            :options="organizations"
-                            placeholder="Выберите организацию"
-                            class="w-full"
-                            selectionMode="single"
-                            :metaKeysSelection="false"
-                            @update:model-value="organizationChange"
-                        />
-                        <InlineMessage v-if="form.errors?.org_code" class="mt-2" severity="error">{{ form.errors?.org_code }}</InlineMessage>
-                    </div>
-                </div>
+          <FieldRowVertical>
+            <template #label>
+              <Label for="serial_number">{{ labels.serial_number }}</Label>
+            </template>
+            <template #field>
+              <InputText
+                v-model="form.serial_number"
+                :placeholder="labels.serial_number"
+                :invalid="form.errors?.serial_number?.length > 0"
+              />
+            </template>
+            <template #message>
+              <Message v-if="form.errors?.serial_number" class="mt-2" severity="error">
+                {{ form.errors?.serial_number }}
+              </Message>
+            </template>
+          </FieldRowVertical>
 
-                <div class="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
-                    <div class="sm:col-span-4">
-                        <Label for="location">{{ labels.location }}</Label>
-                        <InputText
-                            class="w-full"
-                            v-model="form.location"
-                            :placeholder="labels.location"
-                            :invalid="form.errors?.location?.length > 0"
-                        />
-                        <InlineMessage v-if="form.errors?.location" class="mt-2" severity="error">{{ form.errors?.location }}</InlineMessage>
-                    </div>
-                </div>
-
-
-                <div class="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
-                    <div class="sm:col-span-4">
-                        <Label for="serial_number">{{ labels.serial_number }}</Label>
-                        <InputText
-                            class="w-full"
-                            v-model="form.serial_number"
-                            :placeholder="labels.serial_number"
-                            :invalid="form.errors?.serial_number?.length > 0"
-                        />
-                        <InlineMessage v-if="form.errors?.serial_number" class="mt-2" severity="error">{{ form.errors?.serial_number }}</InlineMessage>
-                    </div>
-                </div>
-
-                <div class="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
-                    <div class="sm:col-span-4">
-                        <Label for="inventory_number">{{ labels.inventory_number }}</Label>
-                        <InputText
-                            class="w-full"
-                            v-model="form.inventory_number"
-                            :placeholder="labels.inventory_number"
-                            :invalid="form.errors?.inventory_number?.length > 0"
-                        />
-                        <InlineMessage v-if="form.errors?.inventory_number" class="mt-2" severity="error">{{ form.errors?.inventory_number }}</InlineMessage>
-                    </div>
-                </div>
-
-            </div>
-
-            <div class="flex items-center justify-between p-5 bg-gray-50 border-t border-gray-100 w-full">
-                <Button :loading="form.processing" class="font-bold" type="submit" label="Сохранить" />
-            </div>
-
+          <FieldRowVertical>
+            <template #label>
+              <Label for="inventory_number">{{ labels.inventory_number }}</Label>
+            </template>
+            <template #field>
+              <InputText
+                v-model="form.inventory_number"
+                :placeholder="labels.inventory_number"
+                :invalid="form.errors?.inventory_number?.length > 0"
+              />
+            </template>
+            <template #message>
+              <Message v-if="form.errors?.inventory_number" class="mt-2" severity="error">
+                {{ form.errors?.inventory_number }}
+              </Message>
+            </template>
+          </FieldRowVertical>
         </div>
-
-    </form>
+      </template>
+      <template #footer>
+        <Button :loading="form.processing" class="font-bold" type="submit" label="Сохранить" />
+      </template>
+    </Card>
+  </form>
 </template>
