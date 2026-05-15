@@ -1,22 +1,51 @@
 <script setup>
-import { inject } from 'vue';
+import { useDate } from '@/Composables/useDate';
 
 defineProps({
-    created_at: String,
-    updated_at: String,
-})
+  createdAt: {
+    type: String,
+    default: null,
+  },
+  updatedAt: {
+    type: String,
+    default: null,
+  },
+  showIcon: {
+    type: Boolean,
+    default: true,
+  },
+  iconSize: {
+    type: String,
+    default: '22px',
+  },
+  showTooltip: {
+    type: Boolean,
+    default: true,
+  },
+});
 
-const moment = inject('moment');
+const { formatDate, fromNow } = useDate();
 </script>
 <template>
-    <div class="grid grid-rows-2 gap-2">
-        <div v-if="created_at" v-tooltip="`Создано: ${moment(created_at).format('LLLL')}`">
-            <i class="far fa-calendar"></i>
-            {{ moment(created_at).fromNow() }}
-        </div>                    
-        <div v-if="updated_at && created_at != updated_at" v-tooltip="`Изменено: ${moment(updated_at).format('LLLL')}`">
-            <i class="far fa-calendar-alt"></i>      
-            {{ moment(updated_at).fromNow() }}
-        </div>
+  <div class="flex items-center gap-2">
+    <div v-if="showIcon" class="w-10 flex items-center justify-center">
+      <i class="pi pi-calendar" :style="{ fontSize: iconSize }" />
     </div>
+    <div class="grid gap-2 flex-1 min-w-0">
+      <span
+        v-if="createdAt"
+        v-tooltip="showTooltip ? `${formatDate(createdAt)}` : null"
+        class="w-fit"
+      >
+        Создано: {{ fromNow(createdAt) }}
+      </span>
+      <span
+        v-if="updatedAt && createdAt != updatedAt"
+        v-tooltip="showTooltip ? `${formatDate(updatedAt)}` : null"
+        class="w-fit"
+      >
+        Изменено: {{ fromNow(updatedAt) }}
+      </span>
+    </div>
+  </div>
 </template>
