@@ -1,12 +1,12 @@
 <script setup>
 import { Head, router } from '@inertiajs/vue3';
-import Layout from '@/Shared/Layout';
+import Layout from '@/Shared/Layout.vue';
 import { watch, ref } from 'vue';
-import Breadcrumbs from '@/Shared/Breadcrumbs';
+import Breadcrumbs from '@/Shared/Breadcrumbs.vue';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import Button from 'primevue/button';
-import TableTitle from '@/Shared/TableTitle';
+import TableTitle from '@/Shared/TableTitle.vue';
 import InputText from 'primevue/inputtext';
 import pickBy from 'lodash/pickBy';
 import Badge from 'primevue/badge';

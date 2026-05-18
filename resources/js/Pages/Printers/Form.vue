@@ -1,6 +1,6 @@
 <script setup>
 import InputText from 'primevue/inputtext';
-import Label from '@/Shared/Label';
+import Label from '@/Shared/Label.vue';
 import { onMounted, ref, watch } from 'vue';
 import { useForm } from '@inertiajs/vue3';
 import Button from 'primevue/button';

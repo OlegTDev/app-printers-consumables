@@ -1,7 +1,7 @@
 <script setup>
 import { Head } from '@inertiajs/vue3';
-import Layout from '@/Shared/Layout';
-import Breadcrumbs from '@/Shared/Breadcrumbs';
+import Layout from '@/Shared/Layout.vue';
+import Breadcrumbs from '@/Shared/Breadcrumbs.vue';
 import TabPanel from 'primevue/tabpanel';
 import TabPrinterInfo from './TabPrinterInfo.vue';
 import TabConsumables from './TabConsumables.vue';

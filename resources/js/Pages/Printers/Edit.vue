@@ -1,8 +1,8 @@
 <script setup>
 import { Head } from '@inertiajs/vue3';
-import Layout from '@/Shared/Layout';
-import Breadcrumbs from '@/Shared/Breadcrumbs';
-import Form from './Form';
+import Layout from '@/Shared/Layout.vue';
+import Breadcrumbs from '@/Shared/Breadcrumbs.vue';
+import Form from './Form.vue';
 import { useConfig } from '@/Composables/useConfig';
 
 defineOptions({
