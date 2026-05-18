@@ -1,10 +1,10 @@
 <script setup>
 import { Head, useForm } from '@inertiajs/vue3';
-import Layout from '@/Shared/Layout';
-import LoadingButton from '@/Shared/LoadingButton';
-import Breadcrumbs from '@/Shared/Breadcrumbs';
+import Layout from '@/Shared/Layout.vue';
+import LoadingButton from '@/Shared/LoadingButton.vue';
+import Breadcrumbs from '@/Shared/Breadcrumbs.vue';
 import Panel from 'primevue/panel';
-import Label from '@/Shared/Label';
+import Label from '@/Shared/Label.vue';
 import InputText from 'primevue/inputtext';
 import { useConfig } from '@/Composables/useConfig';
 import Message from 'primevue/message';

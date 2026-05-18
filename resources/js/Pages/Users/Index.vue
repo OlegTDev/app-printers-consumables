@@ -1,7 +1,7 @@
 <script setup>
 import { Head, router } from '@inertiajs/vue3';
 import pickBy from 'lodash/pickBy';
-import Layout from '@/Shared/Layout';
+import Layout from '@/Shared/Layout.vue';
 import throttle from 'lodash/throttle';
 import Tag from 'primevue/tag';
 import { reactive, ref, watch } from 'vue';
@@ -11,7 +11,7 @@ import InputText from 'primevue/inputtext';
 import IconField from 'primevue/iconfield';
 import InputIcon from 'primevue/inputicon';
 import MultiSelect from 'primevue/multiselect';
-import Breadcrumbs from '@/Shared/Breadcrumbs';
+import Breadcrumbs from '@/Shared/Breadcrumbs.vue';
 import Button from 'primevue/button';
 import { useConfig } from '@/Composables/useConfig';
 

@@ -1,8 +1,8 @@
 <script setup>
 import { Head, useForm, router } from '@inertiajs/vue3';
-import Layout from '@/Shared/Layout';
+import Layout from '@/Shared/Layout.vue';
 import TrashedMessage from '@/Shared/TrashedMessage.vue';
-import Breadcrumbs from '@/Shared/Breadcrumbs';
+import Breadcrumbs from '@/Shared/Breadcrumbs.vue';
 import Panel from 'primevue/panel';
 import Checkbox from 'primevue/checkbox';
 import { ref, computed } from 'vue';
