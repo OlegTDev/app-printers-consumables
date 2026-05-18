@@ -21,7 +21,7 @@ import { config } from '@/config/config';
 import { urls } from '@/config/urls';
 import { Auth } from '@/auth';
 import { LogActions } from './logActions';
-import { ru } from 'primelocale/js/ru.js'
+import { ru } from 'primelocale/js/ru.js';
 
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
