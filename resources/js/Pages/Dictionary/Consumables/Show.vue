@@ -1,6 +1,6 @@
 <script setup>
-import Layout from '@/Shared/Layout';
-import Breadcrumbs from '@/Shared/Breadcrumbs';
+import Layout from '@/Shared/Layout.vue';
+import Breadcrumbs from '@/Shared/Breadcrumbs.vue';
 import { Head, router } from '@inertiajs/vue3';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';

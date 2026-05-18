@@ -1,7 +1,7 @@
 <script setup>
-import Layout from '@/Shared/Layout';
+import Layout from '@/Shared/Layout.vue';
 import { watch, reactive, ref } from 'vue';
-import Breadcrumbs from '@/Shared/Breadcrumbs';
+import Breadcrumbs from '@/Shared/Breadcrumbs.vue';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import Button from 'primevue/button';

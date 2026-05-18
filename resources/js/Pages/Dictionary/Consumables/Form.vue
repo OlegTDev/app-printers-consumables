@@ -1,10 +1,9 @@
 <script setup>
 import { useForm } from '@inertiajs/vue3';
-import Layout from '@/Shared/Layout';
 import InputText from 'primevue/inputtext';
 import Button from 'primevue/button';
 import { computed, watch } from 'vue';
-import Label from '@/Shared/Label';
+import Label from '@/Shared/Label.vue';
 import Textarea from 'primevue/textarea';
 import { useConfig } from '@/Composables/useConfig';
 import Select from 'primevue/select';
@@ -12,10 +11,6 @@ import Card from '@/Shared/Card.vue';
 import Title from '@/Shared/Title.vue';
 import FieldRowVertical from '@/Shared/Form/FieldRowVertical.vue';
 import Message from 'primevue/message';
-
-defineOptions({
-  layout: Layout,
-});
 
 const props = defineProps({
   isNew: {
