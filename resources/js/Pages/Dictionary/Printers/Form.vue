@@ -1,125 +1,158 @@
 <script setup>
-import InputText from 'primevue/inputtext'
-import InlineMessage from 'primevue/inlinemessage'
-import InputSwitch from 'primevue/inputswitch'
-import Label from '@/Shared/Label'
-import { inject, reactive, ref } from 'vue'
-import { useForm, router } from '@inertiajs/vue3'
-import LoadingButton from '@/Shared/LoadingButton'
-import Button from 'primevue/button'
+import InputText from 'primevue/inputtext';
+import Label from '@/Shared/Label.vue';
+import { useForm, router } from '@inertiajs/vue3';
+import Button from 'primevue/button';
 import { useConfirm } from "primevue/useconfirm";
-import Dropdown from 'primevue/dropdown';
+import { useConfig } from '@/Composables/useConfig';
+import Card from '@/Shared/Card.vue';
+import Title from '@/Shared/Title.vue';
+import FieldRowVertical from '@/Shared/Form/FieldRowVertical.vue';
+import Select from 'primevue/select';
+import ToggleSwitch from 'primevue/toggleswitch';
+import Message from 'primevue/message';
+import { watch } from 'vue';
 
 const props = defineProps({
-    isNew: Boolean,
-    labels: Object,
-    printer: Object,
-    manufacturers: Array,
+  isNew: {
+    type: Boolean,
+    default: false,
+  },
+  labels: {
+    type: Object,
+  },
+  printer: {
+    type: Object,
+    default: () => ({
+      vendor: null,
+      name: null,
+      is_color_print: false,
+    }),
+  },
+  manufacturers: {
+    type: Array,
+    default: () => [],
+  },
+  title: {
+    type: String,
+    default: '',
+  },
 });
-const printer = reactive(props.printer);
-const urls = inject('urls');
+
+const { urls } = useConfig();
 const confirm = useConfirm();
-const dropdownManufacturers = ref(props.manufacturers);
 
 const form = useForm({
-    vendor: printer.vendor,
-    model: printer.model,
-    is_color_print: printer.is_color_print,
+  vendor: props.printer?.vendor,
+  model: props.printer?.model,
+  is_color_print: props.printer?.is_color_print,
 });
 
-const LogActions = inject('LogActions');
-const formFields = reactive({
-    vendor: form.vendor,
-    model: form.model,
-    is_color_print: form.is_color_print,
-})
-
 const save = () => {
-    if (props.isNew) {
-        const url = urls.dictionary.printers.index();
-        form.post(url, {
-            onSuccess: () => {
-                LogActions.save(url, 'POST', 'Добавление принтера', formFields);
-            },
-        });
-    }
-    else {
-        const url = urls.dictionary.printers.update(printer.id);
-        form.put(url, {
-            onSuccess: () => {
-                LogActions.save(url, 'PUT', 'Обновление принтера', formFields);
-            },
-        });
-    }
+  if (props.isNew) {
+    const url = urls.dictionary.printers.index();
+    form.post(url);
+  }
+  else {
+    const url = urls.dictionary.printers.update(props.printer.id);
+    form.put(url);
+  }
 };
 
 const destroy = () => {
-    confirm.require({
-        message: 'Вы уверены, что хотите удалить?',
-        header: 'Удаление',
-        accept: () => {
-            const url = urls.dictionary.printers.delete(printer.id);
-            router.delete(url, {
-                onSuccess: () => {
-                    LogActions.save(url, 'DELETE', 'Удаление принтера', formFields);
-                },
-            });
-        },
-    });
+  confirm.require({
+    message: 'Вы уверены, что хотите удалить?',
+    header: 'Удаление',
+    accept: () => {
+      const url = urls.dictionary.printers.delete(props.printer.id);
+      router.delete(url);
+    },
+  });
 };
 
+watch(
+  () => form.data(),
+  (newValues, oldValues) => {
+    Object.keys(newValues).forEach(key => {
+      if (newValues[key] !== oldValues[key] && form.errors[key]) {
+        form.errors[key] = null;
+      }
+    });
+  },
+  { deep: true }
+);
 </script>
 <template>
-    <form @submit.prevent="save">
-        <div class="rounded-lg bg-white shadow-sm border border-gray-200">
+  <form @submit.prevent="save">
+    <Card>
+      <Title>{{ title }}</Title>
 
-            <div class="p-10">
+      <div class="w-1/2 grid gap-y-10">
+        <FieldRowVertical>
+          <template #label>
+            <Label for="vendor">{{ labels.vendor }}</Label>
+          </template>
+          <template #field>
+            <Select
+              v-model="form.vendor"
+              :options="manufacturers"
+              option-label="label"
+              option-value="value"
+              :placeholder="labels.vendor"
+              :invalid="form.errors?.vendor"
+            />
+          </template>
+          <template #message>
+            <Message v-if="form.errors?.vendor" class="mt-2" severity="error">
+              {{ form.errors?.vendor }}
+            </Message>
+          </template>
+        </FieldRowVertical>
+        <FieldRowVertical>
+          <template #label>
+            <Label for="model">{{ labels.model }}</Label>
+          </template>
+          <template #field>
+            <InputText
+              v-model="form.model"
+              :placeholder="labels.model"
+              :invalid="form.errors?.model"
+            />
+          </template>
+          <template #message>
+            <Message v-if="form.errors?.model" class="mt-2" severity="error">
+              {{ form.errors?.model }}
+            </Message>
+          </template>
+        </FieldRowVertical>
+        <FieldRowVertical>
+          <template #label>
+            <Label for="is_color_print">{{ labels.is_color_print }}</Label>
+          </template>
+          <template #field>
+            <ToggleSwitch v-model="form.is_color_print" />
+          </template>
+          <template #message>
+            <Message v-if="form.errors?.is_color_print" class="mt-2" severity="error">
+              {{ form.errors?.is_color_print }}
+            </Message>
+          </template>
+        </FieldRowVertical>
+      </div>
 
-                <div class="grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
-                    <div class="sm:col-span-4">
-                        <Label for="vendor">{{ labels.vendor }}</Label>
-                        <Dropdown
-                            class="w-full"
-                            v-model="form.vendor"
-                            :options="dropdownManufacturers"
-                            optionLabel="label"
-                            optionValue="value"
-                            :placeholder="labels.vendor"
-                            :invalid="form.errors?.vendor?.length > 0"
-                        />
-                        <InlineMessage v-if="form.errors?.vendor" class="mt-2" severity="error">{{ form.errors?.vendor }}</InlineMessage>
-                    </div>
-                </div>
-
-                <div class="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
-                    <div class="sm:col-span-4">
-                        <Label for="model">{{ labels.model }}</Label>
-                        <InputText
-                            class="w-full"
-                            v-model="form.model"
-                            :placeholder="labels.model"
-                            :invalid="form.errors?.model?.length > 0"
-                        />
-                        <InlineMessage v-if="form.errors?.model" class="mt-2" severity="error">{{ form.errors?.model }}</InlineMessage>
-                    </div>
-                </div>
-
-                <div class="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
-                    <div class="sm:col-span-4">
-                        <Label for="is_color_print">{{ labels.is_color_print }}</Label>
-                        <InputSwitch v-model="form.is_color_print" />
-                    </div>
-                </div>
-            </div>
-
-            <div class="flex items-center justify-between p-5 bg-gray-50 border-t border-gray-100 w-full">
-                <loading-button :loading="form.processing" class="font-bold" type="submit">Сохранить</loading-button>
-                <Button v-if="!props.isNew" severity="danger" class="font-bold" type="button" @click="destroy">
-                    Удалить
-                </Button>
-            </div>
-
+      <template #footer>
+        <div class="grid grid-cols-2 gap-x-2">
+          <Button
+            :loading="form.processing"
+            class="font-bold"
+            type="submit"
+            label="Сохранить"
+          />
+          <Button v-if="!props.isNew" severity="danger" class="font-bold" type="button" @click="destroy">
+            Удалить
+          </Button>
         </div>
-
-    </form>
+      </template>
+    </Card>
+  </form>
 </template>

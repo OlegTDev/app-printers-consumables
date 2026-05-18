@@ -1,127 +1,135 @@
 <script setup>
-import { Head, Link, router } from '@inertiajs/vue3'
-import Layout from '@/Shared/Layout'
-import { watch, reactive, ref, inject } from 'vue'
-import Breadcrumbs from '@/Shared/Breadcrumbs'
-import DataTable from 'primevue/datatable'
-import Column from 'primevue/column'
-import Button from 'primevue/button'
-import TableTitle from '@/Shared/TableTitle'
-import InputText from 'primevue/inputtext'
-import pickBy from 'lodash/pickBy'
-import throttle from 'lodash/throttle'
+import { Head, router } from '@inertiajs/vue3';
+import Layout from '@/Shared/Layout.vue';
+import { watch, reactive, ref } from 'vue';
+import Breadcrumbs from '@/Shared/Breadcrumbs.vue';
+import DataTable from 'primevue/datatable';
+import Column from 'primevue/column';
+import Button from 'primevue/button';
+import InputText from 'primevue/inputtext';
+import pickBy from 'lodash/pickBy';
+import throttle from 'lodash/throttle';
+import { useConfig } from '@/Composables/useConfig';
+import Card from '@/Shared/Card.vue';
+import Title from '@/Shared/Title.vue';
+import IconField from 'primevue/iconfield';
+import InputIcon from 'primevue/inputicon';
+import Timestamps from '@/Shared/DataTable/Timestamps.vue';
+import Author from '@/Shared/DataTable/Author.vue';
+import { useAuth } from '@/Composables/useAuth';
 
 const props = defineProps({
     printers: Object,
     labels: Object,
     filters: Object,
-})
+});
 
 defineOptions({
     layout: Layout
-})
+});
 
 const title = 'Принтеры (справочник)';
-const urls = inject('urls');
-const moment = inject('moment');
-const auth = inject('auth');
+
+const { urls } = useConfig();
+const { can } = useAuth();
 
 const selectedRow = ref();
 const filters = reactive(props.filters);
 const form = reactive({
-    search: filters.search,
+  search: filters.search,
 });
 
 watch(
-    () => form,
-    throttle(() => {
-        router.get(urls.dictionary.printers.index(), pickBy(form), { preserveState: true });
-    }, 150),
-    { deep: true }
+  () => form,
+  throttle(() => {
+    router.get(urls.dictionary.printers.index(), pickBy(form), { preserveState: true });
+  }, 150),
+  { deep: true }
 );
 
 const onRowSelect = (event) => {
-    router.get(urls.dictionary.printers.show(event.data.id));
+  router.get(urls.dictionary.printers.show(event.data.id));
 };
 
 const refTablePrintersDic = ref(null);
 
 const onPageChange = () => {
-    const elementTablePrintersDic = refTablePrintersDic.value.$el;
-    if (elementTablePrintersDic) {
-        elementTablePrintersDic.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-}
-
+  const elementTablePrintersDic = refTablePrintersDic.value.$el;
+  if (elementTablePrintersDic) {
+    elementTablePrintersDic.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+};
 
 </script>
 <template>
+  <Head :title="title" />
 
-    <Head :title="title" />
+  <Breadcrumbs
+    :home="{ label: 'Главная', url: '/' }"
+    :items="[
+      { label: title },
+    ]"
+  />
 
-    <Breadcrumbs :home="{ label: 'Главная', url: '/' }" :items="[
-        { label: title },
-    ]" />
+  <Card>
+    <Title>{{ title }}</Title>
 
-    <div class="flex justify-stretch bg-white rounded-md shadow overflow-hidden mt-4">
-        <DataTable
-            :value="printers"
-            ref="refTablePrintersDic"
-            paginator
-            :rows="10"
-            v-model:selection="selectedRow"
-            dataKey="id"
-            :metaKeySelection="false"
-            class="w-full"
-            tableStyle="min-width: 50rem"
-            selectionMode="single"
-            @rowSelect="onRowSelect"
-            @page="onPageChange"
-        >
-            <template #header>
-                <TableTitle class="border-b border-gray-200 pb-2">{{ title }}</TableTitle>
-                <div class="flex justify-between mt-5">
-                    <Link :href="urls.dictionary.printers.create()" v-if="auth.can('admin', 'editor-dictionary')">
-                        <Button type="button" severity="info">Добавить принтер</Button>
-                    </Link>
-                    <div v-else></div>
-                    <span class="relative">
-                        <i class="fas fa-search absolute top-2/4 -mt-2 left-3 text-surface-400"></i>
-                        <InputText v-model="form.search" placeholder="Поиск" class="pl-10 font-normal"/>
-                    </span>
-                </div>
-            </template>
-            <Column header="#" headerStyle="width:3rem">
-                <template #body="slotProps">
-                    {{ slotProps.index + 1 }}
-                </template>
-            </Column>
-            <Column field="vendor" header="Производитель" sortable />
-            <Column field="model" header="Модель" sortable />
-            <Column field="is_color_print" header="Цветная печать" sortable>
-                <template #body="{ data }">
-                    {{ data.is_color_print ? 'Да' : 'Нет' }}
-                </template>
-            </Column>
-            <Column field="created_at" header="Дата" sortable>
-                <template #body="{ data }">
-                    <div class="grid grid-rows-2 gap-2">
-                        <div v-tooltip="`Создано: ${moment(data.created_at).format('LLLL')}`">
-                            <i class="far fa-calendar"></i>
-                            {{ moment(data.created_at).fromNow() }}
-                        </div>
-                        <div v-if="data.created_at != data.updated_at" v-tooltip="`Изменено: ${moment(data.updated_at).format('LLLL')}`">
-                            <i class="far fa-calendar-alt"></i>
-                            {{ moment(data.updated_at).fromNow() }}
-                        </div>
-                    </div>
-                </template>
-            </Column>
-            <Column field="author.email" header="Автор" />
+    <DataTable
+      ref="refTablePrintersDic"
+      v-model:selection="selectedRow"
+      :value="printers"
+      paginator
+      :rows="10"
+      data-key="id"
+      :meta-key-selection="false"
+      table-style="min-width: 50rem"
+      selection-mode="single"
+      @row-select="onRowSelect"
+      @page="onPageChange"
+    >
+      <template #header>
+        <div class="flex justify-between mt-5">
+          <div>
+            <Button
+              v-if="can('admin', 'editor-dictionary')"
+              type="button"
+              severity="info"
+              @click="router.get(urls.dictionary.printers.create())"
+            >
+              Добавить принтер
+            </Button>
+          </div>
 
-            <template #empty> Нет данных </template>
+          <IconField icon-position="left" class="w-72">
+            <InputIcon>
+              <i class="pi pi-search" />
+            </InputIcon>
+            <InputText v-model="form.search" placeholder="Поиск" />
+          </IconField>
+        </div>
+      </template>
+      <Column header="#" field="id" header-style="width:3rem" />
+      <Column field="vendor" header="Производитель" sortable />
+      <Column field="model" header="Модель" sortable />
+      <Column field="is_color_print" header="Цветная печать" sortable>
+        <template #body="{ data }">
+          {{ data.is_color_print ? 'Да' : 'Нет' }}
+        </template>
+      </Column>
+      <Column field="created_at" header="Дата" sortable>
+        <template #body="{ data }">
+          <Timestamps :created-at="data.created_at" :updated-at="data.updated_at" />
+        </template>
+      </Column>
+      <Column header="Автор">
+        <template #body="{ data }">
+          <Author :user="data.author" />
+        </template>
+      </Column>
 
-        </DataTable>
-    </div>
-
+      <template #empty>
+        Нет данных
+      </template>
+    </DataTable>
+  </Card>
 </template>
