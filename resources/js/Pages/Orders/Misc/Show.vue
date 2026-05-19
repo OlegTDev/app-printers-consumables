@@ -1,25 +1,25 @@
 <script setup>
-import Layout from '@/Shared/Layout';
+import Layout from '@/Shared/Layout.vue';
 import { Head, router } from '@inertiajs/vue3';
-import { defineAsyncComponent, inject } from 'vue';
-import Breadcrumbs from '@/Shared/Breadcrumbs';
-import Card from 'primevue/card';
-import OrderStatus from '../Shared/OrderStatus';
-import Author from '@/Shared/DataTable/Author';
+import { computed, defineAsyncComponent } from 'vue';
+import Breadcrumbs from '@/Shared/Breadcrumbs.vue';
+import Card from '@/Shared/Card.vue';
+import OrderStatus from '../Shared/OrderStatus.vue';
+import Author from '@/Shared/DataTable/Author.vue';
 import Button from 'primevue/button';
 import { useDialog } from 'primevue/usedialog';
 import OrderStatusHistory from '../Shared/OrderStatusHistory.vue';
 import { useConfirm } from 'primevue/useconfirm';
 import { createUrlWithParams } from '@/config/urls';
+import { useConfig } from '@/Composables/useConfig';
+import { useDate } from '@/Composables/useDate';
+import Title from '@/Shared/Title.vue';
+import DetailViewer from '@/Shared/DetailViewer.vue';
+import Timestamps from '@/Shared/DataTable/Timestamps.vue';
 
 defineOptions({
   layout: Layout,
 });
-
-const urls = inject('urls');
-const moment = inject('moment');
-const dialog = useDialog();
-const confirm = useConfirm();
 
 const props = defineProps({
   auth: Object,
@@ -30,26 +30,65 @@ const props = defineProps({
   statuses: Object,
 });
 
+const { urls } = useConfig();
+const dialog = useDialog();
+const confirm = useConfirm();
+const { formatDate } = useDate();
+
 const ConfirmDialog = defineAsyncComponent(() => import('../Shared/ConfirmDialog.vue'));
 
-const orderMiscDetail = props.orderMiscDetail.data;
-const orderId = orderMiscDetail.order.id;
+const orderMiscDetail = computed(() => props.orderMiscDetail?.data || []);
+const orderId = computed(() => orderMiscDetail.value.order.id);
 
-const title = `Заказ № ${orderMiscDetail.order.id} от ${moment(orderMiscDetail.order.created_at).format('L')}`
+const title = `Заказ № ${orderMiscDetail.value.order.id} от ${formatDate(orderMiscDetail.value.order.created_at, 'L')}`;
+
+const openConfirmDialog = (params) => {
+  const {
+    url,
+    idOrder,
+    message,
+    header,
+    buttonLabel,
+    btnSeverity = null,
+    context = {},
+    width = '50vw',
+    breakpoints = {
+      '960px': '75vw',
+      '640px': '90vw'
+    },
+  } = params ?? {};
+  dialog.open(ConfirmDialog, {
+      props: {
+        header,
+        style: {
+          width,
+        },
+        breakpoints,
+        modal: true,
+      },
+      data: {
+        idOrder,
+        message,
+        url: createUrlWithParams(url, context),
+        buttonLabel,
+        btnSeverity,
+      }
+    });
+};
 
 const actions = {
   edit: () => {
-    router.get(urls.orders.misc.edit(orderMiscDetail.id));
+    router.get(urls.orders.misc.edit(orderMiscDetail.value.id));
   },
   editFiles: () => {
-    router.get(urls.orders.misc.editFiles(orderMiscDetail.id));
+    router.get(urls.orders.misc.editFiles(orderMiscDetail.value.id));
   },
   delete: () => {
     confirm.require({
       message: 'Вы уверены, что хотите удалить заказ?',
       header: 'Удаление заказа',
       accept: () => {
-        const url = createUrlWithParams(urls.orders.delete(orderId), { context: 'misc' });
+        const url = createUrlWithParams(urls.orders.delete(orderId.value), { context: 'misc' });
         router.delete(url);
       },
     });
@@ -59,194 +98,121 @@ const actions = {
       message: 'Вы уверены, что хотите отменить заказ?',
       header: 'Отмена заказа',
       accept: () => {
-        const url = createUrlWithParams(urls.orders.cancel(orderId), { context: 'misc' });
+        const url = createUrlWithParams(urls.orders.cancel(orderId.value), { context: 'misc' });
         router.put(url);
       },
     });
   },
   agree: () => {
-    dialog.open(ConfirmDialog, {
-      props: {
-        header: 'Согласование',
-        style: {
-          width: '50vw',
-        },
-        breakpoints: {
-          '960px': '75vw',
-          '640px': '90vw'
-        },
-        modal: true,
-      },
-      data: {
-        idOrder: orderId,
-        message: props.labels.order.comment,
-        url: createUrlWithParams(urls.orders.agree(orderId), { context: 'misc' }),
-        buttonLabel: 'Согласовать',
-      }
+    openConfirmDialog({
+      url: urls.orders.agree(orderId.value),
+      context: { context: 'misc' },
+      idOrder: orderId.value,
+      message: props.labels.order.comment,
+      header: 'Согласование',
+      buttonLabel: 'Согласовать',
     });
   },
   reject: () => {
-    dialog.open(ConfirmDialog, {
-      props: {
-        header: 'Отказать в согласовании',
-        style: {
-          width: '50vw',
-        },
-        breakpoints: {
-          '960px': '75vw',
-          '640px': '90vw'
-        },
-        modal: true,
-      },
-      data: {
-        idOrder: orderId,
-        message: props.labels.order.comment,
-        url: createUrlWithParams(urls.orders.reject(orderId), { context: 'misc' }),
-        buttonLabel: 'Отказать',
-        btnSeverity: 'danger',
-      }
+    openConfirmDialog({
+      url: urls.orders.reject(orderId.value),
+      context: { context: 'misc' },
+      idOrder: orderId.value,
+      message: props.labels.order.comment,
+      header: 'Отказать в согласовании',
+      buttonLabel: 'Отказать',
+      btnSeverity: 'danger',
     });
   },
   ordered: () => {
-    dialog.open(ConfirmDialog, {
-      props: {
-        header: 'Заказан',
-        style: {
-          width: '50vw',
-        },
-        breakpoints: {
-          '960px': '75vw',
-          '640px': '90vw'
-        },
-        modal: true,
-      },
-      data: {
-        idOrder: orderId,
-        message: props.labels.order.comment,
-        url: createUrlWithParams(urls.orders.ordered(orderId), { context: 'misc' }),
-        buttonLabel: 'Перевести в состояние "Заказан"',
-      }
+    openConfirmDialog({
+      url: urls.orders.ordered(orderId.value),
+      context: { context: 'misc' },
+      idOrder: orderId.value,
+      message: props.labels.order.comment,
+      header: 'Заказан',
+      buttonLabel: 'Перевести в состояние "Заказан"',
     });
   },
   receive: () => {
-    dialog.open(ConfirmDialog, {
-      props: {
-        header: 'Получен',
-        style: {
-          width: '50vw',
-        },
-        breakpoints: {
-          '960px': '75vw',
-          '640px': '90vw'
-        },
-        modal: true,
-      },
-      data: {
-        idOrder: orderId,
-        message: props.labels.order.comment,
-        url: createUrlWithParams(urls.orders.receive(orderId), { context: 'misc' }),
-        buttonLabel: 'Перевести в состояние "Получен"',
-      }
+    openConfirmDialog({
+      url: urls.orders.receive(orderId.value),
+      context: { context: 'misc' },
+      idOrder: orderId.value,
+      message: props.labels.order.comment,
+      header: 'Получен',
+      buttonLabel: 'Перевести в состояние "Получен"',
     });
   },
   complete: () => {
-    dialog.open(ConfirmDialog, {
-      props: {
-        header: 'Исполнено',
-        style: {
-          width: '50vw',
-        },
-        breakpoints: {
-          '960px': '75vw',
-          '640px': '90vw'
-        },
-        modal: true,
-      },
-      data: {
-        idOrder: orderId,
-        message: props.labels.order.comment,
-        url: createUrlWithParams(urls.orders.complete(orderId), { context: 'misc' }),
-        buttonLabel: 'Исполнено',
-      }
+    openConfirmDialog({
+      url: urls.orders.complete(orderId.value),
+      context: { context: 'misc' },
+      idOrder: orderId.value,
+      message: props.labels.order.comment,
+      header: 'Исполнено',
+      buttonLabel: 'Исполнено',
     });
   },
-}
-
+};
 </script>
 <template>
   <Head :title="title" />
 
-  <Breadcrumbs :home="{ label: 'Главная', url: '/' }" :items="[
-    { label: 'Заказ мелочей', url: urls.orders.misc.index() },
-    { label: title },
-  ]" />
+  <Breadcrumbs
+    :home="{ label: 'Главная', url: '/' }"
+    :items="[
+      { label: 'Заказ мелочей', url: urls.orders.misc.index() },
+      { label: title },
+    ]"
+  />
 
   <Card>
-    <template #title> {{ title }} </template>
-    <template #content>
-      <table class="w-1/2 text-left text-gray-700">
-        <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-          <th class="px-6 py-4">{{ labels.name }}</th>
-          <td class="px-6 py-4">{{ orderMiscDetail.name }}</td>
-        </tr>
-        <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-          <th class="px-6 py-4">{{ labels.description }}</th>
-          <td class="px-6 py-4">{{ orderMiscDetail.description }}</td>
-        </tr>
-        <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-          <th class="px-6 py-4">{{ labels.order.status }}</th>
-          <td class="px-6 py-4">
-            <OrderStatus :status="orderMiscDetail.order.status" :statuses="statuses" />
-          </td>
-        </tr>
-        <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-          <th class="px-6 py-4">{{ labels.order.comment }}</th>
-          <td class="px-6 py-4">
-            {{ orderMiscDetail.order.comment }}
-          </td>
-        </tr>
+    <Title>{{ title }}</Title>
 
-        <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-          <th class="px-6 py-4">{{ labels.order.status_history }}</th>
-          <td class="px-6 py-4">
-            <OrderStatusHistory :idOrder="orderMiscDetail.order.id" :statuses="statuses" />
-          </td>
-        </tr>
-        <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-          <th class="px-6 py-4">{{ labels.order.requested_by }}</th>
-          <td class="px-6 py-4">
-            <Author :login="orderMiscDetail.order.requested.name"
-              :fullName="orderMiscDetail.order.requested.fio" :post="orderMiscDetail.order.requested.post"
-              :department="orderMiscDetail.order.requested.department" />
-          </td>
-        </tr>
-        <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-          <th class="px-6 py-4">{{ labels.order.created_at }}</th>
-          <td class="px-6 py-4">
-            {{ moment(orderMiscDetail.order.created_at).format('L LTS') }}
-          </td>
-        </tr>
-      </table>
+    <DetailViewer
+      :items="[
+        { label: labels.name, value: orderMiscDetail.name },
+        { label: labels.description, value: orderMiscDetail.description },
+        { label: labels.order.status, keySlot: 'status' },
+        { label: labels.order.comment, value: orderMiscDetail.order.comment },
+        { label: labels.order.status_history, keySlot: 'history' },
+        { label: labels.order.requested_by, keySlot: 'author' },
+        { label: labels.order.created_at, keySlot: 'date' },
+      ]"
+    >
+      <template #status>
+        <OrderStatus :status="orderMiscDetail.order.status" :statuses="statuses" />
+      </template>
+      <template #history>
+        <OrderStatusHistory :id-order="orderMiscDetail.order.id" :statuses="statuses" />
+      </template>
+      <template #author>
+        <Author :user="orderMiscDetail.order.requested" />
+      </template>
+      <template #date>
+        <Timestamps :created-at="orderMiscDetail.order.created_at" />
+      </template>
+    </DetailViewer>
 
-      <div class="flex justify-between mt-10" vif="auth.can('admin', 'order-approver')">
-
-        <div class="flex gap-2">
-          <Button v-if="buttons.includes('agreed')" severity="info" class="font-bold" @click="actions.agree">Согласовать</Button>
-          <Button v-if="buttons.includes('rejected')" severity="danger" class="font-bold" @click="actions.reject">Отказать в согласовании</Button>
-          <Button v-if="buttons.includes('ordered')" severity="info" class="font-bold" @click="actions.ordered">Заказан</Button>
-          <Button v-if="buttons.includes('received')" severity="info" class="font-bold" @click="actions.receive">Получен</Button>
-          <Button v-if="buttons.includes('completed')" severity="success" class="font-bold" @click="actions.complete">Исполнено</Button>
-          <Button v-if="buttons.includes('cancelled')" severity="danger" class="font-bold" @click="actions.cancel">Отменить</Button>
+    <template #footer>
+      <div class="flex justify-between w-full">
+        <div>
+          <div class="flex gap-2">
+            <Button v-if="buttons.includes('agreed')" severity="info" class="font-bold" label="Согласовать" @click="actions.agree" />
+            <Button v-if="buttons.includes('rejected')" severity="danger" class="font-bold" label="Отказать в согласовании" @click="actions.reject" />
+            <Button v-if="buttons.includes('ordered')" severity="info" class="font-bold" label="Заказан" @click="actions.ordered" />
+            <Button v-if="buttons.includes('received')" severity="info" class="font-bold" label="Получен" @click="actions.receive" />
+            <Button v-if="buttons.includes('completed')" severity="success" class="font-bold" label="Исполнено" @click="actions.complete" />
+            <Button v-if="buttons.includes('cancelled')" severity="danger" class="font-bold" label="Отменить" @click="actions.cancel" />
+          </div>
         </div>
 
         <div class="flex gap-2">
-          <Button v-if="auth.isAdmin || isAuthor" class="font-bold" @click="actions.edit">Редактировать</Button>
-          <Button v-if="auth.isAdmin" severity="danger" class="font-bold" @click="actions.delete">Удалить</Button>
+          <Button v-if="auth.isAdmin || isAuthor" class="font-bold" label="Редактировать" @click="actions.edit" />
+          <Button v-if="auth.isAdmin" severity="danger" class="font-bold" label="Удалить" @click="actions.delete" />
         </div>
-
       </div>
-
     </template>
   </Card>
-
 </template>

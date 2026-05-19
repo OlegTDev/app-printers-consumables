@@ -1,14 +1,11 @@
 <script setup>
-import Layout from '@/Shared/Layout';
+import Layout from '@/Shared/Layout.vue';
 import { Head, router } from '@inertiajs/vue3';
-import Breadcrumbs from '@/Shared/Breadcrumbs';
+import Breadcrumbs from '@/Shared/Breadcrumbs.vue';
 import DataTable from 'primevue/datatable';
-import { computed, inject, reactive, ref, watch } from 'vue';
-import { useToast } from 'primevue/usetoast';
-import TableTitle from '@/Shared/TableTitle';
+import { computed, onMounted, reactive, ref, watch } from 'vue';
 import Button from 'primevue/button';
 import TreeSelect from 'primevue/treeselect';
-import Dropdown from 'primevue/dropdown';
 import InputText from 'primevue/inputtext';
 import Column from 'primevue/column';
 import OrderStatus from '../Shared/OrderStatus.vue';
@@ -17,6 +14,13 @@ import Timestamps from '@/Shared/DataTable/Timestamps.vue';
 import { throttle } from 'lodash';
 import { pickBy } from 'lodash';
 import axios from 'axios';
+import { useConfig } from '@/Composables/useConfig';
+import { useNotification } from '@/Composables/useNotification';
+import Card from '@/Shared/Card.vue';
+import Title from '@/Shared/Title.vue';
+import IconField from 'primevue/iconfield';
+import InputIcon from 'primevue/inputicon';
+import Select from 'primevue/select';
 
 
 defineOptions({
@@ -43,11 +47,12 @@ const propsFiltersOrganizations = computed(() => {
       return acc;
     }, {});
   }
+  return {};
 });
 
-const urls = inject('urls');
-const config = inject('config');
-const toast = reactive(useToast());
+const { urls } = useConfig();
+const { showError } = useNotification();
+
 const form = reactive({
   search: props.filters?.search,
   status: props.filters?.status,
@@ -55,26 +60,25 @@ const form = reactive({
 });
 
 
-const organizations = ref();
-const loadDataOrgs = () => {
-  axios.get(urls.users.organizations.index())
-    .then((response) => {
-      organizations.value = response.data.organizations;
-      if (Array.isArray(organizations.value)) {
-        organizations.value.forEach((item) => item.label = item.code);
-      }
-    })
-    .catch((error) => {
-      toast.add({
-        severity: 'error',
-        summary: 'Ошибка',
-        detail: error.message,
-        life: config.toast.timeLife,
-      });
-      console.error(error);
-    })
+const organizations = ref([]);
+const loadDataOrgs = async() => {
+  try {
+    const response = await axios.get(urls.users.organizations.index());
+    if (response.data?.organizations && Array.isArray(response.data.organizations)) {
+      organizations.value = response.data.organizations.map((item) => ({
+        key: item.code,
+        label: item.code,
+      }));
+    }
+  }
+  catch (error) {
+    showError(error.message);
+  }
 };
-loadDataOrgs();
+
+onMounted(() => {
+  loadDataOrgs();
+});
 
 
 const actions = {
@@ -84,62 +88,81 @@ const actions = {
 
 const onRowSelect = (event) => {
   router.get(urls.orders.misc.show(event.data.id));
-}
+};
 
 watch(
-  () => form,
+  () => [form.search, form.status, form.organizations],
   throttle(() => {
     const picked = pickBy(form);
-    picked.organizations = Object.keys(picked.organizations ?? {});
-    router.get(urls.orders.misc.index(), pickBy(picked), { preserveState: true });
-  }, 150),
-  { deep: true }
+    if (picked.organizations) {
+      picked.organizations = Object.keys(picked.organizations);
+    }
+    router.get(urls.orders.misc.index(), picked, { preserveState: true });
+  }, 300)
 );
 
-
 const title = 'Заказ мелочей';
-
 </script>
 <template>
   <Head :title="title" />
 
-  <Breadcrumbs :home="{ label: 'Главная', url: '/' }" :items="[
-    { label: title },
-  ]" />
+  <Breadcrumbs
+    :home="{ label: 'Главная', url: '/' }"
+    :items="[{ label: title }]"
+  />
 
-  <div class="flex justify-stretch bg-white rounded-md shadow overflow-hidden mt-4">
-    <DataTable :value="orders?.data" paginator :rows="10" dataKey="id" :metaKeySelection="false" class="w-full"
-      tableStyle="min-width: 50rem" selectionMode="single" @rowSelect="onRowSelect">
+  <Card>
+    <Title>{{ title }}</Title>
+
+    <DataTable
+      :value="orders?.data"
+      paginator
+      :rows="10"
+      data-key="id"
+      :meta-key-selection="false"
+      table-style="min-width: 50rem"
+      selection-mode="single"
+      @row-select="onRowSelect"
+    >
       <template #header>
-        <TableTitle class="border-b border-gray-200 pb-2">{{ title }}</TableTitle>
-        <div class="flex justify-between mt-5">
-          <Button @click="actions.create" severity="info">
-            Заказать
-          </Button>
+        <div class="flex justify-between">
           <div>
-            <TreeSelect selectionMode="multiple" v-model="form.organizations" :options="organizations"
-              placeholder="Организации" class="w-xs me-2" />
-            <Dropdown v-model="form.status" :options="listStatuses" optionLabel="label" optionValue="key"
-              placeholder="Статус" showClear class="w-20rem me-2" />
-            <span class="relative">
-              <i class="fas fa-search absolute top-2/4 -mt-2 left-3 text-surface-400"></i>
-              <InputText v-model="form.search" placeholder="Поиск" class="pl-10 font-normal" />
-            </span>
+            <Button severity="info" type="button" @click="actions.create">
+              Заказать
+            </Button>
+          </div>
+          <div class="flex justify-between gap-3">
+            <TreeSelect
+              v-model="form.organizations"
+              :options="organizations"
+              selection-mode="multiple"
+              placeholder="Организации"
+              class="w-xs"
+            />
+            <Select
+              v-model="form.status"
+              :options="listStatuses"
+              option-label="label"
+              option-value="key"
+              placeholder="Статус"
+              show-clear
+              class="w-auto"
+            />
+            <IconField icon-position="left">
+              <InputIcon><i class="pi pi-search" /></InputIcon>
+              <InputText v-model="form.search" placeholder="Поиск" />
+            </IconField>
           </div>
         </div>
       </template>
-      <Column header="#" headerStyle="width:3rem">
-        <template #body="{ data }">
-          {{ data.id }}
-        </template>
-      </Column>
+      <Column header="#" field="id" header-style="width:3rem" />
       <Column :header="labels.order.status">
         <template #body="{ data }">
           <OrderStatus :status="data.order.status" :statuses="statuses" />
         </template>
       </Column>
-      <Column :header="labels.order_misc.name" field="name"></Column>
-      <Column :header="labels.order_misc.description" field="description"></Column>
+      <Column :header="labels.order_misc.name" field="name" />
+      <Column :header="labels.order_misc.description" field="description" />
       <Column :header="labels.order.org_code">
         <template #body="{ data }">
           {{ data.order.organization.name }}
@@ -148,19 +171,24 @@ const title = 'Заказ мелочей';
       </Column>
       <Column :header="labels.order.requested_by">
         <template #body="{ data }">
-          <Author :login="data.order.requested.name" :fullName="data.order.requested.fio"
-            :post="data.order.requested.post" :department="data.order.requested.department" />
+          <Author
+            :user="{
+              fio: data.order.requested.fio,
+              name: data.order.requested.name,
+              post: data.order.requested.post,
+              department: data.order.requested.department,
+            }"
+          />
         </template>
       </Column>
       <Column header="Дата">
         <template #body="{ data }">
-          <Timestamps :created_at="data.order.created_at" :updated_at="data.order.updated_at" />
+          <Timestamps :created-at="data.order.created_at" :updated-at="data.order.updated_at" />
         </template>
       </Column>
-
-      <template #empty> Нет данных </template>
-
+      <template #empty>
+        Нет данных
+      </template>
     </DataTable>
-  </div>
-
+  </Card>
 </template>
