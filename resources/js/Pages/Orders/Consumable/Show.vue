@@ -213,14 +213,7 @@ const actions = {
         <OrderStatusHistory :id-order="orderConsumableDetail.order.id" :statuses="statuses" />
       </template>
       <template #author>
-        <Author
-          :user="{
-            fio: orderConsumableDetail.order.requested.fio,
-            name: orderConsumableDetail.order.requested.name,
-            post: orderConsumableDetail.order.requested.post,
-            department: orderConsumableDetail.order.requested.department,
-          }"
-        />
+        <Author :user="orderConsumableDetail.order.requested" />
       </template>
       <template #date>
         <Timestamps
