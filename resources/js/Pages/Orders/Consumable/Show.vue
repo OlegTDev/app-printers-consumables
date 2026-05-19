@@ -1,26 +1,31 @@
 <script setup>
-import Layout from '@/Shared/Layout';
+import Layout from '@/Shared/Layout.vue';
 import { useConfirm } from 'primevue/useconfirm';
 import { useDialog } from 'primevue/usedialog';
-import { defineAsyncComponent, inject, ref } from 'vue';
+import { computed, defineAsyncComponent } from 'vue';
 import { Head, router } from '@inertiajs/vue3';
-import Breadcrumbs from '@/Shared/Breadcrumbs';
-import Card from 'primevue/card';
+import Breadcrumbs from '@/Shared/Breadcrumbs.vue';
 import Tag from 'primevue/tag';
 import OrderStatusHistory from '../Shared/OrderStatusHistory.vue';
 import Author from '@/Shared/DataTable/Author.vue';
 import OrderStatus from '../Shared/OrderStatus.vue';
 import Button from 'primevue/button';
 import { createUrlWithParams } from '@/config/urls';
+import { useConfig } from '@/Composables/useConfig';
+import { useDate } from '@/Composables/useDate';
+import Card from '@/Shared/Card.vue';
+import Title from '@/Shared/Title.vue';
+import DetailViewer from '@/Shared/DetailViewer.vue';
+import Timestamps from '@/Shared/DataTable/Timestamps.vue';
 
 defineOptions({
   layout: Layout,
 });
 
-const urls = inject('urls');
-const moment = inject('moment');
+const { urls } = useConfig();
 const dialog = useDialog();
 const confirm = useConfirm();
+const { formatDate } = useDate();
 
 const props = defineProps({
   auth: Object,
@@ -33,16 +38,50 @@ const props = defineProps({
   cartridgeColors: Object,
 });
 
-const orderConsumableDetail = props.orderConsumableDetail.data;
-const orderId = orderConsumableDetail.order.id;
+const orderConsumableDetail = computed(() => props.orderConsumableDetail?.data || []);
+const orderId = orderConsumableDetail.value.order?.id;
 
 const ConfirmDialog = defineAsyncComponent(() => import('../Shared/ConfirmDialog.vue'));
 
-const title = `Заказ № ${orderConsumableDetail.order.id} от ${moment(orderConsumableDetail.order.created_at).format('L')}`
+const title = `Заказ № ${orderConsumableDetail.value.order.id} от ${formatDate(orderConsumableDetail.value?.order?.created_at, 'L')}`;
+
+const openConfirmDialog = (params) => {
+  const {
+    url,
+    idOrder,
+    message,
+    header,
+    buttonLabel,
+    btnSeverity = null,
+    context = {},
+    width = '50vw',
+    breakpoints = {
+      '960px': '75vw',
+      '640px': '90vw'
+    },
+  } = params ?? {};
+  dialog.open(ConfirmDialog, {
+      props: {
+        header,
+        style: {
+          width,
+        },
+        breakpoints,
+        modal: true,
+      },
+      data: {
+        idOrder,
+        message,
+        url: createUrlWithParams(url, context),
+        buttonLabel,
+        btnSeverity,
+      }
+    });
+};
 
 const actions = {
   edit: () => {
-    router.get(urls.orders.consumables.edit(orderConsumableDetail.id));
+    router.get(urls.orders.consumables.edit(orderConsumableDetail.value.id));
   },
   delete: () => {
     confirm.require({
@@ -65,226 +104,150 @@ const actions = {
     });
   },
   agree: () => {
-    dialog.open(ConfirmDialog, {
-      props: {
-        header: 'Согласование',
-        style: {
-          width: '50vw',
-        },
-        breakpoints: {
-          '960px': '75vw',
-          '640px': '90vw'
-        },
-        modal: true,
-      },
-      data: {
-        idOrder: orderConsumableDetail.order.id,
-        message: props.labels.order.comment,
-        url: createUrlWithParams(urls.orders.agree(orderId), { context: 'consumables' }),
-        buttonLabel: 'Согласовать',
-      }
+    openConfirmDialog({
+      url: urls.orders.agree(orderId),
+      context: { context: 'consumables' },
+      idOrder: orderId,
+      message: props.labels.order.comment,
+      header: 'Согласование',
+      buttonLabel: 'Согласовать',
     });
   },
   reject: () => {
-    dialog.open(ConfirmDialog, {
-      props: {
-        header: 'Отказать в согласовании',
-        style: {
-          width: '50vw',
-        },
-        breakpoints: {
-          '960px': '75vw',
-          '640px': '90vw'
-        },
-        modal: true,
-      },
-      data: {
-        idOrder: orderId,
-        message: props.labels.order.comment,
-        url: createUrlWithParams(urls.orders.reject(orderId), { context: 'consumables' }),
-        buttonLabel: 'Отказать',
-        btnSeverity: 'danger',
-      }
+    openConfirmDialog({
+      url: urls.orders.reject(orderId),
+      context: { context: 'consumables' },
+      idOrder: orderId,
+      message: props.labels.order.comment,
+      header: 'Отказать в согласовании',
+      buttonLabel: 'Отказать',
+      btnSeverity: 'danger',
     });
   },
   ordered: () => {
-    dialog.open(ConfirmDialog, {
-      props: {
-        header: 'Заказан',
-        style: {
-          width: '50vw',
-        },
-        breakpoints: {
-          '960px': '75vw',
-          '640px': '90vw'
-        },
-        modal: true,
-      },
-      data: {
-        idOrder: orderId,
-        message: props.labels.order.comment,
-        url: createUrlWithParams(urls.orders.ordered(orderId), { context: 'consumables' }),
-        buttonLabel: 'Перевести в состояние "Заказан"',
-      }
+    openConfirmDialog({
+      url: urls.orders.ordered(orderId),
+      context: { context: 'consumables' },
+      idOrder: orderId,
+      message: props.labels.order.comment,
+      header: 'Заказан',
+      buttonLabel: 'Перевести в состояние "Заказан"',
     });
   },
   receive: () => {
-    dialog.open(ConfirmDialog, {
-      props: {
-        header: 'Получен',
-        style: {
-          width: '50vw',
-        },
-        breakpoints: {
-          '960px': '75vw',
-          '640px': '90vw'
-        },
-        modal: true,
-      },
-      data: {
-        idOrder: orderId,
-        message: props.labels.order.comment,
-        url: createUrlWithParams(urls.orders.receive(orderId), { context: 'consumables' }),
-        buttonLabel: 'Перевести в состояние "Получен"',
-      }
+    openConfirmDialog({
+      url: urls.orders.receive(orderId),
+      context: { context: 'consumables' },
+      idOrder: orderId,
+      message: props.labels.order.comment,
+      header: 'Получен',
+      buttonLabel: 'Перевести в состояние "Получен"',
     });
   },
   complete: () => {
-    dialog.open(ConfirmDialog, {
-      props: {
-        header: 'Исполнено',
-        style: {
-          width: '50vw',
-        },
-        breakpoints: {
-          '960px': '75vw',
-          '640px': '90vw'
-        },
-        modal: true,
-      },
-      data: {
-        idOrder: orderId,
-        message: props.labels.order.comment,
-        url: createUrlWithParams(urls.orders.complete(orderId), { context: 'consumables' }),
-        buttonLabel: 'Исполнено',
-      }
+    openConfirmDialog({
+      url: urls.orders.complete(orderId),
+      context: { context: 'consumables' },
+      idOrder: orderId,
+      message: props.labels.order.comment,
+      header: 'Исполнено',
+      buttonLabel: 'Исполнено',
     });
   },
-}
+};
 </script>
 <template>
-
   <Head :title="title" />
 
-  <Breadcrumbs :home="{ label: 'Главная', url: '/' }" :items="[
-    { label: 'Заказ картриджей', url: urls.orders.consumables.index() },
-    { label: title },
-  ]" />
+  <Breadcrumbs
+    :home="{ label: 'Главная', url: '/' }"
+    :items="[
+      { label: 'Заказ картриджей', url: urls.orders.consumables.index() },
+      { label: title },
+    ]"
+  />
 
   <Card>
-    <template #title> {{ title }} </template>
-    <template #content>
-      <table class="w-1/2 text-left text-gray-700">
-        <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-          <th class="px-6 py-4">{{ labels.order_consumable.id_consumable }}</th>
-          <td class="px-6 py-4">
-            <div class="grid grid-rows-2 gap-4">
-              <div>{{ consumableTypes[orderConsumableDetail.consumable.type] ?? orderConsumableDetail.consumable.type }}
-              </div>
+    <Title>{{ title }}</Title>
+
+    <DetailViewer
+      :items="[
+        { label: labels.order_consumable.id_consumable, keySlot: 'detail' },
+        { label: labels.order.quantity, keySlot: 'quantity' },
+        { label: labels.order.status, keySlot: 'status' },
+        { label: labels.order.comment, value: orderConsumableDetail.order.comment },
+        { label: labels.order.service_request_number, value: orderConsumableDetail.order.service_request_number },
+        {
+          label: labels.order.service_request_date,
+          value: formatDate(orderConsumableDetail.order.service_request_date, 'L'),
+          hide: !orderConsumableDetail.order.service_request_number,
+        },
+        { label: labels.order.status_history, keySlot: 'history' },
+        { label: labels.order.requested_by, keySlot: 'author' },
+        { label: labels.order.created_at, keySlot: 'date' },
+      ]"
+    >
+      <template #detail>
+        <div class="grid gap-3">
+          <div>{{ consumableTypes[orderConsumableDetail.consumable.type] ?? orderConsumableDetail.consumable.type }}</div>
+          <div>
+            {{ orderConsumableDetail.consumable.name }}
+          </div>
+          <div v-if="orderConsumableDetail.consumable.type === 'cartridge'">
+            <div class="flex">
+              <div :class="['rounded-full', 'size-4', 'mr-2', cartridgeColors[orderConsumableDetail.consumable.color]?.bg]" />
               <div>
-                {{ orderConsumableDetail.consumable.name }}
-              </div>
-              <div v-if="orderConsumableDetail.consumable.type === 'cartridge'">
-                <div class="flex">
-                  <div
-                    :class="['rounded-full', 'size-4', 'mr-2', cartridgeColors[orderConsumableDetail.consumable.color]['bg']]">
-                  </div>
-                  <div>
-                    {{ cartridgeColors[orderConsumableDetail.consumable.color]['name'] }}
-                  </div>
-                </div>
+                {{ cartridgeColors[orderConsumableDetail.consumable.color]['name'] }}
               </div>
             </div>
-          </td>
-        </tr>
-        <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-          <th class="px-6 py-4">{{ labels.order.quantity }}</th>
-          <td class="px-6 py-4">
-            <Tag :value="orderConsumableDetail.order.quantity" />
-          </td>
-        </tr>
-        <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-          <th class="px-6 py-4">{{ labels.order.status }}</th>
-          <td class="px-6 py-4">
-            <OrderStatus :status="orderConsumableDetail.order.status" :statuses="statuses" />
-          </td>
-        </tr>
-        <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-          <th class="px-6 py-4">{{ labels.order.comment }}</th>
-          <td class="px-6 py-4">
-            {{ orderConsumableDetail.order.comment }}
-          </td>
-        </tr>
+          </div>
+        </div>
+      </template>
+      <template #quantity>
+        <Tag :value="orderConsumableDetail.order.quantity" />
+      </template>
+      <template #status>
+        <OrderStatus :status="orderConsumableDetail.order.status" :statuses="statuses" />
+      </template>
+      <template #history>
+        <OrderStatusHistory :id-order="orderConsumableDetail.order.id" :statuses="statuses" />
+      </template>
+      <template #author>
+        <Author
+          :user="{
+            fio: orderConsumableDetail.order.requested.fio,
+            name: orderConsumableDetail.order.requested.name,
+            post: orderConsumableDetail.order.requested.post,
+            department: orderConsumableDetail.order.requested.department,
+          }"
+        />
+      </template>
+      <template #date>
+        <Timestamps
+          :created-at="orderConsumableDetail.order.created_at"
+          :updated-at="orderConsumableDetail.order.updated_at"
+        />
+      </template>
+    </DetailViewer>
 
-        <template v-if="orderConsumableDetail.order.service_request_number">
-          <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-            <th class="px-6 py-4">{{ labels.order.service_request_number }}</th>
-            <td class="px-6 py-4">
-              {{ orderConsumableDetail.order.service_request_number }}
-            </td>
-          </tr>
-        </template>
-        <template v-if="orderConsumableDetail.order.service_request_number">
-          <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-            <th class="px-6 py-4">{{ labels.order.service_request_date }}</th>
-            <td class="px-6 py-4">
-              {{ orderConsumableDetail.order.service_request_date
-                ? moment(orderConsumableDetail.order.service_request_date).format('L')
-                : null }}
-            </td>
-          </tr>
-        </template>
-        <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-          <th class="px-6 py-4">{{ labels.order.status_history }}</th>
-          <td class="px-6 py-4">
-            <OrderStatusHistory :idOrder="orderConsumableDetail.order.id" :statuses="statuses" />
-          </td>
-        </tr>
-        <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-          <th class="px-6 py-4">{{ labels.order.requested_by }}</th>
-          <td class="px-6 py-4">
-            <Author :login="orderConsumableDetail.order.requested.name"
-              :fullName="orderConsumableDetail.order.requested.fio" :post="orderConsumableDetail.order.requested.post"
-              :department="orderConsumableDetail.order.requested.department" />
-          </td>
-        </tr>
-        <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-          <th class="px-6 py-4">{{ labels.order.created_at }}</th>
-          <td class="px-6 py-4">
-            {{ moment(orderConsumableDetail.order.created_at).format('L LTS') }}
-          </td>
-        </tr>
-      </table>
-
-      <div class="flex justify-between mt-10" vif="auth.can('admin', 'order-approver')">
-
-        <div class="flex gap-2">
-          <Button v-if="buttons.includes('agreed')" severity="info" class="font-bold" @click="actions.agree">Согласовать</Button>
-          <Button v-if="buttons.includes('rejected')" severity="danger" class="font-bold" @click="actions.reject">Отказать в согласовании</Button>
-          <Button v-if="buttons.includes('ordered')" severity="info" class="font-bold" @click="actions.ordered">Заказан</Button>
-          <Button v-if="buttons.includes('received')" severity="info" class="font-bold" @click="actions.receive">Получен</Button>
-          <Button v-if="buttons.includes('completed')" severity="success" class="font-bold" @click="actions.complete">Исполнено</Button>
-          <Button v-if="buttons.includes('cancelled')" severity="danger" class="font-bold" @click="actions.cancel">Отменить</Button>
+    <template #footer>
+      <div class="flex justify-between w-full">
+        <div>
+          <div class="flex gap-2">
+            <Button v-if="buttons.includes('agreed')" severity="info" class="font-bold" label="Согласовать" @click="actions.agree" />
+            <Button v-if="buttons.includes('rejected')" severity="danger" class="font-bold" label="Отказать в согласовании" @click="actions.reject" />
+            <Button v-if="buttons.includes('ordered')" severity="info" class="font-bold" label="Заказан" @click="actions.ordered" />
+            <Button v-if="buttons.includes('received')" severity="info" class="font-bold" label="Получен" @click="actions.receive" />
+            <Button v-if="buttons.includes('completed')" severity="success" class="font-bold" label="Исполнено" @click="actions.complete" />
+            <Button v-if="buttons.includes('cancelled')" severity="danger" class="font-bold" label="Отменить" @click="actions.cancel" />
+          </div>
         </div>
 
         <div class="flex gap-2">
-          <Button v-if="auth.isAdmin || isAuthor" class="font-bold" @click="actions.edit">Редактировать</Button>
-          <Button v-if="auth.isAdmin" severity="danger" class="font-bold" @click="actions.delete">Удалить</Button>
+          <Button v-if="auth.isAdmin || isAuthor" class="font-bold" label="Редактировать" @click="actions.edit" />
+          <Button v-if="auth.isAdmin" severity="danger" class="font-bold" label="Удалить" @click="actions.delete" />
         </div>
-
       </div>
-
     </template>
   </Card>
-
 </template>

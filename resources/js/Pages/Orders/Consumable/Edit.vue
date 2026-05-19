@@ -1,16 +1,18 @@
 <script setup>
-import Layout from '@/Shared/Layout';
+import Layout from '@/Shared/Layout.vue';
 import { Head } from '@inertiajs/vue3';
-import Breadcrumbs from '@/Shared/Breadcrumbs';
-import { inject } from 'vue';
+import Breadcrumbs from '@/Shared/Breadcrumbs.vue';
 import Form from './Form.vue';
+import { useConfig } from '@/Composables/useConfig';
+import { useDate } from '@/Composables/useDate';
+import { computed } from 'vue';
 
 defineOptions({
   layout: Layout,
 });
 
-const urls = inject('urls');
-const moment = inject('moment');
+const { urls } = useConfig();
+const { formatDate } = useDate();
 
 const props = defineProps({
   orderConsumableDetail: Object,
@@ -19,24 +21,30 @@ const props = defineProps({
   cartridgeColors: Object,
 });
 
-const orderConsumableDetail = props.orderConsumableDetail?.data || [];
+const orderConsumable = computed(() => props.orderConsumableDetail?.data || {});
 const title = 'Изменение заказа';
 </script>
 <template>
   <Head :title="title" />
 
-  <Breadcrumbs :home="{ label: 'Главная', url: '/' }" :items="[
-    { label: 'Заказ запчастей', url: urls.orders.consumables.index() },
-    {
-      label: `Заказ № ${orderConsumableDetail.order.id} от ${moment(orderConsumableDetail.order.created_at).format('L')}`,
-      url: urls.orders.consumables.show(orderConsumableDetail.id),
-    },
-    { label: title },
-  ]" />
+  <Breadcrumbs
+    :home="{ label: 'Главная', url: '/' }"
+    :items="[
+      { label: 'Заказ запчастей', url: urls.orders.consumables.index() },
+      {
+        label: orderConsumable?.id
+          ? `Заказ № ${orderConsumable?.order?.id} от ${formatDate(orderConsumable?.order?.created_at, 'L')}`
+          : 'Загрузка',
+        url: urls.orders.consumables.show(orderConsumable?.id),
+      },
+      { label: title },
+    ]"
+  />
 
-  <div class="flex justify-stretch bg-white rounded-md shadow overflow-hidden mt-4">
-
-    <Form :isNew="false" :orderConsumable="orderConsumableDetail" :labels="labels" :consumableTypes="consumableTypes" :cartridgeColors="cartridgeColors" />
-
-  </div>
+  <Form
+    :order-consumable="orderConsumable"
+    :labels="labels"
+    :consumable-types="consumableTypes"
+    :cartridge-colors="cartridgeColors"
+  />
 </template>
