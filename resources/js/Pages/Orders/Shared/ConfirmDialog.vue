@@ -2,15 +2,13 @@
 import { useForm } from '@inertiajs/vue3';
 import { inject } from 'vue';
 import Textarea from 'primevue/textarea';
-import InlineMessage from 'primevue/inlinemessage';
 import Button from 'primevue/button';
-import Label from '@/Shared/Label';
-
+import Label from '@/Shared/Label.vue';
+import Message from 'primevue/message';
 
 const dialogRef = inject('dialogRef');
 
 const { idOrder, message, url, buttonLabel, btnSeverity } = dialogRef.value.data;
-
 
 const form = useForm({
   id_order: idOrder,
@@ -30,10 +28,16 @@ const save = () => {
     <div class="grid gap-x-6 gap-y-8">
       <div>
         <Label for="count">{{ message }}</Label>
-        <Textarea class="w-full" rows="4" v-model="form.comment" placeholder="введите комментарий"
-          :invalid="!!form.errors?.comment" />
-        <InlineMessage v-if="form.errors?.comment" class="mt-2" severity="error">{{ form.errors?.comment }}
-        </InlineMessage>
+        <Textarea
+          v-model="form.comment"
+          placeholder="введите комментарий"
+          class="w-full"
+          rows="4"
+          :invalid="!!form.errors?.comment"
+        />
+        <Message v-if="form.errors?.comment" class="mt-2" severity="error">
+          {{ form.errors?.comment }}
+        </Message>
       </div>
     </div>
     <div class="flex items-center justify-between pt-5 w-full">
