@@ -7,15 +7,13 @@ import Card from '@/Shared/Card.vue';
 import OrderStatus from '../Shared/OrderStatus.vue';
 import Author from '@/Shared/DataTable/Author.vue';
 import Button from 'primevue/button';
-import { useDialog } from 'primevue/usedialog';
 import OrderStatusHistory from '../Shared/OrderStatusHistory.vue';
-import { useConfirm } from 'primevue/useconfirm';
-import { createUrlWithParams } from '@/config/urls';
 import { useConfig } from '@/Composables/useConfig';
 import { useDate } from '@/Composables/useDate';
 import Title from '@/Shared/Title.vue';
 import DetailViewer from '@/Shared/DetailViewer.vue';
 import Timestamps from '@/Shared/DataTable/Timestamps.vue';
+import { useActions } from '../Composables/useActions';
 
 defineOptions({
   layout: Layout,
@@ -31,50 +29,21 @@ const props = defineProps({
 });
 
 const { urls } = useConfig();
-const dialog = useDialog();
-const confirm = useConfirm();
 const { formatDate } = useDate();
 
-const ConfirmDialog = defineAsyncComponent(() => import('../Shared/ConfirmDialog.vue'));
-
-const orderMiscDetail = computed(() => props.orderMiscDetail?.data || []);
+const orderMiscDetail = computed(() => props.orderMiscDetail?.data || { order: {} });
 const orderId = computed(() => orderMiscDetail.value.order.id);
-
 const title = `Заказ № ${orderMiscDetail.value.order.id} от ${formatDate(orderMiscDetail.value.order.created_at, 'L')}`;
-
-const openConfirmDialog = (params) => {
-  const {
-    url,
-    idOrder,
-    message,
-    header,
-    buttonLabel,
-    btnSeverity = null,
-    context = {},
-    width = '50vw',
-    breakpoints = {
-      '960px': '75vw',
-      '640px': '90vw'
-    },
-  } = params ?? {};
-  dialog.open(ConfirmDialog, {
-      props: {
-        header,
-        style: {
-          width,
-        },
-        breakpoints,
-        modal: true,
-      },
-      data: {
-        idOrder,
-        message,
-        url: createUrlWithParams(url, context),
-        buttonLabel,
-        btnSeverity,
-      }
-    });
-};
+const ConfirmDialog = defineAsyncComponent(() => import('../Shared/ConfirmDialog.vue'));
+const {
+  agree,
+  reject,
+  ordered,
+  cancel,
+  complete,
+  receive,
+  remove,
+} = useActions('misc', ConfirmDialog, orderId, props.labels.order?.comment || '');
 
 const actions = {
   edit: () => {
@@ -83,77 +52,13 @@ const actions = {
   editFiles: () => {
     router.get(urls.orders.misc.editFiles(orderMiscDetail.value.id));
   },
-  delete: () => {
-    confirm.require({
-      message: 'Вы уверены, что хотите удалить заказ?',
-      header: 'Удаление заказа',
-      accept: () => {
-        const url = createUrlWithParams(urls.orders.delete(orderId.value), { context: 'misc' });
-        router.delete(url);
-      },
-    });
-  },
-  cancel: () => {
-    confirm.require({
-      message: 'Вы уверены, что хотите отменить заказ?',
-      header: 'Отмена заказа',
-      accept: () => {
-        const url = createUrlWithParams(urls.orders.cancel(orderId.value), { context: 'misc' });
-        router.put(url);
-      },
-    });
-  },
-  agree: () => {
-    openConfirmDialog({
-      url: urls.orders.agree(orderId.value),
-      context: { context: 'misc' },
-      idOrder: orderId.value,
-      message: props.labels.order.comment,
-      header: 'Согласование',
-      buttonLabel: 'Согласовать',
-    });
-  },
-  reject: () => {
-    openConfirmDialog({
-      url: urls.orders.reject(orderId.value),
-      context: { context: 'misc' },
-      idOrder: orderId.value,
-      message: props.labels.order.comment,
-      header: 'Отказать в согласовании',
-      buttonLabel: 'Отказать',
-      btnSeverity: 'danger',
-    });
-  },
-  ordered: () => {
-    openConfirmDialog({
-      url: urls.orders.ordered(orderId.value),
-      context: { context: 'misc' },
-      idOrder: orderId.value,
-      message: props.labels.order.comment,
-      header: 'Заказан',
-      buttonLabel: 'Перевести в состояние "Заказан"',
-    });
-  },
-  receive: () => {
-    openConfirmDialog({
-      url: urls.orders.receive(orderId.value),
-      context: { context: 'misc' },
-      idOrder: orderId.value,
-      message: props.labels.order.comment,
-      header: 'Получен',
-      buttonLabel: 'Перевести в состояние "Получен"',
-    });
-  },
-  complete: () => {
-    openConfirmDialog({
-      url: urls.orders.complete(orderId.value),
-      context: { context: 'misc' },
-      idOrder: orderId.value,
-      message: props.labels.order.comment,
-      header: 'Исполнено',
-      buttonLabel: 'Исполнено',
-    });
-  },
+  delete: () => remove(urls.orders.delete(orderId.value)),
+  cancel: () => cancel(urls.orders.cancel(orderId.value)),
+  agree: () => agree(urls.orders.agree(orderId.value)),
+  reject: () => reject(urls.orders.reject(orderId.value)),
+  ordered: () => ordered(urls.orders.ordered(orderId.value)),
+  receive: () => receive(urls.orders.receive(orderId.value)),
+  complete: () => complete(urls.orders.complete(orderId.value)),
 };
 </script>
 <template>
@@ -188,7 +93,7 @@ const actions = {
         <OrderStatusHistory :id-order="orderMiscDetail.order.id" :statuses="statuses" />
       </template>
       <template #author>
-        <Author :user="orderMiscDetail.order.requested" />
+        <Author :user="orderMiscDetail.order?.requested || {}" />
       </template>
       <template #date>
         <Timestamps :created-at="orderMiscDetail.order.created_at" />
