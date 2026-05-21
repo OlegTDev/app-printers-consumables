@@ -1,31 +1,38 @@
 <script setup>
 import consumablesService from '@/Services/consumablesService';
-import { useToast } from 'primevue/usetoast';
-import { inject, onMounted, reactive, ref } from 'vue';
-import InputSwitch from 'primevue/inputswitch';
-import Label from '@/Shared/Label';
-import Dropdown from 'primevue/dropdown';
+import { onMounted, ref } from 'vue';
+import Label from '@/Shared/Label.vue';
+import { useNotification } from '@/Composables/useNotification';
+import FieldRowVertical from '@/Shared/Form/FieldRowVertical.vue';
+import { Select, ToggleSwitch } from 'primevue';
 
 const props = defineProps({
-  urlOtherConsumablesForPrinter: String,
-
-  labelCallSpecialist: String,
-  labelConsumable: String,
-
-  callSpecialist: Boolean,
-  sparePartId: Number,
+  urlOtherConsumablesForPrinter: {
+    type: String,
+  },
+  labelCallSpecialist: {
+    type: String,
+  },
+  labelConsumable: {
+    type: String,
+  },
+  callSpecialist: {
+    type: Boolean,
+  },
+  sparePartId: {
+    type: Number,
+  },
 });
 
 const emit = defineEmits(['update:selectedCallSpecialist', 'update:selectedConsumable']);
-const config = inject('config');
-const toast = reactive(useToast());
+const { showError } = useNotification();
 
 const callSpecialistSelected = ref(props.callSpecialist);
 const consumablesData = ref([]);
 const consumableSelected = ref();
 const loading = ref(false);
 
-const onCallSpecialistChange = (event) => {
+const onCallSpecialistChange = () => {
   consumableSelected.value = null;
   emit('update:selectedCallSpecialist', callSpecialistSelected.value);
 };
@@ -40,52 +47,63 @@ onMounted(async () => {
     consumablesData.value = await consumablesService.fetch(props.urlOtherConsumablesForPrinter);
     consumableSelected.value = consumablesData.value.find((item) => item.id == props.sparePartId);
   } catch (error) {
-    toast.add({
-      severity: 'error',
-      summary: 'Ошибка',
-      detail: error.message,
-      life: config.toast.timeLife,
-    });
-    console.error(error);
+    showError(error.message);
   } finally {
     loading.value = false;
   }
-})
+});
 </script>
 <template>
-  <div>
-    <Label for="call_specialist">{{ labelCallSpecialist }}</Label>
-    <InputSwitch v-model="callSpecialistSelected" @change="onCallSpecialistChange" />
+  <div class="grid gap-y-8">
+    <FieldRowVertical>
+      <template #label>
+        <Label for="call_specialist">{{ labelCallSpecialist }}</Label>
+      </template>
+      <template #field>
+        <ToggleSwitch v-model="callSpecialistSelected" @change="onCallSpecialistChange" />
+      </template>
+    </FieldRowVertical>
+
+    <FieldRowVertical v-if="!callSpecialistSelected">
+      <template #label>
+        <Label for="id_spare_part">{{ labelConsumable }}</Label>
+      </template>
+      <template #field>
+        <Select
+          v-model="consumableSelected"
+          show-clear
+          filter
+          :options="consumablesData"
+          option-label="name"
+          placeholder="Выберите запчасть"
+          :loading="loading"
+          @change="onConsumableChange"
+        >
+          <template #value="{ value, placeholder }">
+            <div v-if="value" class="grid gap-y-2">
+              <div class="flex gap-x-2">
+                {{ value.name }}
+              </div>
+              <div class="text-gray-500">
+                {{ value?.description }}
+              </div>
+            </div>
+            <span v-else>
+              {{ placeholder }}
+            </span>
+          </template>
+          <template #option="{ option }">
+            <div v-if="option" class="grid gap-y-2">
+              <div class="flex gap-x-2">
+                {{ option.name }}
+              </div>
+              <div class="text-gray-500">
+                {{ option.description }}
+              </div>
+            </div>
+          </template>
+        </Select>
+      </template>
+    </FieldRowVertical>
   </div>
-  <template v-if="!callSpecialistSelected">
-    <div class="mt-10">
-      <Label for="id_spare_part">{{ labelConsumable }}</Label>
-      <Dropdown v-model="consumableSelected" showClear filter :options="consumablesData" optionLabel="name"
-        placeholder="Выберите запчасть" class="w-full" @change="onConsumableChange" :loading="loading">
-        <template #value="{ value, placeholder }">
-          <div v-if="value" class="grid gap-y-2">
-            <div class="flex gap-x-2">
-              {{ value.name }}
-            </div>
-            <div class="text-gray-500">
-              {{ value?.description }}
-            </div>
-          </div>
-          <span v-else>
-            {{ placeholder }}
-          </span>
-        </template>
-        <template #option="{ option }">
-          <div v-if="option" class="grid gap-y-2">
-            <div class="flex gap-x-2">
-              {{ option.name }}
-            </div>
-            <div class="text-gray-500">
-              {{ option.description }}
-            </div>
-          </div>
-        </template>
-      </Dropdown>
-    </div>
-  </template>
 </template>
