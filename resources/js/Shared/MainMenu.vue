@@ -1,15 +1,14 @@
 <script setup>
-import { Link, usePage } from '@inertiajs/vue3';
-import { computed, inject, onMounted, ref } from 'vue';
+import { Link } from '@inertiajs/vue3';
+import { computed, onMounted, ref } from 'vue';
 import { useNavigation } from '@/Composables/useNavigation';
 import { useAuth } from '@/Composables/useAuth';
+import { useConfig } from '@/Composables/useConfig';
 
-const page = usePage();
-/** @type {typeof import('@/config/urls').urls} */
-const urls = inject('urls');
+const { urls } = useConfig();
 
 const { isActiveUrl } = useNavigation();
-const { isAdmin, can } = useAuth();
+const { isAdmin } = useAuth();
 
 const classIsActive = `text-white`;
 const classIsInactive = `text-indigo-300 group-hover:text-white`;
@@ -24,11 +23,11 @@ const toggleMenu = (id) => {
   } else {
     openMenus.value.push(id);
   }
-}
+};
 
 const isOpen = (id) => {
   return openMenus.value.includes(id);
-}
+};
 
 const menu = computed(() => [
   {
@@ -45,7 +44,7 @@ const menu = computed(() => [
     name: 'Пользователи',
     icon: 'fas fa-user me-3 w-5 h-5',
     href: urls.users.index(),
-    show: can('admin'),
+    show: isAdmin.value,
     active: isActiveUrl(urls.users.index()),
     dropdown: false,
   },
@@ -96,7 +95,7 @@ const menu = computed(() => [
         name: 'Организации',
         icon: 'fas fa-sitemap me-3 w-5 h-5',
         href: urls.dictionary.organizations.index(),
-        show: true,
+        show: isAdmin.value,
         active: isActiveUrl(urls.dictionary.organizations.index()),
       },
     ],
@@ -142,13 +141,13 @@ onMounted(() => {
     if (item.dropdown && item.active) {
       openMenus.value.push(item.id);
     }
-  })
+  });
 });
 </script>
 <template>
   <div class="h-full px-3 py-4 overflow-y-auto">
     <ul class="space-y-2 font-medium">
-      <template v-for="item in menu" :key="item.href">
+      <template v-for="item in menu" :key="item.id">
         <li v-if="item.show">
           <template v-if="!item.dropdown">
             <Link :href="item.href" :class="[item.active ? classIsActive : classIsInactive, classLink]">
