@@ -1,6 +1,7 @@
 import pluginVue from 'eslint-plugin-vue';
 import js from '@eslint/js';
 import pluginImport from 'eslint-plugin-import';
+import globals from 'globals';
 
 export default [
   js.configs.recommended,
@@ -8,6 +9,12 @@ export default [
   {
     plugins: {
       import: pluginImport,
+    },
+    languageOptions: {
+      globals: {
+        ...globals.browser,
+        route: 'readonly',
+      },
     },
     settings: {
       'import/resolver': {
@@ -17,7 +24,7 @@ export default [
           ],
           extensions: ['.js', '.vue']
         }
-      }
+      },
     },
     rules: {
       'semi': ['warn', 'always'],
