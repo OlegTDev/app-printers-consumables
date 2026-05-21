@@ -20,7 +20,7 @@ const save = () => {
     onSuccess: () => {
       dialogRef.value.close();
     },
-  })
+  });
 };
 </script>
 <template>
