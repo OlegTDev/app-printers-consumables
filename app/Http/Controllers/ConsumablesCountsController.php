@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\ConsumableCountCorrectRequest;
 use App\Http\Requests\ConsumableCountRequest;
 use App\Http\Requests\ConsumableCountRequestValidate;
+use App\Http\Resources\ConsumableCountResource;
 use App\Models\Consumable\CartridgeColors;
 use App\Models\Consumable\Consumable;
 use App\Models\Consumable\ConsumableCount;
@@ -12,11 +13,14 @@ use App\Models\Consumable\ConsumableCountAdded;
 use App\Models\Consumable\ConsumableTypesEnum;
 use App\Models\Organization;
 use App\Models\Printer\Printer;
+use App\Services\Consumables\ConsumableCountService;
 use App\Services\Query\ConsumableCountQueryService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
+use Redirect;
 
 class ConsumablesCountsController extends Controller
 {
@@ -42,12 +46,11 @@ class ConsumablesCountsController extends Controller
     }
 
     /**
-     * Список записей о количестве расходных материалов
-     * @return \Inertia\Response
+     * @route GET /consumables/counts
      */
-    public function index()
+    public function index(): \Inertia\Response
     {
-        $consumablesCounts = ConsumableCount::filter(Request::only(['search', 'consumableType']))->get();
+        $consumablesCounts = ConsumableCount::filter(Request::only(['search', 'consumableType']))->forCurrentUser()->get();
         return Inertia::render('Consumable/Count/Index', [
             'filters' => Request::all(['search', 'consumableType']),
             'consumablesCounts' => $consumablesCounts,
@@ -89,89 +92,40 @@ class ConsumablesCountsController extends Controller
     }
 
     /**
-     * Сохранение (добавление/изменение) ConsumableCount
-     *
-     * По выбранному идентификатору расходного материала (id_consumable) и текущей организации Auth::user()->org_code выполняется поиск
-     * Если запись найдена, то для добавления используется она, в противном случае создается новая запись
-     *
-     * В случае, если запись найдена и указано о необходимости обновления списка организаций (changeOrganization == true),
-     * то список организаций будет заменен на selectedOrganizations
-     * @param ConsumableCountRequest|mixed $request
-     * @return \Illuminate\Http\RedirectResponse
+     * @route POST /consumables/counts
      */
-    public function store(ConsumableCountRequest $request)
+    public function store(ConsumableCountRequest $request, ConsumableCountService $consumablesCountsAddService)
     {
-        // получение данных из формы запроса
-        $organizations = $request->get('selectedOrganizations');
-        $idConsumable = $request->get('id_consumable');
-        $count = $request->get('count');
-        $changeOrganization = $request->get('changeOrganization', false);
+        $idConsumable = $request->integer('id_consumable');
+        $organizations = $request->collect('selectedOrganizations')->toArray();
+        $count = $request->integer('count');
+        $changeOrganization = $request->boolean('changeOrganization');
 
-        DB::beginTransaction();
-        $isNew = false;
+        $idConsumableCount = $consumablesCountsAddService->add($idConsumable, $changeOrganization, $organizations, $count);
 
-        // поиск или создание записи о количестве расходных материалов
-        // поиск выполняется по id_consumable и наличию текущей организации Auth::user()->org_code
-        $consumableCount = ConsumableCount::findByIdConsumable($idConsumable);
-        // если запись не найдена, то создается новая
-        if (!$consumableCount) {
-            $isNew = true;
-            $consumableCount = new ConsumableCount([
-                'id_consumable' => $idConsumable,
-                'count' => 0,
-            ]);
-            $consumableCount->save();
-        }
-
-        // изменение списка организаций
-        // если новая запись или если было указано, что необходимо изменить список организаций
-        if ($isNew || $changeOrganization) {
-            $consumableCount->updateOrganizations($organizations);
-        }
-
-        // создание модели ConsumableCountAdded с добавляемым количеством count
-        $consumableCountAdded = new ConsumableCountAdded([
-            'id_consumable_count' => $consumableCount->id,
-            'count' => $count,
-        ]);
-
-        // результаты выполнения
-        if (!$consumableCountAdded->save()) {
-            DB::rollBack();
-            return redirect()->back()
-                ->with('error', 'Возникла ошибка при сохранении!');
-        }
-        DB::commit();
-        return redirect()->route('counts.show', [$consumableCount])
+        return redirect()->route('consumables.counts.show', [$idConsumableCount])
             ->with('success', 'Данные успешно сохранены!');
     }
 
     /**
-     * Поиск записи ConsumableCount с переданным id_consumable
-     * @return array|null
+     * @route GET /consumables/counts/{idConsumable}/exists
      */
-    public function checkExists()
+    public function exists(int $idConsumable)
     {
-        $idConsumable = Request::get('id_consumable');
-        if ($idConsumable === null) {
-            throw new \Exception('Attribute id_consumable is null');
-        }
+        $consumableCount = ConsumableCount::where('id_consumable', $idConsumable)
+            ->forCurrentUser()->firstOrFail();
 
-        $consumableCount = ConsumableCount::findByIdConsumable($idConsumable);
-        if ($consumableCount !== null) {
-            return [
-                'id' => $consumableCount->id,
-                'count' => $consumableCount->count,
-                'organizations' => $consumableCount->organizationsCodes(),
-            ];
-        }
+        return new ConsumableCountResource($consumableCount);
     }
 
     /**
      * Валидация данных при добавлении нового документа ConsumableCount
      * @param ConsumableCountRequestValidate $request
      */
-    public function validateConsumableCount(ConsumableCountRequestValidate $request) { }
+    public function validateConsumableCount(ConsumableCountRequestValidate $request)
+    {
+        abort(599, 'Удалить контроллер?');
+    }
 
     /**
      * Отображение информации о количестве по расходному материалу $consumableCount
@@ -243,16 +197,13 @@ class ConsumablesCountsController extends Controller
     }
 
     /**
-     * Изменение списка привязанных организаций
-     * @param ConsumableCountRequest|mixed $request
-     * @param ConsumableCount $count общее количество
-     * @return \Illuminate\Http\RedirectResponse
+     * @route POST /consumables/counts/{count}/organizations
      */
-    public function updateOrganizations(ConsumableCountRequest $request, ConsumableCount $count)
+    public function updateOrganizations(ConsumableCountRequest $request, ConsumableCount $count): RedirectResponse
     {
-        $organizations = $request->get('selectedOrganizations');
-        $count->updateOrganizations($organizations);
-        return redirect()->route('counts.show', [$count])
+        $organizations = $request->collect('selectedOrganizations')->toArray();
+        $count->organizations()->sync($organizations);
+        return redirect()->route('consumables.counts.show', [$count])
             ->with('success', 'Данные успешно сохранены!');
     }
 
