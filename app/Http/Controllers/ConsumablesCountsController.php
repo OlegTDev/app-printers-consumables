@@ -176,23 +176,20 @@ class ConsumablesCountsController extends Controller
 
         DB::commit();
 
-        return redirect()->route('counts.show', [$count])
+        return redirect()->back()
             ->with('success', 'Данные успешно сохранены!');
 
     }
 
     /**
-     * Корректировка количества
-     * @param \App\Http\Requests\ConsumableCountCorrectRequest|mixed $request
-     * @param \App\Models\Consumable\ConsumableCount $count
-     * @return \Illuminate\Http\RedirectResponse
+     * @route POST /consumables/counts/{count}/correct
      */
-    public function correctCount(ConsumableCountCorrectRequest $request, ConsumableCount $count)
+    public function correctCount(ConsumableCountCorrectRequest $request, ConsumableCount $count): RedirectResponse
     {
-        $count->count = $request->get('count', 0);
+        $count->count = $request->input('count', 0);
         $count->save();
 
-        return redirect()->route('counts.show', [$count])
+        return redirect()->back()
             ->with('success', 'Данные успешно сохранены!');
     }
 

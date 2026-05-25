@@ -2,7 +2,7 @@
 import { inject, ref } from 'vue';
 import Button from 'primevue/button';
 import { useForm } from '@inertiajs/vue3';
-import Label from '@/Shared/Label';
+import Label from '@/Shared/Label.vue';
 import InputNumber from 'primevue/inputnumber';
 import Message from 'primevue/message';
 import PrintersWorkplaceDropdown from './Partials/PrintersWorkplaceDropdown.vue';

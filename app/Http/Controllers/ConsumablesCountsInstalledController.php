@@ -9,6 +9,7 @@ use App\Models\Consumable\ConsumableCount;
 use App\Models\Consumable\ConsumableCountInstalled;
 use App\Models\Consumable\ConsumableTypesEnum;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 
 class ConsumablesCountsInstalledController extends Controller
@@ -42,17 +43,17 @@ class ConsumablesCountsInstalledController extends Controller
     {
         return [
             'data' => ConsumableCountInstalled::with([
-                'consumableCount' => fn($query) => $query->with('consumable'), 
+                'consumableCount' => fn($query) => $query->with('consumable'),
                 'printerWorkplace' => fn($query) => $query->with('printer'),
                 'author',
-            ])                
+            ])
                 ->whereHas('printerWorkplace', fn($query) => $query->where('org_code', Auth::user()->org_code))
                 ->limit($limit)
                 ->orderByDesc('created_at')->get(),
             'cartridgeColors' => CartridgeColors::get(),
             'consumableTypes' => ConsumableTypesEnum::array(),
         ];
-    }  
+    }
 
     /**
      * Сохранение установленного расходного материала
@@ -62,7 +63,7 @@ class ConsumablesCountsInstalledController extends Controller
      * @return \Illuminate\Http\RedirectResponse
      */
     public function store(Consumable $consumable, ConsumableCount $count, ConsumableCountInstalledRequest $request)
-    {        
+    {
         $consumableCountInstalled = new ConsumableCountInstalled($request->only(['id_consumable_count', 'id_printer_workplace', 'count']));
         if (!$consumableCountInstalled->save()) {
             return redirect()->back()->with('error', 'Возникла ошибка при сохранении!');
@@ -71,18 +72,13 @@ class ConsumablesCountsInstalledController extends Controller
     }
 
     /**
-     * Удаление добавленного количества
-     * При удалении записи отнимается удаляемое количество от общего количества
-     * @param Consumable $consumable расходный материал
-     * @param ConsumableCount $Count общее количество
-     * @param ConsumableCountInstalled $installed установленное количество
-     * @return \Illuminate\Http\RedirectResponse
+     * @route /consumables/{consumable}/counts/{count}/installed/{installed}
      */
-    public function destroy(Consumable $consumable, ConsumableCount $count, ConsumableCountInstalled $installed)
+    public function destroy(Consumable $consumable, ConsumableCount $count, ConsumableCountInstalled $installed): RedirectResponse
     {
         if (Auth::user()->hasRole('admin') || $installed->id_author !== Auth::user()->id) {
             $installed->delete();
-            return redirect()->route('counts.show', [$count])
+            return redirect()->back()
                 ->with('success', 'Запись удалена');
         }
         throw new AuthorizationException();

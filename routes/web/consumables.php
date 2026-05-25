@@ -15,7 +15,8 @@ Route::post('consumables/counts/validate', [ConsumablesCountsController::class, 
 Route::get('consumables/counts/{idConsumable}/exists', [ConsumablesCountsController::class, 'exists'])
     ->name('consumables.counts.exists');
 Route::put('consumables/counts/{count}/update-organizations', [ConsumablesCountsController::class, 'updateOrganizations'])
-    ->middleware('role:admin,add-consumables');
+    ->middleware('role:admin,add-consumables')
+    ->name('consumables.counts.update-organization');
 Route::get('consumables/counts/{count}/journal-added', [ConsumablesCountsController::class, 'journalAdded']);
 Route::get('consumables/counts/{count}/journal-installed', [ConsumablesCountsController::class, 'journalInstalled']);
 Route::get('consumables/counts/list-by-printer/{printer}', [ConsumablesCountsController::class, 'listByPrinter']);
