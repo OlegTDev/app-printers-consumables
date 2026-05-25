@@ -20,7 +20,7 @@ export default {
    * @param Array data
    * @returns Object|null
    */
-  prepareTreeData(data, parent = null) {
+  prepareTreeData(data) {
     function mapTree(item) {
       return {
         key: item.code,
@@ -68,4 +68,4 @@ export default {
     return expanded;
   },
 
-}
+};

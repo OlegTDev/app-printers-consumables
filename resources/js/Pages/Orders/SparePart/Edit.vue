@@ -1,7 +1,7 @@
 <script setup>
-import Layout from '@/Shared/Layout';
+import Layout from '@/Shared/Layout.vue';
 import { Head } from '@inertiajs/vue3';
-import Breadcrumbs from '@/Shared/Breadcrumbs';
+import Breadcrumbs from '@/Shared/Breadcrumbs.vue';
 import { computed, inject } from 'vue';
 import Form from './Form.vue';
 
@@ -23,21 +23,23 @@ const orderSparePartDetailData = computed(() => props.orderSparePartDetail?.data
 const title = 'Изменение заказа';
 </script>
 <template>
-
   <Head :title="title" />
 
-  <Breadcrumbs :home="{ label: 'Главная', url: '/' }" :items="[
-    { label: 'Заказ запчастей', url: urls.orders.spareParts.index() },
-    {
-      label: `Заказ № ${orderSparePartDetailData.order.id} от ${moment(orderSparePartDetailData.order.created_at).format('L')}`,
-      url: urls.orders.spareParts.show(orderSparePartDetailData.id),
-    },
-    { label: title },
-  ]" />
+  <Breadcrumbs
+    :home="{ label: 'Главная', url: '/' }"
+    :items="[
+      { label: 'Заказ запчастей', url: urls.orders.spareParts.index() },
+      {
+        label: `Заказ № ${orderSparePartDetailData.order.id} от ${moment(orderSparePartDetailData.order.created_at).format('L')}`,
+        url: urls.orders.spareParts.show(orderSparePartDetailData.id),
+      },
+      { label: title },
+    ]"
+  />
 
-  <div class="flex justify-stretch bg-white rounded-md shadow overflow-hidden mt-4">
-
-    <Form :isNew="false" :spareParts="sparePartsData" :labels="labels" :orderSparePart="orderSparePartDetailData" />
-
-  </div>
+  <Form
+    :spare-parts="sparePartsData"
+    :labels="labels"
+    :order-spare-part="orderSparePartDetailData"
+  />
 </template>

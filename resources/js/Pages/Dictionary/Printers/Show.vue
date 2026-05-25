@@ -1,207 +1,158 @@
 <script setup>
-import Layout from '@/Shared/Layout';
-import { inject } from 'vue';
+import Layout from '@/Shared/Layout.vue';
 import { Head, router } from '@inertiajs/vue3';
-import Breadcrumbs from '@/Shared/Breadcrumbs';
-import Card from 'primevue/card';
+import Breadcrumbs from '@/Shared/Breadcrumbs.vue';
 import { useConfirm } from "primevue/useconfirm";
 import Button from 'primevue/button';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
-import TableTitle from '@/Shared/TableTitle';
+import { useConfig } from '@/Composables/useConfig';
+import Card from '@/Shared/Card.vue';
+import Title from '@/Shared/Title.vue';
+import DetailViewer from '@/Shared/DetailViewer.vue';
+import Author from '@/Shared/DataTable/Author.vue';
+import Timestamps from '@/Shared/DataTable/Timestamps.vue';
+import { useAuth } from '@/Composables/useAuth';
 
 defineOptions({
     layout: Layout,
 });
 
 const props = defineProps({
-    printer: Object,
-    consumables: Object,
-    consumablesNotIn: Object,
-    printerLabels: Object,
+  printer: Object,
+  consumables: Object,
+  consumablesNotIn: Object,
+  printerLabels: Object,
 
-    cartridgeColors: Object,
-    consumableTypes: Object,
-    consumableLabels: Object,
+  cartridgeColors: Object,
+  consumableTypes: Object,
+  consumableLabels: Object,
 });
 
-const urls = inject('urls');
-const moment = inject('moment');
-const auth = inject('auth');
-const printer = props.printer;
-const printerLabels = props.printerLabels;
+const { urls } = useConfig();
 const confirm = useConfirm();
 
-const title = `${printer.vendor} ${printer.model}`;
-const goToEdit = () => router.get(urls.dictionary.printers.edit(printer.id));
+const { can } = useAuth();
 
-const LogActions = inject('LogActions');
+const title = `${props.printer.vendor} ${props.printer.model}`;
+const goToEdit = () => router.get(urls.dictionary.printers.edit(props.printer.id));
 
 const deletePrinter = () => {
-    confirm.require({
-        message: 'Вы уверены, что хотите удалить запись?',
-        header: 'Удаление записи',
-        accept: () => {
-            const url = urls.dictionary.printers.delete(printer.id);
-            router.delete(url, {
-                onSuccess: () => {
-                    LogActions.save(url, 'DELETE', 'Удаление принтера', printer);
-                },
-            });
-        },
-    })
+  confirm.require({
+    message: 'Вы уверены, что хотите удалить запись?',
+    header: 'Удаление записи',
+    accept: () => {
+      const url = urls.dictionary.printers.delete(props.printer.id);
+      router.delete(url);
+    },
+  });
 };
 
 const createRelation = () => {
-    router.get(urls.dictionary.printers.consumables.index(printer.id));
+  router.get(urls.dictionary.printers.consumables.index(props.printer.id));
 };
 
 const deleteRelation = (id) => {
-    confirm.require({
-        message: 'Вы уверены, что хотите удалить связь?',
-        header: 'Удаление связи',
-        accept: () => {
-            const url = urls.dictionary.printers.consumables.delete(printer.id, id);
-            router.delete(url, {
-                onSuccess: () => {
-                    LogActions.save(url, 'DELETE', 'Удаление связи с расходным материалом', Object.assign(printer, { id_consumable: id }));
-                },
-            });
-        },
-    })
+  confirm.require({
+    message: 'Вы уверены, что хотите удалить связь?',
+    header: 'Удаление связи',
+    accept: () => {
+      const url = urls.dictionary.printers.consumables.delete(props.printer.id, id);
+      router.delete(url);
+    },
+  });
 };
 
 </script>
 
 <template>
+  <Head :title="title" />
 
-    <Head :title="title" />
+  <Breadcrumbs
+    :home="{ label: 'Главная', url: urls.home }"
+    :items="[
+      { label: 'Справочники', },
+      { label: 'Принтеры', url: urls.dictionary.printers.index() },
+      { label: title },
+    ]"
+  />
 
-    <Breadcrumbs :home="{ label: 'Главная', url: urls.home }" :items="[
-        { label: 'Справочники', },
-        { label: 'Принтеры', url: urls.dictionary.printers.index() },
-        { label: title },
-    ]" />
+  <Card>
+    <Title>{{ title }}</Title>
 
-    <Card>
-        <template #title> {{ title }} </template>
-        <template #content>
-            <table class="w-1/2 text-left text-gray-700">
-                <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-                    <th class="px-6 py-4">{{ printerLabels.vendor }}</th>
-                    <td class="px-6 py-4">
-                        {{ printer.vendor }}
-                    </td>
-                </tr>
-                <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-                    <th class="px-6 py-4">{{ printerLabels.model }}</th>
-                    <td class="px-6 py-4">
-                        <div class="flex">
-                            {{ printer.model }}
-                        </div>
-                    </td>
-                </tr>
-                <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-                    <th class="px-6 py-4">{{ printerLabels.is_color_print }}</th>
-                    <td class="px-6 py-4">
-                        <div class="flex">
-                            {{ printer.is_color_print ? 'Да': 'Нет' }}
-                        </div>
-                    </td>
-                </tr>
-                <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-                    <th class="px-6 py-4">
-                        {{ printerLabels.author }}
-                    </th>
-                    <td class="px-6 py-4">
-                        <div>
-                            {{ printer.author?.fio ?? printer.author?.name }}
-                        </div>
-                    </td>
-                </tr>
-                <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-                    <th class="px-6 py-4">
-                        {{ printerLabels.created_at }}
-                    </th>
-                    <td class="px-6 py-4">
-                        <div>
-                            <i class="far fa-calendar"></i>
-                            {{ moment(printer.created_at).fromNow() }}
-                            ({{ moment(printer.created_at).format('LLLL') }})
-                        </div>
-                    </td>
-                </tr>
-                <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-                    <th class="px-6 py-4">
-                        {{ printerLabels.updated_at }}
-                    </th>
-                    <td class="px-6 py-4">
-                        <div>
-                            <i class="far fa-calendar-alt"></i>
-                            {{ moment(printer.updated_at).fromNow() }}
-                            ({{ moment(printer.updated_at).format('LLLL') }})
-                        </div>
-                    </td>
-                </tr>
-            </table>
+    <DetailViewer
+      :items="[
+        { label: printerLabels.vendor, value: printer.vendor },
+        { label: printerLabels.model, value: printer.model },
+        { label: printerLabels.is_color_print, value: printer.is_color_print ? 'Да': 'Нет' },
+        { label: printerLabels.author, keySlot: 'author', },
+        { label: printerLabels.date || 'Дата', keySlot: 'date', },
+      ]"
+    >
+      <template #author>
+        <Author :user="printer.author" class-main="text-base" />
+      </template>
+      <template #date>
+        <Timestamps :created-at="printer.created_at" :updated-at="printer.updated_at" />
+      </template>
+    </DetailViewer>
 
-            <div class="flex justify-between mt-10" v-if="auth.can('admin', 'editor-dictionary')">
-                <Button class="font-bold" @click="goToEdit">Редактировать</Button>
-                <Button severity="danger" class="font-bold" @click="deletePrinter">Удалить</Button>
+    <template #footer>
+      <Button class="font-bold" @click="goToEdit">
+        Редактировать
+      </Button>
+      <Button severity="danger" class="font-bold" @click="deletePrinter">
+        Удалить
+      </Button>
+    </template>
+  </Card>
+
+  <Card class="mt-2">
+    <DataTable :value="consumables">
+      <template #header>
+        <Title :h="2">
+          Привязки к расходным материалам
+        </Title>
+        <div class="flex justify-between mt-5">
+          <Button v-if="can('admin', 'editor-dictionary')" type="button" severity="info" @click="createRelation">
+            Добавить привязку к расходному материалу
+          </Button>
+        </div>
+      </template>
+
+      <Column header="#" field="id" header-style="width:3rem" />
+      <Column field="type" :header="consumableLabels.type" sortable>
+        <template #body="{ data }">
+          {{ props.consumableTypes[data.type] ?? data.type }}
+        </template>
+      </Column>
+      <Column field="name" :header="consumableLabels.name" sortable>
+        <template #body="{ data }">
+          <div class="grid grid-rows-2 gap-4">
+            <div>
+              {{ data.name }}
             </div>
+            <div v-if="data.type === 'cartridge'">
+              <div class="flex">
+                <div :class="['rounded-full', 'size-4', 'mr-2', props.cartridgeColors[data.color]?.bg]" />
+                <div>
+                  {{ props.cartridgeColors[data.color]['name'] }}
+                </div>
+              </div>
+            </div>
+          </div>
         </template>
-    </Card>
-
-    <Card class="mt-2">
-        <template #content>
-            <DataTable :value="consumables">
-                <template #header>
-                    <TableTitle class="border-b border-gray-200 pb-2">Привязки к расходным материалам</TableTitle>
-                    <div class="flex justify-between mt-5">
-                        <Button v-if="auth.can('admin', 'editor-dictionary')" type="button" severity="info" @click="createRelation">
-                            Добавить привязку к расходному материалу
-                        </Button>
-                    </div>
-                </template>
-
-                <Column header="#" headerStyle="width:3rem">
-                    <template #body="data">
-                        {{ data.index + 1 }}
-                    </template>
-                </Column>
-                <Column field="type" :header="consumableLabels.type" sortable>
-                    <template #body="{ data }">
-                        {{ props.consumableTypes[data.type] ?? data.type }}
-                    </template>
-                </Column>
-                <Column field="name" :header="consumableLabels.name" sortable>
-                    <template #body="{ data }">
-                        <div class="grid grid-rows-2 gap-4">
-                            <div>
-                                {{ data.name }}
-                            </div>
-                            <div v-if="data.type === 'cartridge'">
-                                <div class="flex">
-                                    <div :class="['rounded-full', 'size-4', 'mr-2', props.cartridgeColors[data.color]['bg']]"></div>
-                                    <div>
-                                        {{ props.cartridgeColors[data.color]['name'] }}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </template>
-                </Column>
-                <Column header="" v-if="auth.can('admin', 'editor-dictionary')">
-                    <template #body="{ data }">
-                        <Button severity="danger" type="button" v-tooltip="`Удалить привязку`" @click="deleteRelation(data.id)">
-                            <i class="fas fa-times"></i>
-                        </Button>
-                    </template>
-                </Column>
-
-                <template #empty> Нет данных </template>
-            </DataTable>
+      </Column>
+      <Column v-if="can('admin', 'editor-dictionary')" header="">
+        <template #body="{ data }">
+          <Button v-tooltip="`Удалить привязку`" severity="danger" type="button" @click="deleteRelation(data.id)">
+            <i class="fas fa-times" />
+          </Button>
         </template>
-    </Card>
-
+      </Column>
+      <template #empty>
+        Нет данных
+      </template>
+    </DataTable>
+  </Card>
 </template>

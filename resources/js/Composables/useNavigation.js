@@ -10,6 +10,7 @@ export function useNavigation() {
     }
     return currentUrl.startsWith(url);
   };
+  const isActive = (name) => route().current(`${name}.*`) || route().current(name);
 
-  return { isActiveUrl };
+  return { isActiveUrl, isActive };
 }

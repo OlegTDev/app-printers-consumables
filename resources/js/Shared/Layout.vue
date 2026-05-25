@@ -1,6 +1,6 @@
 <script setup>
-import MainMenu from '@/Shared/MainMenu';
-import FlashMessages from '@/Shared/FlashMessages';
+import MainMenu from '@/Shared/MainMenu.vue';
+import FlashMessages from '@/Shared/FlashMessages.vue';
 import { inject } from 'vue';
 import Menubar from './Menubar.vue';
 

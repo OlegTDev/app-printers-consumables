@@ -1,32 +1,38 @@
 <script setup>
-import { Head } from '@inertiajs/vue3'
-import Layout from '@/Shared/Layout'
-import Form from './Form'
-import { inject, reactive } from 'vue'
-import Breadcrumbs from '@/Shared/Breadcrumbs'
+import { Head } from '@inertiajs/vue3';
+import Layout from '@/Shared/Layout.vue';
+import Form from './Form.vue';
+import Breadcrumbs from '@/Shared/Breadcrumbs.vue';
+import { useConfig } from '@/Composables/useConfig';
 
 defineOptions({
     layout: Layout
 });
 
-const props = defineProps({
+defineProps({
     labels: Object,
 });
-const labels = reactive(props.labels);
+const { urls } = useConfig();
+
 const title = 'Добавление организации';
-const urls = inject('urls');
 </script>
 
 <template>
-    <Head :title="title" />
+  <Head :title="title" />
 
-    <Breadcrumbs :home="{ label: 'Главная', url: urls.home }" :items="[
-        { label: 'Справочники' },
-        { label: 'Организации', url: urls.dictionary.organizations.index() },
-        { label: title },
-    ]" />
+  <Breadcrumbs
+    :home="{ label: 'Главная', url: urls.home }"
+    :items="[
+      { label: 'Справочники' },
+      { label: 'Организации', url: urls.dictionary.organizations.index() },
+      { label: title },
+    ]"
+  />
 
-    <Form :isNew="true" :labels="labels" :organization="{ code: null, name: null }"></Form>
-
+  <Form
+    is-new
+    :title="title"
+    :labels="labels"
+  />
 </template>
 

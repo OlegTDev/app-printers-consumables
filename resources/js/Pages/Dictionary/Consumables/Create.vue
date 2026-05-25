@@ -1,41 +1,41 @@
 <script setup>
-import { Head } from '@inertiajs/vue3'
-import Layout from '@/Shared/Layout'
-import Form from './Form'
-import { inject, reactive } from 'vue'
-import Breadcrumbs from '@/Shared/Breadcrumbs'
+import { Head } from '@inertiajs/vue3';
+import Layout from '@/Shared/Layout.vue';
+import Form from './Form.vue';
+import Breadcrumbs from '@/Shared/Breadcrumbs.vue';
+import { useConfig } from '@/Composables/useConfig';
 
 defineOptions({
-    layout: Layout
+  layout: Layout
 });
 
-const props = defineProps({
-    labels: Object,
-    cartridgeColors: Object,
-    consumableTypes: Object,
+defineProps({
+  labels: Object,
+  cartridgeColors: Object,
+  consumableTypes: Object,
 });
-const labels = reactive(props.labels);
+
+const { urls } = useConfig();
+
 const title = 'Добавление расходного материала';
-const urls = inject('urls');
-const cartridgeColors = reactive(props.cartridgeColors);
-
 </script>
 
 <template>
-    <Head :title="title" />
+  <Head :title="title" />
+  <Breadcrumbs
+    :home="{ label: 'Главная', url: urls.home }"
+    :items="[
+      { label: 'Расходные материалы (справочник)', url: urls.dictionary.consumables.index() },
+      { label: title },
+    ]"
+  />
 
-    <Breadcrumbs :home="{ label: 'Главная', url: urls.home }" :items="[
-        { label: 'Расходные материалы (справочник)', url: urls.dictionary.consumables.index() },
-        { label: title },
-    ]" />
-
-    <Form
-        :isNew="true"
-        :labels="labels"
-        :consumable="{ type: null, name: null, color: null, description: null }"
-        :cartridgeColors="cartridgeColors"
-        :consumableTypes="consumableTypes"
-    ></Form>
-
+  <Form
+    :title="title"
+    :is-new
+    :labels="labels"
+    :cartridge-colors="cartridgeColors"
+    :consumable-types="consumableTypes"
+  />
 </template>
 

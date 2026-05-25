@@ -10,8 +10,9 @@ const props = defineProps({
 const tagStatus = computed(() => {
   if (props.status in props.statuses) {
     return props.statuses[props.status];
-  }
-})
+  };
+  return 'неизвестный статус';
+});
 
 </script>
 <template>

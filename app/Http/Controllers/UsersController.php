@@ -114,13 +114,11 @@ class UsersController extends Controller
      * @param UserRequest $request
      * @return \Illuminate\Http\RedirectResponse|void
      */
-    public function store(UserRequest $request)
+    public function store(UserRequest $request, LdapUser $ldapUser)
     {
-        $ldapUser = new LdapUser();
-        
         $username = $request->name;
-        $domain = $request->domain;
-        
+        $domain = 'default';
+
         if (!$user = $ldapUser->findOrCreate($username, $domain)) {
             return Session::flash('error', "Пользователь {$request->name} не найден!");
         }

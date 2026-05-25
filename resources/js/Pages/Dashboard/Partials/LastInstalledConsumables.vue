@@ -2,7 +2,7 @@
 import { defineAsyncComponent, onMounted, ref } from 'vue';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
-import TableTitle from '@/Shared/TableTitle';
+import TableTitle from '@/Shared/TableTitle.vue';
 import Badge from 'primevue/badge';
 import Button from 'primevue/button';
 import { useDialog } from 'primevue/usedialog';

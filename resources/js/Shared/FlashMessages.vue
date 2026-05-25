@@ -1,46 +1,50 @@
 <script setup>
-import { usePage } from '@inertiajs/vue3'
-import { reactive, watch } from 'vue'
-import Toast from 'primevue/toast'
-import { useToast } from 'primevue/usetoast'
+import { usePage } from '@inertiajs/vue3';
+import { watch } from 'vue';
+import Toast from 'primevue/toast';
+import { useConfig } from '@/Composables/useConfig';
+import { useToast } from 'primevue';
 
-const page = reactive(usePage());
-const toast = reactive(useToast());
-const defaultLife = 5000;
+const page = usePage();
+const toast = useToast();
+const { config } = useConfig();
+
+const defaultLife = config.toast.timeLife;
 
 watch(
-  () => page.props.flash,
-  (flash) => {
+  () => [page.props.errors, page.props.flash],
+  ([newErrors, newFlash]) => {
 
-    if (page.props?.errors) {
-      Object.values(page.props.errors).forEach((value) => {
+    if (newErrors && Object.keys(newErrors).length > 0) {
+      Object.values(newErrors).forEach((message) => {
         toast.add({
           severity: 'error',
-          summary: 'Ошибки',
-          detail: value,
+          summary: 'Ошибка валидации',
+          detail: message,
           life: defaultLife,
-        })
-      })
+        });
+      });
     }
-    if (flash.error) {
+
+    if (newFlash?.error) {
       toast.add({
         severity: 'error',
-        summary: 'Произошла ошибка',
-        detail: flash.error,
+        summary: 'Ошибка',
+        detail: newFlash.error,
         life: defaultLife,
-      })
+      });
     }
-    if (flash.success) {
+
+    if (newFlash?.success) {
       toast.add({
         severity: 'success',
-        summary: 'Операция выполнена успешно',
-        detail: flash.success,
+        summary: 'Успешно',
+        detail: newFlash?.success,
         life: defaultLife,
-      })
+      });
     }
   },
-  { deep: true }
-)
+);
 
 </script>
 

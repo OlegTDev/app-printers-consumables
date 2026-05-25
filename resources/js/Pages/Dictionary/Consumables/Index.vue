@@ -1,18 +1,22 @@
 <script setup>
-import Layout from '@/Shared/Layout'
-import { watch, reactive, ref, inject } from 'vue'
-import Breadcrumbs from '@/Shared/Breadcrumbs'
-import DataTable from 'primevue/datatable'
-import Column from 'primevue/column'
-import Button from 'primevue/button'
-import { Head, Link, router } from '@inertiajs/vue3'
-import TableTitle from '@/Shared/TableTitle'
-import InputText from 'primevue/inputtext'
-import pickBy from 'lodash/pickBy'
-import throttle from 'lodash/throttle'
-import IconField from 'primevue/iconfield'
-import InputIcon from 'primevue/inputicon'
-
+import Layout from '@/Shared/Layout.vue';
+import { watch, reactive, ref } from 'vue';
+import Breadcrumbs from '@/Shared/Breadcrumbs.vue';
+import DataTable from 'primevue/datatable';
+import Column from 'primevue/column';
+import Button from 'primevue/button';
+import { Head, Link, router } from '@inertiajs/vue3';
+import InputText from 'primevue/inputtext';
+import pickBy from 'lodash/pickBy';
+import throttle from 'lodash/throttle';
+import IconField from 'primevue/iconfield';
+import InputIcon from 'primevue/inputicon';
+import { useConfig } from '@/Composables/useConfig';
+import Card from '@/Shared/Card.vue';
+import Title from '@/Shared/Title.vue';
+import { useAuth } from '@/Composables/useAuth';
+import Author from '@/Shared/DataTable/Author.vue';
+import Timestamps from '@/Shared/DataTable/Timestamps.vue';
 
 const props = defineProps({
   consumables: Object,
@@ -30,35 +34,34 @@ defineOptions({
 });
 
 const title = 'Расходные материалы (справочник)';
-const urls = inject('urls');
-const moment = inject('moment');
-const auth = inject('auth');
+const { urls } = useConfig();
+const { can } = useAuth();
 
-const selectedRow = ref();
-const consumableTypes = ref(props.consumableTypes);
-const cartridgeColors = ref(props.cartridgeColors);
-const labels = ref(props.labels);
+const loading = ref(false);
+const selectedRow = ref({});
 const filters = reactive(props.filters);
 const form = reactive({
   search: filters.search,
-  page: null,
+  page: 1,
   sortField: null,
   sortOrder: null,
 });
 
-const updateFilters = (params = {}) => {
+const updateFilters = () => {
   router.get(urls.dictionary.consumables.index(), pickBy(form), {
     preserveState: true,
     replace: true,
+    onStart: () => loading.value = true,
+    onFinish: () => loading.value = false,
   });
 };
 
 watch(
-  () => form,
+  () => form.search,
   throttle(() => {
+    form.page = 1;
     updateFilters();
-  }, 150),
-  { deep: true }
+  }, 150)
 );
 
 const onRowSelect = (event) => {
@@ -76,41 +79,47 @@ const onLazyChange = (event) => {
 
 </script>
 <template>
-
   <Head :title="title" />
 
-  <Breadcrumbs :home="{ label: 'Главная', url: '/' }" :items="[
-    { label: title },
-  ]" />
+  <Breadcrumbs
+    :home="{ label: 'Главная', url: '/' }"
+    :items="[
+      { label: title },
+    ]"
+  />
 
-  <div class="flex justify-stretch bg-white rounded-md shadow overflow-hidden mt-4">
+  <Card>
+    <Title>{{ title }}</Title>
+
     <DataTable
+      ref="refTableConsumablesDic"
+      v-model:selection="selectedRow"
       lazy
+      :loading="loading"
       :value="consumables.data"
       paginator
       :rows="consumables.per_page"
-      :totalRecords="consumables.total"
+      :total-records="consumables.total"
       :first="(consumables.current_page - 1) * consumables.per_page"
-
-      ref="refTableConsumablesDic"
-      v-model:selection="selectedRow"
-      @rowSelect="onRowSelect"
+      data-key="id"
+      :meta-key-selection="false"
+      table-style="min-width: 50rem"
+      selection-mode="single"
+      @row-select="onRowSelect"
       @page="onLazyChange($event)"
       @sort="onLazyChange($event)"
-      dataKey="id"
-      :metaKeySelection="false"
-      class="w-full"
-      tableStyle="min-width: 50rem"
-      selectionMode="single"
     >
       <template #header>
-        <TableTitle class="border-b border-gray-200 pb-2">{{ title }}</TableTitle>
-        <div class="flex justify-between mt-5">
-          <Link :href="urls.dictionary.consumables.create()" v-if="auth.can('admin', 'editor-dictionary')">
-            <Button type="button" severity="info">Добавить расходный материал</Button>
-          </Link>
+        <div class="flex justify-between">
+          <div>
+            <Link v-if="can('admin', 'editor-dictionary')" :href="urls.dictionary.consumables.create()">
+              <Button type="button" severity="info">
+                Добавить расходный материал
+              </Button>
+            </Link>
+          </div>
 
-          <IconField iconPosition="left" class="w-72">
+          <IconField icon-position="left" class="w-72">
             <InputIcon>
               <i class="pi pi-search" />
             </InputIcon>
@@ -118,9 +127,9 @@ const onLazyChange = (event) => {
           </IconField>
         </div>
       </template>
-      <Column header="#" headerStyle="width:3rem">
-        <template #body="slotProps">
-          {{ slotProps.index + 1 }}
+      <Column header="#" header-style="width:3rem">
+        <template #body="{ data }">
+          {{ data.id }}
         </template>
       </Column>
       <Column field="type" :header="labels.type" sortable>
@@ -136,9 +145,9 @@ const onLazyChange = (event) => {
             </div>
             <div v-if="data.type === 'cartridge'">
               <div class="flex">
-                <div :class="['rounded-full', 'size-4', 'mr-2', cartridgeColors[data.color]['bg']]"></div>
+                <div class="rounded-full size-4 mr-2" :class="[cartridgeColors[data.color]?.bg]" />
                 <div>
-                  {{ cartridgeColors[data.color]['name'] }}
+                  {{ cartridgeColors[data.color]?.name }}
                 </div>
               </div>
             </div>
@@ -148,23 +157,18 @@ const onLazyChange = (event) => {
       <Column field="description" :header="labels.description" sortable />
       <Column field="created_at" header="Дата" sortable>
         <template #body="{ data }">
-          <div class="grid grid-rows-2 gap-2">
-            <div v-tooltip="`Создано: ${moment(data.created_at).format('LLLL')}`">
-              <i class="far fa-calendar"></i>
-              {{ moment(data.created_at).fromNow() }}
-            </div>
-            <div v-if="data.created_at != data.updated_at"
-              v-tooltip="`Изменено: ${moment(data.updated_at).format('LLLL')}`">
-              <i class="far fa-calendar-alt"></i>
-              {{ moment(data.updated_at).fromNow() }}
-            </div>
-          </div>
+          <Timestamps :created_at="data.created_at" :updated_at="data.updated_at" />
         </template>
       </Column>
-      <Column field="author.email" header="Автор" />
+      <Column header="Автор">
+        <template #body="{ data }">
+          <Author :user="data.author" />
+        </template>
+      </Column>
 
-      <template #empty> Нет данных </template>
+      <template #empty>
+        Нет данных
+      </template>
     </DataTable>
-  </div>
-
+  </Card>
 </template>

@@ -5,7 +5,7 @@ import Menu from 'primevue/menu';
 import Menubar from 'primevue/menubar';
 import { defineAsyncComponent, ref } from 'vue';
 import { router } from '@inertiajs/vue3';
-import Logo from '@/Shared/Logo';
+import Logo from '@/Shared/Logo.vue';
 import { useDialog } from 'primevue/usedialog';
 
 /** @type {{ urls: typeof import('@/config/urls').urls }} */
@@ -30,7 +30,7 @@ const OrganizationsDialog = defineAsyncComponent(
   () => import('@/Pages/Users/Organizations/Dialog.vue')
 );
 const openOrganizationsDialog = () => {
-  const dialogRef = dialog.open(OrganizationsDialog, {
+  dialog.open(OrganizationsDialog, {
     props: {
       header: 'Выбор организации',
       style: {

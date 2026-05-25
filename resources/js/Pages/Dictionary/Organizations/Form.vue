@@ -1,118 +1,147 @@
 <script setup>
-import InputText from 'primevue/inputtext'
-import InlineMessage from 'primevue/inlinemessage'
-import Label from '@/Shared/Label'
-import { inject, reactive } from 'vue'
-import { useForm, router } from '@inertiajs/vue3'
-import Button from 'primevue/button'
-import { useConfirm } from "primevue/useconfirm"
+import InputText from 'primevue/inputtext';
+import Label from '@/Shared/Label.vue';
+import { useForm, router } from '@inertiajs/vue3';
+import Button from 'primevue/button';
+import { useConfirm } from "primevue/useconfirm";
+import Card from '@/Shared/Card.vue';
+import { useConfig } from '@/Composables/useConfig';
+import Title from '@/Shared/Title.vue';
+import FieldRowVertical from '@/Shared/Form/FieldRowVertical.vue';
+import Message from 'primevue/message';
+import { computed } from 'vue';
 
 const props = defineProps({
-    isNew: Boolean,
-    labels: Object,
-    organization: Object,
+  isNew: {
+    type: Boolean,
+    default: false,
+  },
+  labels: {
+    type: Object,
+    required: true,
+  },
+  organization: {
+    type: Object,
+    default: () => ({
+      code: null,
+      name: null,
+    }),
+  },
+  title: {
+    type: String,
+    default: '',
+  },
 });
-const organization = props.organization;
-const urls = inject('urls');
+
+const { urls } = useConfig();
 const confirm = useConfirm();
 
 const form = useForm({
-    code: organization.code,
-    name: organization.name,
-    parent: organization.parent,
-});
-
-const LogActions = inject('LogActions');
-const formFields = reactive({
-    code: form.organization,
-    name: form.name,
-    parent: form.parent,
+  code: props.organization.code,
+  name: props.organization.name,
+  parent: props.organization.parent,
 });
 
 const save = () => {
-    if (props.isNew) {
-        const url = urls.dictionary.organizations.store();
-        form.post(url, { onSuccess: () => {
-            LogActions.save(url, 'POST', 'Добавление организации', formFields);
-        }});
-    }
-    else {
-        const url = urls.dictionary.organizations.update(organization.code);
-        form.put(url, { onSuccess: () => {
-            LogActions.save(url, 'PUT', 'Обновление организации', formFields);
-        }});
-    }
+  if (props.isNew) {
+    const url = urls.dictionary.organizations.store();
+    form.post(url);
+  }
+  else {
+    const url = urls.dictionary.organizations.update(props.organization.code);
+    form.put(url);
+  }
 };
 
+const errorText = computed(() => !props.isNew && !props.organization.code ? 'Ошибка! Не передан код организации!' : null);
+
 const destroy = () => {
-    confirm.require({
-        message: 'Вы уверены, что хотите удалить?',
-        header: 'Удаление',
-        accept: () => {
-            const url = urls.dictionary.organizations.delete(organization.code);
-            router.delete(url, {
-                onSuccess: () => {
-                    LogActions.save(url, 'DELETE', 'Удаление организации', organization);
-                },
-            });
-        },
-    });
+  confirm.require({
+    message: 'Вы уверены, что хотите удалить?',
+    header: 'Удаление',
+    accept: () => {
+      const url = urls.dictionary.organizations.delete(props.organization.code);
+      router.delete(url);
+    },
+  });
 };
 </script>
 <template>
-    <form @submit.prevent="save">
-        <div class="rounded-lg bg-white shadow-sm border border-gray-200">
+  <form @submit.prevent="save">
+    <Card>
+      <Title>{{ title }}</Title>
 
-            <div class="p-10">
+      <div class="w-1/2 grid gap-y-10">
+        <Message v-if="errorText" severity="error" class="mt-2">
+          {{ errorText }}
+        </Message>
 
-                <div class="grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
-                    <div class="sm:col-span-4">
-                        <Label for="code">{{ labels.code }}</Label>
-                        <InputText
-                            class="w-full"
-                            v-model="form.code"
-                            :placeholder="labels.code"
-                            :invalid="form.errors?.code?.length > 0"
-                        />
-                        <InlineMessage v-if="form.errors?.code" class="mt-2" severity="error">{{ form.errors?.code }}</InlineMessage>
-                    </div>
-                </div>
+        <FieldRowVertical>
+          <template #label>
+            <Label for="code">{{ labels.code }}</Label>
+          </template>
+          <template #field>
+            <InputText
+              v-model="form.code"
+              :placeholder="labels.code"
+              :invalid="form.errors?.code?.length > 0"
+            />
+          </template>
+          <template #message>
+            <Message v-if="form.errors?.code" class="mt-2" severity="error">
+              {{ form.errors?.code }}
+            </Message>
+          </template>
+        </FieldRowVertical>
+        <FieldRowVertical>
+          <template #label>
+            <Label for="parent">{{ labels.parent }}</Label>
+          </template>
+          <template #field>
+            <InputText
+              v-model="form.parent"
+              :placeholder="labels.parent"
+              :invalid="form.errors?.parent?.length > 0"
+            />
+          </template>
+          <template #message>
+            <Message v-if="form.errors?.parent" class="mt-2" severity="error">
+              {{ form.errors?.parent }}
+            </Message>
+          </template>
+        </FieldRowVertical>
+        <FieldRowVertical>
+          <template #label>
+            <Label for="name">{{ labels.name }}</Label>
+          </template>
+          <template #field>
+            <InputText
+              v-model="form.name"
+              :placeholder="labels.name"
+              :invalid="form.errors?.name?.length > 0"
+            />
+          </template>
+          <template #message>
+            <Message v-if="form.errors?.name" class="mt-2" severity="error">
+              {{ form.errors?.name }}
+            </Message>
+          </template>
+        </FieldRowVertical>
+      </div>
 
-                <div class="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
-                    <div class="sm:col-span-4">
-                        <Label for="parent">{{ labels.parent }}</Label>
-                        <InputText
-                            class="w-full"
-                            v-model="form.parent"
-                            :placeholder="labels.parent"
-                            :invalid="form.errors?.parent?.length > 0"
-                        />
-                        <InlineMessage v-if="form.errors?.parent" class="mt-2" severity="error">{{ form.errors?.parent }}</InlineMessage>
-                    </div>
-                </div>
-
-                <div class="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
-                    <div class="sm:col-span-4">
-                        <Label for="name">{{ labels.name }}</Label>
-                        <InputText
-                            class="w-full"
-                            v-model="form.name"
-                            :placeholder="labels.name"
-                            :invalid="form.errors?.name?.length > 0"
-                        />
-                        <InlineMessage v-if="form.errors?.name" class="mt-2" severity="error">{{ form.errors?.name }}</InlineMessage>
-                    </div>
-                </div>
-            </div>
-
-            <div class="flex items-center justify-between p-5 bg-gray-50 border-t border-gray-100 w-full">
-                <Button :loading="form.processing" class="font-bold" type="submit" label="Сохранить" />
-                <Button v-if="!props.isNew" severity="danger" class="font-bold" type="button" @click="destroy">
-                    Удалить
-                </Button>
-            </div>
-
-        </div>
-
-    </form>
+      <template #footer>
+        <Button :loading="form.processing" class="font-bold" type="submit" label="Сохранить" :disabled="errorText" />
+        <Button
+          v-if="!isNew"
+          severity="danger"
+          class="font-bold"
+          type="button"
+          :disabled="errorText"
+          @click="destroy"
+        >
+          Удалить
+        </Button>
+      </template>
+    </Card>
+  </form>
 </template>

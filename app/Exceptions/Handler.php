@@ -38,4 +38,14 @@ class Handler extends ExceptionHandler
             //
         });
     }
+
+    public function render($request, Throwable $exception)
+    {
+        $response = parent::render($request, $exception);
+
+        if ($response->getStatusCode() == 419) {
+            return back()->with('error', 'Ваша сессия истекла, попробуйте снова.');
+        }
+        return $response;
+    }
 }

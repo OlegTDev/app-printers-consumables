@@ -1,6 +1,6 @@
 <script setup>
-const props = defineProps({
-    forId: String,
+defineProps({
+  forId: String,
 });
 </script>
 

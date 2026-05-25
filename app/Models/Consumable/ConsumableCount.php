@@ -3,18 +3,18 @@
 namespace App\Models\Consumable;
 
 use App\Models\Organization;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 /**
  * Количество расходного материала
- * 
+ *
  * @property int $id
  * @property int $id_consumable
  * @property int $count
- * 
+ *
  * @property Consumable $consumable
  * @property ConsumableCountAdded[] $consumablesAdded
  * @property Organization[] $organizations
@@ -79,73 +79,31 @@ class ConsumableCount extends Model
             'created_at' => 'Дата создания',
             'updated_at' => 'Дата обновления',
         ];
-    }  
+    }
 
-    /**
-     * Поиск записи по идентификатору расходного материала и текущей организации (Auth::user()->org_code)
-     * @param int $idConsumable
-     * @return ConsumableCount|null
-     */
-    public static function findByIdConsumable($idConsumable)
+    public function scopeForCurrentUser(Builder $query)
     {
-        return self::query()->where('id_consumable', $idConsumable)
-            ->whereExists(function($query) {
-                /** @var \Illuminate\Database\Query\Builder $query */
-                $query                
-                    ->from('consumables_counts_organizations')
-                    ->whereColumn('id_consumable_count', '=', 'consumables_counts.id')
-                    ->where('org_code', '=', Auth::user()->org_code);
+        return $query->whereHas('organizations', function(Builder $q) {
+            $q->where('org_code', auth()->user()->org_code);
+        });
+    }
+
+
+    public function scopeFilter(Builder $query, array $filters)
+    {
+        $query
+            ->with(['consumable'])
+            ->when($filters['search'] ?? null, function (Builder $query, $search) {
+                $query->whereHas('consumable', function($query) use ($search) {
+                    $query->where('name', 'ILIKE', "%$search%");
+                });
             })
-            ->first();
-    }
-
-    /**
-     * Обновление списка привязанных организаций
-     * @param array $organizations
-     */
-    public function updateOrganizations($organizations)
-    {       
-        // удаление уже привязанных организаций 
-        DB::table('consumables_counts_organizations')
-            ->where('id_consumable_count', $this->id)
-            ->delete();
-        // привязка переданных организаций
-        foreach($organizations as $organization) {
-            DB::table('consumables_counts_organizations')->insert([
-                'id_consumable_count' => $this->id, 
-                'org_code' => $organization,
-            ]);
-        }
-    }
-
-    /**
-     * Фильтр
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @param array $filter
-     */
-    public function scopeFilter($query, array $filters)
-    {               
-        $query->with(['consumable'])
-            ->whereExists(function ($query) {
-                /** @var \Illuminate\Database\Eloquent\Builder $query */
-                $query->from('consumables_counts_organizations')
-                    ->whereColumn('consumables_counts_organizations.id_consumable_count', 'consumables_counts.id')
-                    ->where('consumables_counts_organizations.org_code', Auth::user()->org_code);
-            });
-
-        $query->when($filters['search'] ?? null, function ($query, $search) {
-            /** @var \Illuminate\Database\Eloquent\Builder $query */
-            $query->whereHas('consumable', function($query) use ($search) {
-                $query->where('name', 'ILIKE', "%$search%"); 
-            });
-        });
-        $query->when($filters['consumableType'] ?? null, function ($query, $consumableType) {
-            /** @var \Illuminate\Database\Eloquent\Builder $query */
-            $query->whereHas('consumable', function($query) use ($consumableType) {
-                $query->where('type', $consumableType); 
-            });
-        });
-        $query->orderByDesc('created_at')->orderByDesc('updated_at');
+            ->when($filters['consumableType'] ?? null, function (Builder $query, $consumableType) {
+                $query->whereHas('consumable', function($query) use ($consumableType) {
+                    $query->where('type', $consumableType);
+                });
+            })
+            ->orderByDesc('created_at')->orderByDesc('updated_at');
     }
 
     /**

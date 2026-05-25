@@ -6,7 +6,6 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { fas } from '@fortawesome/free-solid-svg-icons';
 import { fab } from '@fortawesome/free-brands-svg-icons';
 import { far } from '@fortawesome/free-regular-svg-icons';
-import CircleIcon from 'vue-material-design-icons/Circle';
 import PrimeVue from 'primevue/config';
 import DialogService from 'primevue/dialogservice';
 import DynamicDialog from 'primevue/dynamicdialog';
@@ -21,6 +20,8 @@ import { config } from '@/config/config';
 import { urls } from '@/config/urls';
 import { Auth } from '@/auth';
 import { LogActions } from './logActions';
+import { ru } from 'primelocale/ru.json';
+import { ZiggyVue } from 'ziggy-js';
 
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
@@ -37,10 +38,10 @@ createInertiaApp({
   setup({ el, App, props, plugin }) {
     const app = createApp({ render: () => h(App, props) })
       .component('font-awesome-icon', FontAwesomeIcon)
-      .component('circle-icon', CircleIcon)
       .component('DynamicDialog', DynamicDialog)
       .component('ConfirmDialog', ConfirmDialog)
       .use(plugin)
+      .use(ZiggyVue)
       .use(PrimeVue, {
         theme: {
           preset: Aura,
@@ -49,10 +50,7 @@ createInertiaApp({
           }
         },
         ripple: true,
-        locale: {
-          accept: 'OK',
-          reject: 'Отмена',
-        },
+        locale: ru,
       })
       .use(ToastService)
       .use(DialogService)

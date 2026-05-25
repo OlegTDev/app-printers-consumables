@@ -1,51 +1,73 @@
 <script setup>
 import { useForm } from '@inertiajs/vue3';
 import Button from 'primevue/button';
-import InlineMessage from 'primevue/inlinemessage';
 import InputNumber from 'primevue/inputnumber';
-import { inject } from 'vue';
-import Label from '@/Shared/Label';
+import { computed, inject } from 'vue';
+import Label from '@/Shared/Label.vue';
+import FieldRowVertical from '@/Shared/Form/FieldRowVertical.vue';
+import { Message } from 'primevue';
 
-const urls = inject('urls');
 const dialogRef = inject('dialogRef');
-const LogActions = inject('LogActions');
+const dialogData = computed(() => dialogRef.value?.data || {});
 
-const consumableCountId = dialogRef.value.data.consumableCountId;
-const consumableCountValue = dialogRef.value.data.consumableCountValue;
-const consumableCountLabels = dialogRef.value.data.consumableCountLabels;
+const { consumableCountId, consumableCountValue, consumableCountLabels } = dialogData.value;
 
 const form = useForm({
-    id_consumable: consumableCountId,
-    count: consumableCountValue,
+  id_consumable: consumableCountId,
+  count: consumableCountValue || 0,
 });
 
-const save = () => {
-    const url = urls.consumables.counts.correct(consumableCountId);
-    form.post(url, {
-        onSuccess: () => {
-            LogActions.save(url, 'POST', 'Корректировка количества расходных материалов', {
-                id_consumable: form.id_consumable,
-                count: form.count,
-            });
-
-            dialogRef.value.close();
-        },
-    })
+const save = async () => {
+  const url = route('consumables.counts.correct', { count: consumableCountId });
+  form.post(url, {
+    onSuccess: () => dialogRef.value.close(),
+  });
 };
-
 </script>
 <template>
   <form @submit.prevent="save">
     <div class="grid gap-x-6 gap-y-8">
-      <div>
-        <Label for="count">{{ consumableCountLabels.count }}</Label>
-        <InputNumber class="w-full" v-model="form.count" :placeholder="consumableCountLabels.count"
-          :invalid="form.errors?.count?.length > 0" />
-        <InlineMessage v-if="form.errors?.count" class="mt-2" severity="error">{{ form.errors?.count }}</InlineMessage>
+      <FieldRowVertical>
+        <template #label>
+          <Label for="count">{{ consumableCountLabels.count }}</Label>
+        </template>
+        <template #field>
+          <InputNumber
+            v-model="form.count"
+            :placeholder="consumableCountLabels.count"
+            :invalid="!!form.errors?.count"
+            :min="1"
+            show-buttons
+            button-layout="horizontal"
+            input-id="count"
+            input-class="text-center w-24"
+          >
+            <template #incrementicon>
+              <i class="pi pi-plus" />
+            </template>
+            <template #decrementicon>
+              <span class="pi pi-minus" />
+            </template>
+          </InputNumber>
+        </template>
+        <template #message>
+          <Message
+            v-if="form.errors?.count"
+            class="mt-2"
+            severity="error"
+          >
+            {{ form.errors?.count }}
+          </Message>
+        </template>
+      </FieldRowVertical>
+      <div class="flex justify-end">
+        <Button
+          :loading="form.processing"
+          class="font-bold"
+          type="submit"
+          label="Сохранить"
+        />
       </div>
-    </div>
-    <div class="flex items-center justify-between pt-5 w-full">
-      <Button :loading="form.processing" class="font-bold" type="submit" label="Сохранить" />
     </div>
   </form>
 </template>

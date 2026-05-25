@@ -1,76 +1,75 @@
 <script setup>
-import Layout from '@/Shared/Layout';
-import { inject } from 'vue';
+import Layout from '@/Shared/Layout.vue';
 import { Head, router } from '@inertiajs/vue3';
-import Breadcrumbs from '@/Shared/Breadcrumbs';
-import Card from 'primevue/card';
+import Breadcrumbs from '@/Shared/Breadcrumbs.vue';
 import { useConfirm } from "primevue/useconfirm";
 import Button from 'primevue/button';
-import Detail from '@/Shared/Detail.vue';
+import { useConfig } from '@/Composables/useConfig';
+import Card from '@/Shared/Card.vue';
+import Title from '@/Shared/Title.vue';
+import Timestamps from '@/Shared/DataTable/Timestamps.vue';
+import DetailViewer from '@/Shared/DetailViewer.vue';
 
 defineOptions({
-    layout: Layout,
+  layout: Layout,
 });
 
 const props = defineProps({
-    organization: Object,
-    labels: Object,
+  organization: Object,
+  labels: Object,
 });
 
-const urls = inject('urls');
-const organization = props.organization;
-const labels = props.labels;
+const { urls } = useConfig();
 const confirm = useConfirm();
 
-const title = `${organization.name} (${organization.code})`;
-const goToEdit = () => router.get(urls.dictionary.organizations.edit(organization.code));
-
-const LogActions = inject('LogActions');
+const title = `${props.organization.name} (${props.organization.code})`;
+const goToEdit = () => router.get(urls.dictionary.organizations.edit(props.organization.code));
 
 const deleteOrganization = () => {
     confirm.require({
         message: 'Вы уверены, что хотите удалить запись?',
         header: 'Удаление записи',
         accept: () => {
-            const url = urls.dictionary.organizations.delete(organization.code);
-            router.delete(url, {
-                onSuccess: () => {
-                    LogActions.save(url, 'DELETE', 'Удаление организации', organization);
-                },
-            });
+            const url = urls.dictionary.organizations.delete(props.organization.code);
+            router.delete(url);
         },
     });
 };
 </script>
-
 <template>
+  <Head :title="title" />
 
-    <Head :title="title" />
+  <Breadcrumbs
+    :home="{ label: 'Главная', url: urls.home }"
+    :items="[
+      { label: 'Справочники' },
+      { label: 'Организации', url: urls.dictionary.organizations.index() },
+      { label: title },
+    ]"
+  />
+  <Card>
+    <Title>{{ title }}</Title>
 
-    <Breadcrumbs :home="{ label: 'Главная', url: urls.home }" :items="[
-        { label: 'Справочники' },
-        { label: 'Организации', url: urls.dictionary.organizations.index() },
-        { label: title },
-    ]" />
+    <DetailViewer
+      :items="[
+        { label: labels.code, value: organization.code },
+        { label: labels.parent, value: organization.parent },
+        { label: labels.name, value: organization.name },
+        { label: labels.date, keySlot: 'date' },
+      ]"
+    >
+      <template #date>
+        <Timestamps :created-at="organization.created_at" :updated-at="organization.updated_at" />
+      </template>
+    </DetailViewer>
 
-    <Card>
-        <template #title> {{ title }} </template>
-        <template #content>
-
-            <Detail :items="[
-                { label: labels.code, value: organization.code },
-                { label: labels.parent, value: organization.parent },
-                { label: labels.name, value: organization.name },
-                { label: labels.created_at, value: organization.created_at, format: 'date' },
-                { label: labels.updated_at, value: organization.updated_at, format: 'date' },
-            ]">
-            </Detail>
-
-            <div class="flex justify-between mt-10">
-                <Button class="font-bold" @click="goToEdit">Редактировать</Button>
-                <Button severity="danger" class="font-bold" @click="deleteOrganization">Удалить</Button>
-            </div>
-        </template>
-    </Card>
-
+    <template #footer>
+      <Button class="font-bold" @click="goToEdit">
+        Редактировать
+      </Button>
+      <Button severity="danger" class="font-bold" @click="deleteOrganization">
+        Удалить
+      </Button>
+    </template>
+  </Card>
 </template>

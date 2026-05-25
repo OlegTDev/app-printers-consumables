@@ -1,39 +1,57 @@
 <script setup>
-import Layout from '@/Shared/Layout';
+import Layout from '@/Shared/Layout.vue';
 import { Head, router } from '@inertiajs/vue3';
-import Breadcrumbs from '@/Shared/Breadcrumbs';
+import Breadcrumbs from '@/Shared/Breadcrumbs.vue';
 import DataTable from 'primevue/datatable';
+import Card from '@/Shared/Card.vue';
 import InputText from 'primevue/inputtext';
 import Column from 'primevue/column';
-import TableTitle from '@/Shared/TableTitle';
-import { computed, inject, reactive, ref, watch } from 'vue';
+import { computed, onMounted, reactive, ref, watch } from 'vue';
 import Button from 'primevue/button';
-import OrderStatus from '../Shared/OrderStatus';
-import PrinterWorkplace from '@/Shared/DataTable/PrinterWorkplace';
-import Author from '@/Shared/DataTable/Author';
-import Timestamps from '@/Shared/DataTable/Timestamps';
+import OrderStatus from '../Shared/OrderStatus.vue';
+import PrinterWorkplace from '@/Shared/DataTable/PrinterWorkplace.vue';
+import Author from '@/Shared/DataTable/Author.vue';
+import Timestamps from '@/Shared/DataTable/Timestamps.vue';
 import { pickBy, throttle } from 'lodash';
-import Dropdown from 'primevue/dropdown';
 import axios from 'axios';
-import { useToast } from 'primevue/usetoast';
 import TreeSelect from 'primevue/treeselect';
+import { useConfig } from '@/Composables/useConfig';
+import Title from '@/Shared/Title.vue';
+import { useNotification } from '@/Composables/useNotification';
+import InputIcon from 'primevue/inputicon';
+import IconField from 'primevue/iconfield';
+import Select from 'primevue/select';
+import { useDate } from '@/Composables/useDate';
 
 defineOptions({
   layout: Layout,
 });
 
 const props = defineProps({
-  filters: Object,
-  orders: Object,
-  labels: Object,
-  statuses: Object,
+  filters: {
+    type: Object,
+    required: true,
+  },
+  orders: {
+    type: Object,
+    default: () => ({ data: []}),
+  },
+  labels: {
+    type: Object,
+    required: true,
+  },
+  statuses: {
+    type: Object,
+    required: true,
+  },
 });
 
-const listStatuses = computed(() => {
-  let result = [];
-  Object.entries(props.statuses).forEach(([key, label]) => result.push({ key, label: label.label }));
-  return result;
-});
+const listStatuses = computed(() =>
+  Object.keys(props.statuses || {}).map((key) => ({
+    key,
+    label: props.statuses[key].label,
+  }))
+);
 
 const propsFiltersOrganizations = computed(() => {
   if (props.filters?.organizations) {
@@ -42,12 +60,13 @@ const propsFiltersOrganizations = computed(() => {
       return acc;
     }, {});
   }
+  return {};
 });
 
-const urls = inject('urls');
-const config = inject('config');
-const moment = inject('moment');
-const toast = reactive(useToast());
+const { urls } = useConfig();
+const { showError } = useNotification();
+const { formatDate } = useDate();
+
 const form = reactive({
   search: props.filters?.search,
   status: props.filters?.status,
@@ -55,25 +74,26 @@ const form = reactive({
 });
 
 const organizations = ref();
-const loadDataOrgs = () => {
-  axios.get(urls.users.organizations.index())
-    .then((response) => {
-      organizations.value = response.data.organizations;
-      if (Array.isArray(organizations.value)) {
-        organizations.value.forEach((item) => item.label = item.code);
-      }
-    })
-    .catch((error) => {
-      toast.add({
-        severity: 'error',
-        summary: 'Ошибка',
-        detail: error.message,
-        life: config.toast.timeLife,
-      });
-      console.error(error);
-    })
+const loadDataOrgs = async () => {
+  try {
+    const response = await axios.get(urls.users.organizations.index());
+    if (
+      response.data?.organizations &&
+      Array.isArray(response.data.organizations)
+    ) {
+      organizations.value = response.data.organizations.map((item) => ({
+        key: item.code,
+        label: item.code,
+      }));
+    }
+  } catch (error) {
+    showError(error.message);
+  }
 };
-loadDataOrgs();
+
+onMounted(() => {
+  loadDataOrgs();
+});
 
 const actions = {
   create: () => router.get(urls.orders.spareParts.create()),
@@ -82,51 +102,75 @@ const actions = {
 
 const onRowSelect = (event) => {
   router.get(urls.orders.spareParts.show(event.data.id));
-}
+};
 
 watch(
-  () => form,
+  () => [form.search, form.status, form.organizations],
   throttle(() => {
     const picked = pickBy(form);
-    picked.organizations = Object.keys(picked.organizations ?? {});
-    router.get(urls.orders.spareParts.index(), pickBy(picked), { preserveState: true });
-  }, 150),
-  { deep: true }
+    if (picked.organizations) {
+      picked.organizations = Object.keys(picked.organizations);
+    }
+    router.get(urls.orders.spareParts.index(), picked, { preserveState: true });
+  }, 300)
 );
 
 const title = 'Заказ запчастей';
-
 </script>
 <template>
-
   <Head :title="title" />
 
-  <Breadcrumbs :home="{ label: 'Главная', url: '/' }" :items="[
-    { label: title },
-  ]" />
+  <Breadcrumbs
+    :home="{ label: 'Главная', url: '/' }"
+    :items="[{ label: title }]"
+  />
 
-  <div class="flex justify-stretch bg-white rounded-md shadow overflow-hidden mt-4">
-    <DataTable :value="orders?.data" paginator :rows="10" dataKey="id" :metaKeySelection="false" class="w-full"
-      tableStyle="min-width: 50rem" selectionMode="single" @rowSelect="onRowSelect">
+  <Card>
+    <Title>{{ title }}</Title>
+
+    <DataTable
+      :value="orders?.data"
+      paginator
+      :rows="10"
+      data-key="id"
+      :meta-key-selection="false"
+      class="w-full"
+      table-style="min-width: 50rem"
+      selection-mode="single"
+      @row-select="onRowSelect"
+    >
       <template #header>
-        <TableTitle class="border-b border-gray-200 pb-2">{{ title }}</TableTitle>
-        <div class="flex justify-between mt-5">
-          <Button @click="actions.create" severity="info">
-            Заказать
-          </Button>
+        <div class="flex justify-between">
           <div>
-            <TreeSelect selectionMode="multiple" v-model="form.organizations" :options="organizations"
-              placeholder="Организации" class="w-xs me-2" />
-            <Dropdown v-model="form.status" :options="listStatuses" optionLabel="label" optionValue="key"
-              placeholder="Статус" showClear class="w-20rem me-2" />
-            <span class="relative">
-              <i class="fas fa-search absolute top-2/4 -mt-2 left-3 text-surface-400"></i>
-              <InputText v-model="form.search" placeholder="Поиск" class="pl-10 font-normal" />
-            </span>
+            <Button severity="info" type="button" @click="actions.create">
+              Заказать
+            </Button>
+          </div>
+          <div class="flex justify-between gap-3">
+            <TreeSelect
+              v-model="form.organizations"
+              :options="organizations"
+              selection-mode="multiple"
+              placeholder="Организации"
+              class="w-xs"
+            />
+            <Select
+              v-model="form.status"
+              :options="listStatuses"
+              option-label="label"
+              option-value="key"
+              placeholder="Статус"
+              show-clear
+              class="w-auto"
+            />
+            <IconField icon-position="left">
+              <InputIcon><i class="pi pi-search" /></InputIcon>
+              <InputText v-model="form.search" placeholder="Поиск" />
+            </IconField>
           </div>
         </div>
       </template>
-      <Column header="#" headerStyle="width:3rem">
+      <Column header="#" header-style="width:3rem">
         <template #body="{ data }">
           {{ data.id }}
         </template>
@@ -136,10 +180,13 @@ const title = 'Заказ запчастей';
           <OrderStatus :status="data.order.status" :statuses="statuses" />
         </template>
       </Column>
-      <Column :header="labels.order_spare_part.id_spare_part_or_call_specialist">
+      <Column
+        :header="labels.order_spare_part.id_spare_part_or_call_specialist"
+      >
         <template #body="{ data }">
           <template v-if="data.call_specialist">
-            <i class="fa-solid fa-phone me-2"></i> {{ labels.order_spare_part.call_specialist }}
+            <i class="pi pi-phone text-primary-600 me-2" />
+            {{ labels.order_spare_part.call_specialist }}
           </template>
           <template v-else>
             <div class="flex flex-col gap-3">
@@ -155,43 +202,49 @@ const title = 'Заказ запчастей';
       </Column>
       <Column :header="labels.order_spare_part.id_printers_workplace">
         <template #body="{ data }">
-          <PrinterWorkplace :vendor="data.printerWorkplace.printer.vendor" :model="data.printerWorkplace.printer.model"
-            :is_color_print="data.printerWorkplace.printer.is_color_print" :location="data.printerWorkplace.location"
-            :inventory_number="data.printerWorkplace.inventory_number"
-            :serial_number="data.printerWorkplace.serial_number" />
+          <PrinterWorkplace
+            :vendor="data.printerWorkplace?.printer?.vendor"
+            :model="data.printerWorkplace?.printer?.model"
+            :is-color-print="data.printerWorkplace?.printer?.is_color_print"
+            :location="data.printerWorkplace?.location"
+            :inventory-number="data.printerWorkplace?.inventory_number"
+            :serial-number="data.printerWorkplace?.serial_number"
+          />
         </template>
       </Column>
       <Column :header="labels.order.org_code">
         <template #body="{ data }">
-          {{ data.order.organization.name }}
-          ({{ data.order.organization.code }})
+          {{ data.order?.organization?.name }}
+          ({{ data.order?.organization?.code }})
         </template>
       </Column>
-      <Column :header="labels.order.service_request">
+      <Column :header="labels.order?.service_request">
         <template #body="{ data }">
           <template v-if="data.order.service_request_number">
-            № {{ data.order.service_request_number }}
+            № {{ data.order?.service_request_number }}
           </template>
           <template v-if="data.order.service_request_date">
-            от {{ moment(data.order.service_request_date).format('L') }}
+            от {{ formatDate(data.order.service_request_date, 'L') }}
           </template>
         </template>
       </Column>
       <Column :header="labels.order.requested_by">
-        <template #body="{ data }">
-          <Author :login="data.order.requested.name" :fullName="data.order.requested.fio"
-            :post="data.order.requested.post" :department="data.order.requested.department" />
+        <template #body="{ data: { order } }">
+          <Author :user="order?.requested || {}" />
         </template>
       </Column>
       <Column header="Дата">
         <template #body="{ data }">
-          <Timestamps :created_at="data.order.created_at" :updated_at="data.order.updated_at" />
+          <Timestamps
+            :created-at="data.order.created_at"
+            :updated-at="data.order.updated_at"
+          />
         </template>
       </Column>
 
-      <template #empty> Нет данных </template>
-
+      <template #empty>
+        Нет данных
+      </template>
     </DataTable>
-
-  </div>
+  </Card>
 </template>

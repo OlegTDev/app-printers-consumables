@@ -1,8 +1,7 @@
 {
   "compilerOptions": {
     "paths": {
-      "~/*": ["./resources/js/*"],
-      "@/*": ["./resources/js/*"],
+      "@/*": ["./resources/js/*"]
     }
   },
   "exclude": [
@@ -17,6 +16,6 @@
   "include": [
     "resources/js/**/*",
     "resources/views/**/*.blade.php",
-    "resources/js/**/*.d.ts",
+    "resources/js/**/*.d.ts"
   ]
 }

@@ -1,37 +1,44 @@
 <script setup>
-import Layout from '@/Shared/Layout';
+import Layout from '@/Shared/Layout.vue';
 import { Head } from '@inertiajs/vue3';
-import Breadcrumbs from '@/Shared/Breadcrumbs';
-import { computed, inject } from 'vue';
+import Breadcrumbs from '@/Shared/Breadcrumbs.vue';
+import { computed } from 'vue';
 import Form from './Form.vue';
+import { useConfig } from '@/Composables/useConfig';
 
 defineOptions({
   layout: Layout,
 });
 
-const urls = inject('urls');
+const { urls } = useConfig();
 
 const props = defineProps({
-  spareParts: Object,
-  labels: Object,
+  spareParts: {
+    type: Object,
+  },
+  labels: {
+    type: Object,
+  },
 });
 
 const sparePartsData = computed(() => props.spareParts?.data || []);
 const title = 'Оформление заказа';
 </script>
 <template>
-
   <Head :title="title" />
 
-  <Breadcrumbs :home="{ label: 'Главная', url: '/' }" :items="[
-    { label: 'Заказ запчастей', url: urls.orders.spareParts.index() },
-    { label: title },
-  ]" />
+  <Breadcrumbs
+    :home="{ label: 'Главная', url: '/' }"
+    :items="[
+      { label: 'Заказ запчастей', url: urls.orders.spareParts.index() },
+      { label: title },
+    ]"
+  />
 
-  <div class="rounded-lg bg-white shadow-sm border border-gray-200">
-
-
-    <Form :isNew="true" :spareParts="sparePartsData" :labels="labels" />
-
-  </div>
+  <Form
+    is-new
+    :title="title"
+    :spare-parts="sparePartsData"
+    :labels="labels"
+  />
 </template>

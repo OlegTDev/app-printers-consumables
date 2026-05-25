@@ -10,12 +10,12 @@ use Illuminate\Foundation\Http\FormRequest;
  */
 class ConsumableCountRequest extends FormRequest
 {
-    
+
     /**
      * Determine if the user is authorized to make this request.
      */
     public function authorize(): bool
-    {       
+    {
         return true;
     }
 
@@ -25,16 +25,19 @@ class ConsumableCountRequest extends FormRequest
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
      */
     public function rules(): array
-    {        
-        return [
-            'id_consumable' => 'required',
+    {
+        $rules = [
             'count' => [
                 'required',
                 'integer',
                 'min:1',
             ],
-            'selectedOrganizations' => 'required',
-        ];        
+        ];
+        if ($this->isMethod('post')) {
+            $rules['selectedOrganizations'] = 'required';
+            $rules['id_consumable'] = 'required';
+        };
+        return $rules;
     }
 
     /**

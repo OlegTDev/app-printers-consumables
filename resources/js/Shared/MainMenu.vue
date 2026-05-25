@@ -5,9 +5,9 @@ import { useNavigation } from '@/Composables/useNavigation';
 import { useAuth } from '@/Composables/useAuth';
 import { useConfig } from '@/Composables/useConfig';
 
-const { isActiveUrl } = useNavigation();
-const { can } = useAuth();
 const { urls } = useConfig();
+const { isActiveUrl, isActive } = useNavigation();
+const { isAdmin } = useAuth();
 
 const classIsActive = `text-white`;
 const classIsInactive = `text-indigo-300 group-hover:text-white`;
@@ -35,7 +35,8 @@ const menu = computed(() => [
     icon: 'fas fa-home me-3 w-5 h-5',
     href: urls.home,
     show: true,
-    active: isActiveUrl(urls.home),
+    // active: isActiveUrl(urls.home),
+    active: isActive('dashboard'),
     dropdown: false,
   },
   {
@@ -43,7 +44,7 @@ const menu = computed(() => [
     name: 'Пользователи',
     icon: 'fas fa-user me-3 w-5 h-5',
     href: urls.users.index(),
-    show: can('admin'),
+    show: isAdmin.value,
     active: isActiveUrl(urls.users.index()),
     dropdown: false,
   },
@@ -70,14 +71,15 @@ const menu = computed(() => [
     name: 'Справочники',
     icon: 'fas fa-cube me-3 w-5 h-5',
     show: true,
-    active: isActiveUrl('/dictionary'),
+    active: isActive('dictionary'),
     dropdown: true,
     children: [
       {
         id: '05-01',
         name: 'Принтеры',
         icon: 'fas fa-print me-3 w-5 h-5',
-        href: urls.dictionary.printers.index(),
+        // href: urls.dictionary.printers.index(),
+        href: route('dictionary.printers.index'),
         show: true,
         active: isActiveUrl(urls.dictionary.printers.index()),
       },
@@ -94,7 +96,7 @@ const menu = computed(() => [
         name: 'Организации',
         icon: 'fas fa-sitemap me-3 w-5 h-5',
         href: urls.dictionary.organizations.index(),
-        show: true,
+        show: isAdmin.value,
         active: isActiveUrl(urls.dictionary.organizations.index()),
       },
     ],
@@ -155,7 +157,7 @@ onMounted(() => {
 <template>
   <div class="h-full px-3 py-4 overflow-y-auto">
     <ul class="space-y-2 font-medium">
-      <template v-for="item in menu" :key="item.href">
+      <template v-for="item in menu" :key="item.id">
         <li v-if="item.show">
           <template v-if="!item.dropdown">
             <Link :href="item.href" :class="[item.active ? classIsActive : classIsInactive, classLink]">

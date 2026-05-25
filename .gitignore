@@ -25,3 +25,4 @@ yarn-error.log
 .project
 _ide_helper_models.php
 _ide_helper.php
+resources/js/ziggy.d.ts
