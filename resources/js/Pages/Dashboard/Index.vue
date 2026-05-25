@@ -1,5 +1,5 @@
 <script setup>
-import Layout from '@/Shared/Layout';
+import Layout from '@/Shared/Layout.vue';
 import { Head } from '@inertiajs/vue3';
 import LastOperationsInstalled from './Partials/LastInstalledConsumables.vue';
 import Chart from './Partials/Chart.vue';
