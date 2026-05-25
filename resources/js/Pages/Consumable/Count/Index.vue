@@ -10,11 +10,11 @@ import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import Button from 'primevue/button';
 import pickBy from 'lodash/pickBy';
-import throttle from 'lodash/throttle';
 import Card from '@/Shared/Card.vue';
 import Title from '@/Shared/Title.vue';
 import { useAuth } from '@/Composables/useAuth';
 import { Select } from 'primevue';
+import { debounce } from 'lodash';
 
 defineOptions({
   layout: Layout,
@@ -45,10 +45,11 @@ const consumableTypesDropdown = computed(() => Object.keys(props.consumableTypes
 
 watch(
   () => form,
-  throttle(() => {
+  debounce(() => {
     router.get(route('consumables.counts.index'), pickBy(form), {
       preserveState: true,
       preserveScroll: true,
+      replace: true,
     });
   }, 300),
   { deep: true }
