@@ -22,6 +22,8 @@ import { urls } from '@/config/urls';
 import { Auth } from '@/auth';
 import { LogActions } from './logActions';
 import { ru } from 'primelocale/js/ru.js';
+import { ZiggyVue } from 'ziggy-js';
+
 
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
@@ -42,6 +44,7 @@ createInertiaApp({
       .component('DynamicDialog', DynamicDialog)
       .component('ConfirmDialog', ConfirmDialog)
       .use(plugin)
+      .use(ZiggyVue)
       .use(PrimeVue, {
         theme: {
           preset: Aura,
