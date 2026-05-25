@@ -7,7 +7,7 @@ import { useConfig } from '@/Composables/useConfig';
 
 const { urls } = useConfig();
 
-const { isActiveUrl } = useNavigation();
+const { isActiveUrl, isActive } = useNavigation();
 const { isAdmin } = useAuth();
 
 const classIsActive = `text-white`;
@@ -36,7 +36,8 @@ const menu = computed(() => [
     icon: 'fas fa-home me-3 w-5 h-5',
     href: urls.home,
     show: true,
-    active: isActiveUrl(urls.home),
+    // active: isActiveUrl(urls.home),
+    active: isActive('dashboard'),
     dropdown: false,
   },
   {
@@ -71,14 +72,15 @@ const menu = computed(() => [
     name: 'Справочники',
     icon: 'fas fa-cube me-3 w-5 h-5',
     show: true,
-    active: isActiveUrl('/dictionary'),
+    active: isActive('dictionary'),
     dropdown: true,
     children: [
       {
         id: '05-01',
         name: 'Принтеры',
         icon: 'fas fa-print me-3 w-5 h-5',
-        href: urls.dictionary.printers.index(),
+        // href: urls.dictionary.printers.index(),
+        href: route('dictionary.printers.index'),
         show: true,
         active: isActiveUrl(urls.dictionary.printers.index()),
       },
