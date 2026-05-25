@@ -3,10 +3,9 @@ import Layout from '@/Shared/Layout.vue';
 import { Head } from '@inertiajs/vue3';
 import LastOperationsInstalled from './Partials/LastInstalledConsumables.vue';
 import Chart from './Partials/Chart.vue';
-import { useConfig } from '@/Composables/useConfig';
 
 defineOptions({
-    layout: Layout,
+  layout: Layout,
 });
 
 defineProps({
@@ -14,7 +13,6 @@ defineProps({
   auth: Object,
 });
 
-const { urls } = useConfig();
 </script>
 <template>
   <Head :title="appName" />
@@ -25,7 +23,7 @@ const { urls } = useConfig();
       <div class="col-span bg-white shadow rounded p-4 grid content-center">
         <Chart
           class="w-full"
-          :url="urls.chart.lastInstalled()"
+          :url="route('chart.last-installed')"
           header="Динамика установки расходных материалов"
           chart-title="Установлено расходных материалов"
           chart-bg-color="#ef4444"
@@ -34,7 +32,7 @@ const { urls } = useConfig();
       <div class="col-span bg-white shadow rounded p-4 grid content-center">
         <Chart
           class="w-full"
-          :url="urls.chart.lastAdded()"
+          :url="route('chart.last-added')"
           header="Динамика добавления расходных материалов"
           chart-title="Добавлено расходных материалов"
           chart-bg-color="#22c55e"
