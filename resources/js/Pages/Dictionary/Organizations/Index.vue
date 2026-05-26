@@ -6,34 +6,32 @@ import Breadcrumbs from '@/Shared/Breadcrumbs.vue';
 import Column from 'primevue/column';
 import Button from 'primevue/button';
 import TreeTable from 'primevue/treetable';
-import { useConfig } from '@/Composables/useConfig';
 import Card from '@/Shared/Card.vue';
 import Title from '@/Shared/Title.vue';
 import Timestamps from '@/Shared/DataTable/Timestamps.vue';
 
 defineProps({
-    organizations: Object,
-    labels: Object,
-    filters: Object,
+  organizations: Object,
+  labels: Object,
+  filters: Object,
 });
 
 defineOptions({
-    layout: Layout
+  layout: Layout
 });
 
 const title = 'Организации';
-const { urls } = useConfig();
 const selectedRow = ref({});
 
 const onRowSelect = (event) => {
-  router.get(urls.dictionary.organizations.show(event.data.code));
+  router.get(route('dictionary.organizations.show', { organization: event.data.code }));
 };
 </script>
 <template>
   <Head :title="title" />
 
   <Breadcrumbs
-    :home="{ label: 'Главная', url: urls.home }"
+    :home="{ label: 'Главная', url: route('dashboard') }"
     :items="[
       { label: 'Справочники' },
       { label: title },
@@ -55,7 +53,7 @@ const onRowSelect = (event) => {
     >
       <template #header>
         <div class="flex justify-between">
-          <Button type="button" severity="info" @click="router.get(urls.dictionary.organizations.create())">
+          <Button type="button" severity="info" @click="router.get(route('dictionary.organizations.create'))">
             Добавить организацию
           </Button>
         </div>
