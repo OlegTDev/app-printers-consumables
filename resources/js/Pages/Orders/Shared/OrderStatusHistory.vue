@@ -6,7 +6,6 @@ import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import OrderStatus from '../Shared/OrderStatus.vue';
 import Author from '@/Shared/DataTable/Author.vue';
-import { useConfig } from '@/Composables/useConfig';
 import { useNotification } from '@/Composables/useNotification';
 import { useDate } from '@/Composables/useDate';
 
@@ -15,7 +14,6 @@ const props = defineProps({
   statuses: Object,
 });
 
-const { urls } = useConfig();
 const items = ref();
 const labels = ref();
 const { showError } = useNotification();
@@ -23,7 +21,7 @@ const { formatDate } = useDate();
 
 const loadData = async () => {
   try {
-    const resp = await axios.get(urls.orders.statusHistory(props.idOrder));
+    const resp = await axios.get(route('orders.status-history', { order: props.idOrder }));
     items.value = resp.data.statuses;
     labels.value = resp.data.labels;
   } catch (error) {
