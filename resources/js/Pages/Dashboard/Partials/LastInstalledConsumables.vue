@@ -11,12 +11,10 @@ import { useAuth } from '@/Composables/useAuth';
 import { useNotification } from '@/Composables/useNotification';
 import { useDate } from '@/Composables/useDate';
 import { useUser } from '@/Composables/useUser';
-import { useConfig } from '@/Composables/useConfig';
 
 const { can } = useAuth();
 const { formatDate, fromNow } = useDate();
 const { fullUserInfo } = useUser();
-const { urls } = useConfig();
 const dialog = useDialog();
 const { showError } = useNotification();
 
@@ -28,7 +26,8 @@ const loading = ref(false);
 const updateData = async () => {
   try {
     loading.value = true;
-    const data = await fetchService.fetch(urls.consumables.counts.installed());
+    const url = route('consumables.counts.installed.last');
+    const data = await fetchService.fetch(url);
     consumables.value = data.data.map(item => ({
       ...item,
       author: fullUserInfo(item.author),
