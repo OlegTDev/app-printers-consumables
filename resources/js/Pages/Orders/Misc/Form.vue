@@ -1,6 +1,6 @@
 <script setup>
 import { useForm, router } from '@inertiajs/vue3';
-import { inject, watch } from 'vue';
+import { watch } from 'vue';
 import Button from 'primevue/button';
 import InputText from 'primevue/inputtext';
 import Textarea from 'primevue/textarea';
@@ -34,7 +34,6 @@ const props = defineProps({
     }),
   },
 });
-const urls = inject('urls');
 
 const form = useForm({
   id: props.orderMisc?.id,
@@ -46,15 +45,15 @@ const form = useForm({
 
 const save = () => {
   if (props.isNew) {
-    form.post(urls.orders.misc.store());
+    form.post(route('orders.misc.store'));
   } else {
-    form.put(urls.orders.misc.update(form.id));
+    form.put(route('orders.misc.update', { orderMiscDetails: form.id }));
   }
 };
 
 const home = () => {
-  const url = props.isNew ? urls.orders.misc.index()
-    : urls.orders.misc.show(form.id);
+  const url = props.isNew ? route('orders.misc.index')
+    : route('orders.misc.show', { orderMiscDetails: form.id });
   router.get(url);
 };
 

@@ -11,16 +11,15 @@ import Column from 'primevue/column';
 import OrderStatus from '../Shared/OrderStatus.vue';
 import Author from '@/Shared/DataTable/Author.vue';
 import Timestamps from '@/Shared/DataTable/Timestamps.vue';
-import { throttle } from 'lodash';
 import { pickBy } from 'lodash';
 import axios from 'axios';
-import { useConfig } from '@/Composables/useConfig';
 import { useNotification } from '@/Composables/useNotification';
 import Card from '@/Shared/Card.vue';
 import Title from '@/Shared/Title.vue';
 import IconField from 'primevue/iconfield';
 import InputIcon from 'primevue/inputicon';
 import Select from 'primevue/select';
+import { debounce } from 'lodash';
 
 
 defineOptions({
@@ -50,7 +49,6 @@ const propsFiltersOrganizations = computed(() => {
   return {};
 });
 
-const { urls } = useConfig();
 const { showError } = useNotification();
 
 const form = reactive({
@@ -63,7 +61,7 @@ const form = reactive({
 const organizations = ref([]);
 const loadDataOrgs = async() => {
   try {
-    const response = await axios.get(urls.users.organizations.index());
+    const response = await axios.get(route('users.organizations'));
     if (response.data?.organizations && Array.isArray(response.data.organizations)) {
       organizations.value = response.data.organizations.map((item) => ({
         key: item.code,
@@ -82,22 +80,22 @@ onMounted(() => {
 
 
 const actions = {
-  create: () => router.get(urls.orders.misc.create()),
-  show: (id) => router.get(urls.orders.misc.show(id)),
+  create: () => router.get(route('orders.misc.create')),
+  show: (id) => router.get(route('orders.misc.show', { orderMiscDetails: id })),
 };
 
 const onRowSelect = (event) => {
-  router.get(urls.orders.misc.show(event.data.id));
+  actions.show(event.data.id);
 };
 
 watch(
   () => [form.search, form.status, form.organizations],
-  throttle(() => {
+  debounce(() => {
     const picked = pickBy(form);
     if (picked.organizations) {
       picked.organizations = Object.keys(picked.organizations);
     }
-    router.get(urls.orders.misc.index(), picked, { preserveState: true });
+    router.get(route('orders.misc.index'), picked, { preserveState: true });
   }, 300)
 );
 
