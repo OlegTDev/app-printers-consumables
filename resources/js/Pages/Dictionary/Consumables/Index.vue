@@ -8,15 +8,14 @@ import Button from 'primevue/button';
 import { Head, Link, router } from '@inertiajs/vue3';
 import InputText from 'primevue/inputtext';
 import pickBy from 'lodash/pickBy';
-import throttle from 'lodash/throttle';
 import IconField from 'primevue/iconfield';
 import InputIcon from 'primevue/inputicon';
-import { useConfig } from '@/Composables/useConfig';
 import Card from '@/Shared/Card.vue';
 import Title from '@/Shared/Title.vue';
 import { useAuth } from '@/Composables/useAuth';
 import Author from '@/Shared/DataTable/Author.vue';
 import Timestamps from '@/Shared/DataTable/Timestamps.vue';
+import { debounce } from 'lodash';
 
 const props = defineProps({
   consumables: Object,
@@ -34,7 +33,6 @@ defineOptions({
 });
 
 const title = 'Расходные материалы (справочник)';
-const { urls } = useConfig();
 const { can } = useAuth();
 
 const loading = ref(false);
@@ -48,7 +46,8 @@ const form = reactive({
 });
 
 const updateFilters = () => {
-  router.get(urls.dictionary.consumables.index(), pickBy(form), {
+  const url = route('dictionary.consumables.index');
+  router.get(url, pickBy(form), {
     preserveState: true,
     replace: true,
     onStart: () => loading.value = true,
@@ -58,14 +57,15 @@ const updateFilters = () => {
 
 watch(
   () => form.search,
-  throttle(() => {
+  debounce(() => {
     form.page = 1;
     updateFilters();
-  }, 150)
+  }, 300)
 );
 
 const onRowSelect = (event) => {
-  router.get(urls.dictionary.consumables.show(event.data.id));
+  const url = route('dictionary.consumables.show', { consumable: event.data.id });
+  router.get(url);
 };
 
 const refTableConsumablesDic = ref(null);
@@ -82,7 +82,7 @@ const onLazyChange = (event) => {
   <Head :title="title" />
 
   <Breadcrumbs
-    :home="{ label: 'Главная', url: '/' }"
+    :home="{ label: 'Главная', url: route('dashboard') }"
     :items="[
       { label: title },
     ]"
@@ -112,7 +112,7 @@ const onLazyChange = (event) => {
       <template #header>
         <div class="flex justify-between">
           <div>
-            <Link v-if="can('admin', 'editor-dictionary')" :href="urls.dictionary.consumables.create()">
+            <Link v-if="can('admin', 'editor-dictionary')" :href="route('dictionary.consumables.create')">
               <Button type="button" severity="info">
                 Добавить расходный материал
               </Button>

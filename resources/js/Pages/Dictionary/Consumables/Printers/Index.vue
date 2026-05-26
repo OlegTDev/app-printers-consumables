@@ -9,7 +9,6 @@ import { Head, router } from '@inertiajs/vue3';
 import InputText from 'primevue/inputtext';
 import pickBy from 'lodash/pickBy';
 import debounce from 'lodash/debounce';
-import { useConfig } from '@/Composables/useConfig';
 import Card from '@/Shared/Card.vue';
 import Title from '@/Shared/Title.vue';
 import { useAuth } from '@/Composables/useAuth';
@@ -29,7 +28,6 @@ defineOptions({
 });
 
 const title = 'Привязка принтера';
-const { urls } = useConfig();
 const { can } = useAuth();
 
 const loadingForm = ref(false);
@@ -39,22 +37,21 @@ const form = reactive({
 watch(
   () => form.search,
   debounce(() => {
-    router.get(
-      urls.dictionary.consumables.printers.index(props.consumable.id),
-      pickBy(form),
+    const url = route('dictionary.consumables.printers.index', { consumable: props.consumable.id });
+    router.get(url, pickBy(form),
       {
         preserveState: true,
         onStart: () => loadingForm.value = true,
         onFinish: () => loadingForm.value = false,
       }
     );
-  }, 150)
+  }, 300)
 );
 
 const loadingAddPrinter = ref(false);
 const addPrinter = (id) => {
   loadingAddPrinter.value = true;
-  const url = urls.dictionary.consumables.printers.add(props.consumable.id, id);
+  const url = route('dictionary.consumables.printers.add', { consumable: props.consumable.id, printer: id });
   router.post(url, {}, {
     onFinish: () => loadingAddPrinter.value = false,
   });
@@ -68,11 +65,11 @@ const addPrinter = (id) => {
     :items="[
       {
         label: 'Расходные материалы (справочник)',
-        url: urls.dictionary.consumables.index(),
+        url: route('dictionary.consumables.index'),
       },
       {
         label: `${consumableTypeValue} ${consumable.name}`,
-        url: urls.dictionary.consumables.show(consumable.id),
+        url: route('dictionary.consumables.show', { consumable: consumable.id }),
       },
       { label: title },
     ]"
@@ -98,7 +95,7 @@ const addPrinter = (id) => {
               v-if="can('admin', 'editor-dictionary')"
               type="button"
               severity="secondary"
-              @click="router.get(urls.dictionary.consumables.show(consumable.id))"
+              @click="router.get(route('dictionary.consumables.show', { consumable: consumable.id }))"
             >
               <i class="fas fa-chevron-circle-left me-3" />
               Назад

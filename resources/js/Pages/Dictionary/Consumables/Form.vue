@@ -5,7 +5,6 @@ import Button from 'primevue/button';
 import { computed, watch } from 'vue';
 import Label from '@/Shared/Label.vue';
 import Textarea from 'primevue/textarea';
-import { useConfig } from '@/Composables/useConfig';
 import Select from 'primevue/select';
 import Card from '@/Shared/Card.vue';
 import Title from '@/Shared/Title.vue';
@@ -44,7 +43,6 @@ const props = defineProps({
   },
 });
 
-const { urls } = useConfig();
 const form = useForm({
   type: props.consumable.type,
   name: props.consumable.name,
@@ -69,9 +67,9 @@ const colors = computed(() =>
 
 const save = () => {
   if (props.isNew) {
-    form.post(urls.dictionary.consumables.store());
+    form.post(route('dictionary.consumables.store'));
   } else {
-    form.put(urls.dictionary.consumables.update(props.consumable.id));
+    form.put(route('dictionary.consumables.update', { consumable: props.consumable.id }));
   }
 };
 
