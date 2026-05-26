@@ -6,7 +6,6 @@ import Button from 'primevue/button';
 import InputText from 'primevue/inputtext';
 import DataTable from 'primevue/datatable';
 import { computed, onMounted, reactive, ref, watch } from 'vue';
-import { throttle } from 'lodash';
 import { pickBy } from 'lodash';
 import TreeSelect from 'primevue/treeselect';
 import Column from 'primevue/column';
@@ -15,13 +14,13 @@ import Author from '@/Shared/DataTable/Author.vue';
 import Timestamps from '@/Shared/DataTable/Timestamps.vue';
 import Tag from 'primevue/tag';
 import axios from 'axios';
-import { useConfig } from '@/Composables/useConfig';
 import { useNotification } from '@/Composables/useNotification';
 import Card from '@/Shared/Card.vue';
 import Title from '@/Shared/Title.vue';
 import Select from 'primevue/select';
 import IconField from 'primevue/iconfield';
 import InputIcon from 'primevue/inputicon';
+import { debounce } from 'lodash';
 
 
 defineOptions({
@@ -53,7 +52,6 @@ const propsFiltersOrganizations = computed(() => {
   return {};
 });
 
-const { urls } = useConfig('urls');
 const { showError } = useNotification();
 
 const form = reactive({
@@ -65,7 +63,7 @@ const form = reactive({
 const organizations = ref();
 const loadDataOrgs = async() => {
   try {
-    const response = await axios.get(urls.users.organizations.index());
+    const response = await axios.get(route('users.organizations'));
     if (response.data?.organizations && Array.isArray(response.data.organizations)) {
       organizations.value = response.data.organizations.map((item) => ({
         key: item.code,
@@ -83,21 +81,21 @@ onMounted(() => {
 });
 
 const actions = {
-  create: () => router.get(urls.orders.consumables.create()),
-  show: (id) => router.get(urls.orders.consumables.show(id)),
+  create: () => router.get(route('orders.consumables.create')),
+  show: (id) => router.get(route('orders.consumables.show', { orderConsumableDetails: id })),
 };
 
 const onRowSelect = (event) => {
-  router.get(urls.orders.consumables.show(event.data.id));
+  actions.show(event.data.id);
 };
 
 watch(
   () => form,
-  throttle(() => {
+  debounce(() => {
     const picked = pickBy(form);
     picked.organizations = Object.keys(picked.organizations ?? {});
-    router.get(urls.orders.consumables.index(), pickBy(picked), { preserveState: true });
-  }, 150),
+    router.get(route('orders.consumables.index'), pickBy(picked), { preserveState: true });
+  }, 300),
   { deep: true }
 );
 
@@ -106,7 +104,7 @@ const title = 'Заказ картриджей';
 <template>
   <Head :title="title" />
 
-  <Breadcrumbs :home="{ label: 'Главная', url: '/' }" :items="[{ label: title }]" />
+  <Breadcrumbs :home="{ label: 'Главная', url: route('home') }" :items="[{ label: title }]" />
 
   <Card>
     <Title>{{ title }}</Title>

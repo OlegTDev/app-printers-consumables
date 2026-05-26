@@ -3,7 +3,6 @@ import Layout from '@/Shared/Layout.vue';
 import { Head } from '@inertiajs/vue3';
 import Breadcrumbs from '@/Shared/Breadcrumbs.vue';
 import Form from './Form.vue';
-import { useConfig } from '@/Composables/useConfig';
 
 defineOptions({
   layout: Layout,
@@ -15,17 +14,15 @@ defineProps({
   cartridgeColors: Object,
 });
 
-const { urls } = useConfig();
-
 const title = 'Оформление заказа картриджа';
 </script>
 <template>
   <Head :title="title" />
 
   <Breadcrumbs
-    :home="{ label: 'Главная', url: '/' }"
+    :home="{ label: 'Главная', url: route('home') }"
     :items="[
-      { label: 'Заказ картриджей', url: urls.orders.consumables.index() },
+      { label: 'Заказ картриджей', url: route('orders.consumables.index') },
       { label: title },
     ]"
   />

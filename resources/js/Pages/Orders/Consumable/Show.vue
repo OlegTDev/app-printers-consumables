@@ -8,7 +8,6 @@ import OrderStatusHistory from '../Shared/OrderStatusHistory.vue';
 import Author from '@/Shared/DataTable/Author.vue';
 import OrderStatus from '../Shared/OrderStatus.vue';
 import Button from 'primevue/button';
-import { useConfig } from '@/Composables/useConfig';
 import { useDate } from '@/Composables/useDate';
 import Card from '@/Shared/Card.vue';
 import Title from '@/Shared/Title.vue';
@@ -31,7 +30,6 @@ const props = defineProps({
   cartridgeColors: Object,
 });
 
-const { urls } = useConfig();
 const { formatDate } = useDate();
 const orderConsumableDetail = computed(() => props.orderConsumableDetail?.data || { order: {}, consumable: {} });
 const title = `Заказ № ${orderConsumableDetail.value?.order?.id || '-'} от ${formatDate(orderConsumableDetail.value?.order?.created_at, 'L')}`;
@@ -49,24 +47,24 @@ const {
 
 const actions = {
   edit: () => {
-    router.get(urls.orders.consumables.edit(orderConsumableDetail.value.id));
+    router.get(route('orders.consumables.edit', { orderConsumableDetails: orderConsumableDetail.value.id }));
   },
-  delete: () => remove(urls.orders.delete(orderId.value)),
-  cancel: () => cancel(urls.orders.cancel(orderId.value)),
-  agree: () => agree(urls.orders.agree(orderId.value)),
-  reject: () => reject(urls.orders.reject(orderId.value)),
-  ordered: () => ordered(urls.orders.ordered(orderId.value)),
-  receive: () => receive(urls.orders.receive(orderId.value)),
-  complete: () => complete(urls.orders.complete(orderId.value)),
+  delete: () => remove(route('orders.destroy', { order: orderId.value })),
+  cancel: () => cancel(route('orders.cancel', { order: orderId.value })),
+  agree: () => agree(route('orders.agree', { order: orderId.value })),
+  reject: () => reject(route('orders.reject', { order: orderId.value })),
+  ordered: () => ordered(route('orders.ordered', { order: orderId.value })),
+  receive: () => receive(route('orders.receive', { order: orderId.value })),
+  complete: () => complete(route('orders.complete', { order: orderId.value })),
 };
 </script>
 <template>
   <Head :title="title" />
 
   <Breadcrumbs
-    :home="{ label: 'Главная', url: '/' }"
+    :home="{ label: 'Главная', url: route('home') }"
     :items="[
-      { label: 'Заказ картриджей', url: urls.orders.consumables.index() },
+      { label: 'Заказ картриджей', url: route('orders.consumables.index') },
       { label: title },
     ]"
   />
