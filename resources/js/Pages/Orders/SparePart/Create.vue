@@ -4,13 +4,10 @@ import { Head } from '@inertiajs/vue3';
 import Breadcrumbs from '@/Shared/Breadcrumbs.vue';
 import { computed } from 'vue';
 import Form from './Form.vue';
-import { useConfig } from '@/Composables/useConfig';
 
 defineOptions({
   layout: Layout,
 });
-
-const { urls } = useConfig();
 
 const props = defineProps({
   spareParts: {
@@ -28,9 +25,9 @@ const title = 'Оформление заказа';
   <Head :title="title" />
 
   <Breadcrumbs
-    :home="{ label: 'Главная', url: '/' }"
+    :home="{ label: 'Главная', url: route('home') }"
     :items="[
-      { label: 'Заказ запчастей', url: urls.orders.spareParts.index() },
+      { label: 'Заказ запчастей', url: route('orders.spare-parts.index') },
       { label: title },
     ]"
   />

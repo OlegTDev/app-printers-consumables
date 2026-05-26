@@ -8,7 +8,6 @@ import Step2 from './Steps/Step2.vue';
 import Step3 from './Steps/Step3.vue';
 import Message from 'primevue/message';
 import Title from '@/Shared/Title.vue';
-import { useConfig } from '@/Composables/useConfig';
 import Card from '@/Shared/Card.vue';
 
 
@@ -34,7 +33,6 @@ const props = defineProps({
     default: '',
   },
 });
-const { urls } = useConfig();
 
 const step = ref(0);
 const steps = ref([
@@ -100,16 +98,16 @@ const emitChangeServiceRequestDate = (date) => {
 
 const urlOtherConsumablesForPrinter = computed(() => {
   if (form.id_printers_workplace) {
-    return urls.dictionary.consumables.other(idPrinter.value);
+    return route('dictionary.consumables.other', { printer: idPrinter.value });
   }
   return null;
 });
 
 const save = () => {
   if (props.isNew) {
-    form.post(urls.orders.spareParts.store());
+    form.post(route('orders.spare-parts.store'));
   } else {
-    form.put(urls.orders.spareParts.update(form.id));
+    form.put(route('orders.spare-parts.update', { orderSparePartDetails: form.id }));
   }
 };
 
@@ -122,8 +120,8 @@ const prev = () => {
 };
 
 const home = () => {
-  const url = props.isNew ? urls.orders.spareParts.index()
-    : urls.orders.spareParts.show(form.id);
+  const url = props.isNew ? route('orders.spare-parts.index')
+    : route('orders.spare-parts.show', { orderSparePartDetails: form.id });
   router.get(url);
 };
 
@@ -149,7 +147,7 @@ const btnNextDisabled = computed(() => {
         <div v-if="step === 0">
           <Step1
             :labels="labels"
-            :url-printers-all="urls.printers.all()"
+            :url-printers-all="route('workplace.all')"
             :selected-id="form.id_printers_workplace"
             @update:selected="emitPrintersWorkplacesSelected"
           />

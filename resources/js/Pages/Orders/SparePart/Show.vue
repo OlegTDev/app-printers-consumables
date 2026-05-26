@@ -9,7 +9,6 @@ import OrderStatus from '../Shared/OrderStatus.vue';
 import Author from '@/Shared/DataTable/Author.vue';
 import Button from 'primevue/button';
 import OrderStatusHistory from '../Shared/OrderStatusHistory.vue';
-import { useConfig } from '@/Composables/useConfig';
 import Title from '@/Shared/Title.vue';
 import DetailViewer from '@/Shared/DetailViewer.vue';
 import { useDate } from '@/Composables/useDate';
@@ -30,7 +29,6 @@ const props = defineProps({
 });
 
 const ConfirmDialog = defineAsyncComponent(() => import('../Shared/ConfirmDialog.vue'));
-const { urls } = useConfig();
 const { formatDate } = useDate();
 const orderSparePartDetail = computed(() => props.orderSparePartDetail.data || []);
 const orderId = computed(() => orderSparePartDetail.value?.order?.id || null);
@@ -45,19 +43,15 @@ const {
 } = useActions('spare-parts', ConfirmDialog, orderId, props.labels.order?.comment || '');
 
 const actions = {
-  edit: () => {
-    router.get(urls.orders.spareParts.edit(orderSparePartDetail.value.id));
-  },
-  editFiles: () => {
-    router.get(urls.orders.spareParts.editFiles(orderSparePartDetail.value.id));
-  },
-  agree: () => agree(urls.orders.agree(orderId.value)),
-  reject: () => reject(urls.orders.reject(orderId.value)),
-  delete: () => remove(urls.orders.delete(orderId.value)),
-  cancel: () => cancel(urls.orders.cancel(orderId.value)),
-  ordered: () => ordered(urls.orders.ordered(orderId.value)),
-  receive: () => receive(urls.orders.receive(orderId.value)),
-  complete: () => complete(urls.orders.complete(orderId.value)),
+  edit: () => router.get(route('orders.spare-parts.edit', { orderSparePartDetails: orderSparePartDetail.value.id })),
+  editFiles: () => router.get(route('orders.spare-parts.files.edit', { orderSparePartDetails: orderSparePartDetail.value.id })),
+  delete: () => remove(route('orders.destroy', { order: orderId.value })),
+  cancel: () => cancel(route('orders.cancel', { order: orderId.value })),
+  agree: () => agree(route('orders.agree', { order: orderId.value })),
+  reject: () => reject(route('orders.reject', { order: orderId.value })),
+  ordered: () => ordered(route('orders.ordered', { order: orderId.value })),
+  receive: () => receive(route('orders.receive', { order: orderId.value })),
+  complete: () => complete(route('orders.complete', { order: orderId.value })),
 };
 
 const title = computed(() => `Заказ № ${orderSparePartDetail.value.order.id} от ${formatDate(orderSparePartDetail.value.order.created_at, 'L')}`);
@@ -66,9 +60,9 @@ const title = computed(() => `Заказ № ${orderSparePartDetail.value.order.
   <Head :title="title" />
 
   <Breadcrumbs
-    :home="{ label: 'Главная', url: '/' }"
+    :home="{ label: 'Главная', url: route('home') }"
     :items="[
-      { label: 'Заказ запчастей', url: urls.orders.spareParts.index() },
+      { label: 'Заказ запчастей', url: route('orders.spare-parts.index') },
       { label: title },
     ]"
   />

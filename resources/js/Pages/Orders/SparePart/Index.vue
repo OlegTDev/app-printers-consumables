@@ -12,10 +12,9 @@ import OrderStatus from '../Shared/OrderStatus.vue';
 import PrinterWorkplace from '@/Shared/DataTable/PrinterWorkplace.vue';
 import Author from '@/Shared/DataTable/Author.vue';
 import Timestamps from '@/Shared/DataTable/Timestamps.vue';
-import { pickBy, throttle } from 'lodash';
+import { pickBy, debounce } from 'lodash';
 import axios from 'axios';
 import TreeSelect from 'primevue/treeselect';
-import { useConfig } from '@/Composables/useConfig';
 import Title from '@/Shared/Title.vue';
 import { useNotification } from '@/Composables/useNotification';
 import InputIcon from 'primevue/inputicon';
@@ -63,7 +62,6 @@ const propsFiltersOrganizations = computed(() => {
   return {};
 });
 
-const { urls } = useConfig();
 const { showError } = useNotification();
 const { formatDate } = useDate();
 
@@ -76,7 +74,7 @@ const form = reactive({
 const organizations = ref();
 const loadDataOrgs = async () => {
   try {
-    const response = await axios.get(urls.users.organizations.index());
+    const response = await axios.get(route('users.organizations'));
     if (
       response.data?.organizations &&
       Array.isArray(response.data.organizations)
@@ -96,22 +94,22 @@ onMounted(() => {
 });
 
 const actions = {
-  create: () => router.get(urls.orders.spareParts.create()),
-  show: (id) => router.get(urls.orders.spareParts.show(id)),
+  create: () => router.get(route('orders.spare-parts.create')),
+  show: (id) => router.get(route('orders.spare-parts.show', { orderSparePartDetails: id })),
 };
 
 const onRowSelect = (event) => {
-  router.get(urls.orders.spareParts.show(event.data.id));
+  actions.show(event.data.id);
 };
 
 watch(
   () => [form.search, form.status, form.organizations],
-  throttle(() => {
+  debounce(() => {
     const picked = pickBy(form);
     if (picked.organizations) {
       picked.organizations = Object.keys(picked.organizations);
     }
-    router.get(urls.orders.spareParts.index(), picked, { preserveState: true });
+    router.get(route('orders.spare-parts.index'), picked, { preserveState: true });
   }, 300)
 );
 

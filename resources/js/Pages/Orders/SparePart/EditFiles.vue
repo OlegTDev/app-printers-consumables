@@ -6,7 +6,6 @@ import { computed, ref } from 'vue';
 import Label from '@/Shared/Label.vue';
 import Button from 'primevue/button';
 import { useConfirm } from 'primevue/useconfirm';
-import { useConfig } from '@/Composables/useConfig';
 import Card from '@/Shared/Card.vue';
 import Title from '@/Shared/Title.vue';
 import { FileUpload } from 'primevue';
@@ -22,7 +21,6 @@ const props = defineProps({
   labels: Object,
 });
 
-const { urls } = useConfig();
 const { formatDate } = useDate();
 const title = 'Изменение файлов';
 
@@ -35,7 +33,7 @@ const orderSparePartDetailData = computed(() => props.orderSparePartDetail?.data
 const uploadFilesRef = ref({});
 
 const uploadFiles = () => {
-  form.post(urls.orders.spareParts.uploadFile(orderSparePartDetailData.value.id), {
+  form.post(route('orders.spare-parts.files.upload', { orderSparePartDetails: orderSparePartDetailData.value.id }), {
     forceFormData: true,
     onFinish: () => {
       form.reset('files');
@@ -50,7 +48,10 @@ const deleteFile = (idFile) => {
     message: 'Вы уверены, что хотите удалить файл?',
     header: 'Удаление файла',
     accept: () => {
-      const url = urls.orders.spareParts.deleteFile(orderSparePartDetailData.value.id, idFile);
+      const url = route('orders.spare-parts.files.delete', {
+        orderSparePartDetails: orderSparePartDetailData.value.id,
+        orderSparePartDetailsFile: idFile,
+      });
       router.delete(url, {
         preserveScroll: true,
       });
@@ -59,7 +60,7 @@ const deleteFile = (idFile) => {
 };
 
 const home = () => {
-  router.get(urls.orders.spareParts.show(orderSparePartDetailData.value.id));
+  router.get(route('orders.spare-parts.show', { orderSparePartDetails: orderSparePartDetailData.value.id }));
 };
 
 const select = (event) => {
@@ -70,12 +71,12 @@ const select = (event) => {
   <Head :title="title" />
 
   <Breadcrumbs
-    :home="{ label: 'Главная', url: '/' }"
+    :home="{ label: 'Главная', url: route('home') }"
     :items="[
-      { label: 'Заказ запчастей', url: urls.orders.spareParts.index() },
+      { label: 'Заказ запчастей', url: route('orders.spare-parts.index') },
       {
         label: `Заказ № ${orderSparePartDetailData.order.id} от ${formatDate(orderSparePartDetailData.order.created_at, 'L')}`,
-        url: urls.orders.spareParts.show(orderSparePartDetailData.id),
+        url: route('orders.spare-parts.show', { orderSparePartDetails: orderSparePartDetailData.id }),
       },
       { label: title },
     ]"
