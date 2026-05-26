@@ -4,7 +4,6 @@ import Layout from '@/Shared/Layout.vue';
 import { computed } from 'vue';
 import Breadcrumbs from '@/Shared/Breadcrumbs.vue';
 import Form from './Form.vue';
-import { useConfig } from '@/Composables/useConfig';
 
 defineOptions({
   layout: Layout
@@ -26,7 +25,7 @@ const props = defineProps({
 });
 
 const title = computed(() => `${props.printer.vendor} ${props.printer.model}`);
-const { urls } = useConfig();
+
 </script>
 <template>
   <Head :title="title" />
@@ -34,8 +33,8 @@ const { urls } = useConfig();
   <Breadcrumbs
     :home="{ label: 'Главная', url: route('home') }"
     :items="[
-      { label: 'Принтеры (справочник)', url: urls.dictionary.printers.index() },
-      { label: `${printer.vendor} ${props.printer.model}`, url: urls.dictionary.printers.show(printer.id) },
+      { label: 'Принтеры (справочник)', url: route('dictionary.printers.index') },
+      { label: `${printer.vendor} ${props.printer.model}`, url: route('dictionary.printers.show', { printer: printer.id }) },
       { label: 'Редактирование' },
     ]"
   />
