@@ -6,7 +6,6 @@ import { useConfirm } from "primevue/useconfirm";
 import Button from 'primevue/button';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
-import { useConfig } from '@/Composables/useConfig';
 import Card from '@/Shared/Card.vue';
 import Title from '@/Shared/Title.vue';
 import DetailViewer from '@/Shared/DetailViewer.vue';
@@ -15,7 +14,7 @@ import Timestamps from '@/Shared/DataTable/Timestamps.vue';
 import { useAuth } from '@/Composables/useAuth';
 
 defineOptions({
-    layout: Layout,
+  layout: Layout,
 });
 
 const props = defineProps({
@@ -29,35 +28,34 @@ const props = defineProps({
   consumableLabels: Object,
 });
 
-const { urls } = useConfig();
 const confirm = useConfirm();
 
 const { can } = useAuth();
 
 const title = `${props.printer.vendor} ${props.printer.model}`;
-const goToEdit = () => router.get(urls.dictionary.printers.edit(props.printer.id));
+const goToEdit = () => router.get(route('dictionary.printers.edit', { printer: props.printer.id }));
 
 const deletePrinter = () => {
   confirm.require({
     message: 'Вы уверены, что хотите удалить запись?',
     header: 'Удаление записи',
     accept: () => {
-      const url = urls.dictionary.printers.delete(props.printer.id);
+      const url = route('dictionary.printers.destroy', { printer: props.printer.id });
       router.delete(url);
     },
   });
 };
 
 const createRelation = () => {
-  router.get(urls.dictionary.printers.consumables.index(props.printer.id));
+  router.get(route('dictionary.printers.consumables.index', { printer: props.printer.id }));
 };
 
-const deleteRelation = (id) => {
+const deleteRelation = (consumableId) => {
   confirm.require({
     message: 'Вы уверены, что хотите удалить связь?',
     header: 'Удаление связи',
     accept: () => {
-      const url = urls.dictionary.printers.consumables.delete(props.printer.id, id);
+      const url = route('dictionary.printers.consumables.destroy', { printer: props.printer.id, consumable: consumableId });
       router.delete(url);
     },
   });
@@ -69,10 +67,10 @@ const deleteRelation = (id) => {
   <Head :title="title" />
 
   <Breadcrumbs
-    :home="{ label: 'Главная', url: urls.home }"
+    :home="{ label: 'Главная', url: route('home') }"
     :items="[
       { label: 'Справочники', },
-      { label: 'Принтеры', url: urls.dictionary.printers.index() },
+      { label: 'Принтеры', url: route('dictionary.printers.index') },
       { label: title },
     ]"
   />

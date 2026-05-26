@@ -8,13 +8,12 @@ import Column from 'primevue/column';
 import Button from 'primevue/button';
 import InputText from 'primevue/inputtext';
 import pickBy from 'lodash/pickBy';
-import throttle from 'lodash/throttle';
-import { useConfig } from '@/Composables/useConfig';
 import { useAuth } from '@/Composables/useAuth';
 import Title from '@/Shared/Title.vue';
 import Card from '@/Shared/Card.vue';
 import IconField from 'primevue/iconfield';
 import InputIcon from 'primevue/inputicon';
+import { debounce } from 'lodash';
 
 const props = defineProps({
   printer: Object,
@@ -30,7 +29,6 @@ defineOptions({
 });
 
 const title = `Привязка расходного материала`;
-const { urls } = useConfig();
 const { can } = useAuth();
 const filters = reactive(props.filters);
 
@@ -39,14 +37,14 @@ const form = reactive({
 });
 watch(
   () => form,
-  throttle(() => {
-    router.get(urls.dictionary.printers.consumables.index(props.printer.id), pickBy(form), { preserveState: true });
-  }, 150),
+  debounce(() => {
+    router.get(route('dictionary.printers.consumables.index', { printer: props.printer.id }), pickBy(form), { preserveState: true });
+  }, 300),
   { deep: true }
 );
 
 const addConsumable = (id) => {
-  const url = urls.dictionary.printers.consumables.add(props.printer.id, id);
+  const url = route('dictionary.printers.consumables.add', { printer: props.printer.id, consumable: id });
   router.post(url);
 };
 
@@ -55,10 +53,10 @@ const addConsumable = (id) => {
   <Head :title="title" />
 
   <Breadcrumbs
-    :home="{ label: 'Главная', url: urls.dictionary.home }"
+    :home="{ label: 'Главная', url: route('home') }"
     :items="[
       { label: 'Справочники', },
-      { label: 'Принтеры', url: urls.dictionary.printers.index() },
+      { label: 'Принтеры', url: route('dictionary.printers.index') },
       { label: title },
     ]"
   />
@@ -78,7 +76,7 @@ const addConsumable = (id) => {
       <template #header>
         <div class="flex justify-between">
           <div>
-            <Button type="button" severity="secondary" outlined @click="router.get(urls.dictionary.printers.show(printer.id))">
+            <Button type="button" severity="secondary" outlined @click="router.get(route('dictionary.printers.show', { printer: printer.id }))">
               <i class="pi pi-arrow-circle-left" />
               Назад
             </Button>

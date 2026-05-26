@@ -4,7 +4,6 @@ import Label from '@/Shared/Label.vue';
 import { useForm, router } from '@inertiajs/vue3';
 import Button from 'primevue/button';
 import { useConfirm } from "primevue/useconfirm";
-import { useConfig } from '@/Composables/useConfig';
 import Card from '@/Shared/Card.vue';
 import Title from '@/Shared/Title.vue';
 import FieldRowVertical from '@/Shared/Form/FieldRowVertical.vue';
@@ -39,7 +38,6 @@ const props = defineProps({
   },
 });
 
-const { urls } = useConfig();
 const confirm = useConfirm();
 
 const form = useForm({
@@ -50,11 +48,11 @@ const form = useForm({
 
 const save = () => {
   if (props.isNew) {
-    const url = urls.dictionary.printers.index();
+    const url = route('dictionary.printers.index');
     form.post(url);
   }
   else {
-    const url = urls.dictionary.printers.update(props.printer.id);
+    const url = route('dictionary.printers.update', { printer: props.printer.id });
     form.put(url);
   }
 };
@@ -64,7 +62,7 @@ const destroy = () => {
     message: 'Вы уверены, что хотите удалить?',
     header: 'Удаление',
     accept: () => {
-      const url = urls.dictionary.printers.delete(props.printer.id);
+      const url = route('dictionary.printers.destroy', { printer: props.printer.id });
       router.delete(url);
     },
   });
@@ -99,7 +97,7 @@ watch(
               option-label="label"
               option-value="value"
               :placeholder="labels.vendor"
-              :invalid="form.errors?.vendor"
+              :invalid="!!form.errors?.vendor"
             />
           </template>
           <template #message>
@@ -116,7 +114,7 @@ watch(
             <InputText
               v-model="form.model"
               :placeholder="labels.model"
-              :invalid="form.errors?.model"
+              :invalid="!!form.errors?.model"
             />
           </template>
           <template #message>

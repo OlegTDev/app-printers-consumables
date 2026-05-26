@@ -8,8 +8,6 @@ import Column from 'primevue/column';
 import Button from 'primevue/button';
 import InputText from 'primevue/inputtext';
 import pickBy from 'lodash/pickBy';
-import throttle from 'lodash/throttle';
-import { useConfig } from '@/Composables/useConfig';
 import Card from '@/Shared/Card.vue';
 import Title from '@/Shared/Title.vue';
 import IconField from 'primevue/iconfield';
@@ -17,20 +15,20 @@ import InputIcon from 'primevue/inputicon';
 import Timestamps from '@/Shared/DataTable/Timestamps.vue';
 import Author from '@/Shared/DataTable/Author.vue';
 import { useAuth } from '@/Composables/useAuth';
+import { debounce } from 'lodash';
 
 const props = defineProps({
-    printers: Object,
-    labels: Object,
-    filters: Object,
+  printers: Object,
+  labels: Object,
+  filters: Object,
 });
 
 defineOptions({
-    layout: Layout
+  layout: Layout
 });
 
 const title = 'Принтеры (справочник)';
 
-const { urls } = useConfig();
 const { can } = useAuth();
 
 const selectedRow = ref();
@@ -41,14 +39,14 @@ const form = reactive({
 
 watch(
   () => form,
-  throttle(() => {
-    router.get(urls.dictionary.printers.index(), pickBy(form), { preserveState: true });
-  }, 150),
+  debounce(() => {
+    router.get(route('dictionary.printers.index'), pickBy(form), { preserveState: true });
+  }, 300),
   { deep: true }
 );
 
 const onRowSelect = (event) => {
-  router.get(urls.dictionary.printers.show(event.data.id));
+  router.get(route('dictionary.printers.show', { printer: event.data.id }));
 };
 
 const refTablePrintersDic = ref(null);
@@ -65,7 +63,7 @@ const onPageChange = () => {
   <Head :title="title" />
 
   <Breadcrumbs
-    :home="{ label: 'Главная', url: '/' }"
+    :home="{ label: 'Главная', url: route('home') }"
     :items="[
       { label: title },
     ]"
@@ -94,7 +92,7 @@ const onPageChange = () => {
               v-if="can('admin', 'editor-dictionary')"
               type="button"
               severity="info"
-              @click="router.get(urls.dictionary.printers.create())"
+              @click="router.get(route('dictionary.printers.create'))"
             >
               Добавить принтер
             </Button>

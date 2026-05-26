@@ -32,7 +32,7 @@ const { urls } = useConfig();
   <Head :title="title" />
 
   <Breadcrumbs
-    :home="{ label: 'Главная', url: urls.home }"
+    :home="{ label: 'Главная', url: route('home') }"
     :items="[
       { label: 'Принтеры (справочник)', url: urls.dictionary.printers.index() },
       { label: `${printer.vendor} ${props.printer.model}`, url: urls.dictionary.printers.show(printer.id) },
