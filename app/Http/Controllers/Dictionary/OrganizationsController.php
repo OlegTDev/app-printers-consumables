@@ -40,7 +40,7 @@ class OrganizationsController extends Controller
      * @return \Inertia\Response
      */
     public function index()
-    {             
+    {
         return Inertia::render('Dictionary/Organizations/Index', [
             'organizations' => $this->getOrganizationsTree(),
             'labels' => Organization::labels(),
@@ -92,7 +92,7 @@ class OrganizationsController extends Controller
      * @return \Inertia\Response
      */
     public function edit(Organization $organization)
-    {        
+    {
         return Inertia::render('Dictionary/Organizations/Edit', [
             'organization' => $organization,
             'labels' => Organization::labels(),
@@ -107,10 +107,10 @@ class OrganizationsController extends Controller
      */
     public function update(OrganizationRequest $request, Organization $organization)
     {
-        $organizationUpdate = $organization->update($request->all());        
+        $organizationUpdate = $organization->update($request->all());
         if (!$organizationUpdate) {
             return redirect()->back();
-        }        
+        }
         return redirect()->route('dictionary.organizations.index')
             ->with('success', 'Запись успешно обновлена!');
     }
@@ -123,7 +123,8 @@ class OrganizationsController extends Controller
     public function destroy(Organization $organization)
     {
         $organization->delete();
-        return Redirect::back()->with('success', 'Organization deleted.');
+        return redirect()->route('dictionary.organizations.index')
+            ->with('success', 'Запись успешно удалена.');
     }
 
 }
