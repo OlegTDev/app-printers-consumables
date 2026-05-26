@@ -19,7 +19,8 @@ Route::put('consumables/counts/{count}/update-organizations', [ConsumablesCounts
     ->name('consumables.counts.update-organization');
 Route::get('consumables/counts/{count}/journal-added', [ConsumablesCountsController::class, 'journalAdded']);
 Route::get('consumables/counts/{count}/journal-installed', [ConsumablesCountsController::class, 'journalInstalled']);
-Route::get('consumables/counts/list-by-printer/{printer}', [ConsumablesCountsController::class, 'listByPrinter']);
+Route::get('consumables/counts/list-by-printer/{printer}', [ConsumablesCountsController::class, 'listByPrinter'])
+    ->name('consumables.counts.list-by-printer');
 
 Route::resource('consumables.counts.added', ConsumablesCountsAddedController::class)->only(['index', 'destroy']);
 Route::resource('consumables.counts.installed', ConsumablesCountsInstalledController::class)->only(['index', 'store', 'destroy']);
