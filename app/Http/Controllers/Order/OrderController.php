@@ -117,7 +117,7 @@ class OrderController extends Controller
     {
         $context = $request->get('context');
         $route = $context ? "$context.$action" : $action;
-        return redirect()->route($route);
+        return redirect()->route("orders.$route");
     }
 
 

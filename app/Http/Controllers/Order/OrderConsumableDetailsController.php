@@ -70,7 +70,7 @@ class OrderConsumableDetailsController extends Controller
             $request->input('service_request_date'),
         );
 
-        return redirect()->route('consumables.index')
+        return redirect()->route('orders.consumables.index')
             ->with('success', 'Заявка успешно добавлена!');
     }
 
@@ -129,7 +129,7 @@ class OrderConsumableDetailsController extends Controller
 
         $orderConsumableDetails->update($request->only(['id_consumable']));
         $orderConsumableDetails->order()->update($request->only(['quantity', 'comment', 'service_request_number', 'service_request_date']));
-        return redirect()->route('consumables.show', ['orderConsumableDetails' => $orderConsumableDetails])
+        return redirect()->route('orders.consumables.show', ['orderConsumableDetails' => $orderConsumableDetails])
             ->with('success', 'Изменения сохранены!');
     }
 
