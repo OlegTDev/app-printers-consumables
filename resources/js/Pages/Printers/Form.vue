@@ -5,7 +5,6 @@ import { onMounted, ref, watch } from 'vue';
 import { useForm } from '@inertiajs/vue3';
 import Button from 'primevue/button';
 import TreeSelect from 'primevue/treeselect';
-import { useConfig } from '@/Composables/useConfig';
 import { useAuth } from '@/Composables/useAuth';
 import Select from 'primevue/select';
 import Card from '@/Shared/Card.vue';
@@ -43,7 +42,6 @@ const props = defineProps({
     }),
   },
 });
-const { urls } = useConfig();
 
 const form = useForm({
   id: props.printerWorkplace.id,
@@ -68,10 +66,10 @@ const organizationChange = (value) => {
 
 const save = () => {
   if (props.isNew) {
-    form.post(urls.printers.store());
+    form.post(route('workplace.store'));
   }
   else {
-    form.put(urls.printers.update(props.printerWorkplace.id));
+    form.put(route('workplace.update', { workplace: props.printerWorkplace.id }));
   }
 };
 

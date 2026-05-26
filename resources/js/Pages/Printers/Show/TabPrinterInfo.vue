@@ -6,7 +6,6 @@ import { useConfirm } from 'primevue/useconfirm';
 import { useAuth } from '@/Composables/useAuth';
 import { computed } from 'vue';
 import Title from '@/Shared/Title.vue';
-import { useConfig } from '@/Composables/useConfig';
 
 const props = defineProps({
   title: String,
@@ -19,15 +18,14 @@ const props = defineProps({
 
 const confirm = useConfirm();
 const { can } = useAuth();
-const { urls } = useConfig();
 
 const actions = {
-  edit: () => router.get(urls.printers.edit(props.printerWorkplace.id)),
+  edit: () => router.get(route('workplace.edit', { workplace: props.printerWorkplace.id })),
   delete: () => confirm.require({
     message: 'Вы уверены, что хотите удалить?',
     header: 'Удаление',
     accept: () => {
-      const url = urls.printers.delete(props.printerWorkplace.id);
+      const url = route('workplace.destroy', { workplace: props.printerWorkplace.id });
       router.delete(url);
     },
   }),

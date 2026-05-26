@@ -3,13 +3,10 @@ import { Head } from '@inertiajs/vue3';
 import Layout from '@/Shared/Layout.vue';
 import Breadcrumbs from '@/Shared/Breadcrumbs.vue';
 import Form from './Form.vue';
-import { useConfig } from '@/Composables/useConfig';
 
 defineOptions({
-    layout: Layout
+  layout: Layout
 });
-
-const { urls } = useConfig();
 
 defineProps({
   labels: { type: Object, required: true },
@@ -24,10 +21,13 @@ const title = 'Редактирование';
   <Head :title="title" />
 
   <Breadcrumbs
-    :home="{ label: 'Главная', url: urls.home }"
+    :home="{ label: 'Главная', url: route('home') }"
     :items="[
-      { label: 'Принтеры', url: urls.printers.index() },
-      { label: `${printerWorkplace.printer.vendor} ${printerWorkplace.printer.model} (${printerWorkplace.location})`, url: urls.printers.show(printerWorkplace.id) },
+      { label: 'Принтеры', url: route('workplace.index') },
+      {
+        label: `${printerWorkplace.printer.vendor} ${printerWorkplace.printer.model} (${printerWorkplace.location})`,
+        url: route('workplace.show', { workplace: printerWorkplace.id }),
+      },
       { label: title },
     ]"
   />

@@ -10,7 +10,6 @@ import TableTitle from '@/Shared/TableTitle.vue';
 import InputText from 'primevue/inputtext';
 import pickBy from 'lodash/pickBy';
 import Badge from 'primevue/badge';
-import { useConfig } from '@/Composables/useConfig';
 import { useDate } from '@/Composables/useDate';
 import { useAuth } from '@/Composables/useAuth';
 import Card from '@/Shared/Card.vue';
@@ -47,7 +46,6 @@ defineOptions({
   layout: Layout
 });
 
-const { urls } = useConfig();
 const { fromNow, formatDate } = useDate();
 const { can } = useAuth();
 
@@ -60,7 +58,7 @@ const form = ref({
 watch(
   () => form.value,
   debounce(() => {
-    router.get(urls.printers.index(), pickBy(form.value), {
+    router.get(route('workplace.index'), pickBy(form.value), {
       preserveState: true,
       onStart: () => {
         loading.value = true;
@@ -69,7 +67,7 @@ watch(
         loading.value = false;
       },
     });
-  }, 150),
+  }, 300),
   { deep: true }
 );
 
@@ -89,8 +87,8 @@ const onRowSelect = (event) => {
 const title = 'Принтеры';
 
 const actions = {
-  create: () => router.get(urls.printers.create()),
-  show: (id) => router.get(urls.printers.show(id)),
+  create: () => router.get(route('workplace.create')),
+  show: (id) => router.get(route('workplace.show', { workplace: id })),
 };
 
 const showConsumables = ref({});
@@ -103,7 +101,7 @@ const toggleConsumable = (id) => {
   <Head :title="title" />
 
   <Breadcrumbs
-    :home="{ label: 'Главная', url: '/' }"
+    :home="{ label: 'Главная', url: route('home') }"
     :items="[{ label: title }]"
   />
 
