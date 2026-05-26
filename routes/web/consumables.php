@@ -24,5 +24,4 @@ Route::get('consumables/counts/list-by-printer/{printer}', [ConsumablesCountsCon
 
 Route::resource('consumables.counts.added', ConsumablesCountsAddedController::class)->only(['index', 'destroy']);
 Route::resource('consumables.counts.installed', ConsumablesCountsInstalledController::class)->only(['index', 'store', 'destroy']);
-Route::get('consumables/counts/installed/last', [ConsumablesCountsInstalledController::class, 'last']);
-Route::get('consumables/counts/installed/master', [ConsumablesCountsInstalledController::class, 'master']);
+Route::get('consumables/counts/installed/last', [ConsumablesCountsInstalledController::class, 'last'])->name('consumables.counts.installed.last');
