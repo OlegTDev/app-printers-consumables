@@ -75,7 +75,7 @@ class OrderSparePartDetailsController extends Controller
             $this->uploadFiles($modelOrderSparePart, $request);
         });
 
-        return redirect()->route('spare-parts.index')
+        return redirect()->route('orders.spare-parts.index')
             ->with('success', 'Заявка успешно добавлена!');
     }
 
@@ -130,7 +130,7 @@ class OrderSparePartDetailsController extends Controller
 
         $orderSparePartDetails->update($request->only(['id_printers_workplace', 'call_specialist', 'id_spare_part']));
         $orderSparePartDetails->order()->update($request->only(['service_request_number', 'service_request_date']));
-        return redirect()->route('spare-parts.show', ['orderSparePartDetails' => $orderSparePartDetails])
+        return redirect()->route('orders.spare-parts.show', ['orderSparePartDetails' => $orderSparePartDetails])
             ->with('success', 'Изменения сохранены!');
     }
 
