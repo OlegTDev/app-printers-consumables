@@ -63,7 +63,7 @@ class OrderMiscDetailsController extends Controller
             comment: $request->input('comment'),
         );
 
-        return redirect()->route('misc.index')
+        return redirect()->route('orders.misc.index')
             ->with('success', 'Заявка успешно добавлена!');
     }
 
@@ -117,7 +117,7 @@ class OrderMiscDetailsController extends Controller
 
         $orderMiscDetails->update($request->only(['name', 'description']));
         $orderMiscDetails->order()->update($request->only(['comment']));
-        return redirect()->route('misc.show', ['orderMiscDetails' => $orderMiscDetails])
+        return redirect()->route('orders.misc.show', ['orderMiscDetails' => $orderMiscDetails])
             ->with('success', 'Изменения сохранены!');
     }
 
