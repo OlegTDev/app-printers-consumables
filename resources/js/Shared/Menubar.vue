@@ -7,23 +7,16 @@ import { defineAsyncComponent, ref } from 'vue';
 import { router } from '@inertiajs/vue3';
 import Logo from '@/Shared/Logo.vue';
 import { useDialog } from 'primevue/usedialog';
+import { useAuth } from '@/Composables/useAuth';
 
-/** @type {{ urls: typeof import('@/config/urls').urls }} */
-const props = defineProps({
+const { appName } = defineProps({
   appName: {
     type: String,
     required: true,
   },
-  auth: {
-    type: Object,
-    required: true,
-  },
-  urls: {
-    type: Object,
-    required: true,
-  },
 });
 
+const { user } = useAuth();
 
 const dialog = useDialog();
 const OrganizationsDialog = defineAsyncComponent(
@@ -42,9 +35,6 @@ const openOrganizationsDialog = () => {
       },
       modal: true,
     },
-    data: {
-      auth: props.auth,
-    },
   });
 };
 
@@ -53,14 +43,14 @@ const profileMenu = ref([
     label: 'Профиль',
     icon: 'pi pi-user-edit',
     command: () => {
-      router.get(props.urls.users.edit(props.auth.user.id));
+      router.get(route('users.edit', { user: user.value.id }));
     },
   },
   {
     label: 'Выход',
     icon: 'pi pi-sign-out',
     command: () => {
-      router.delete(props.urls.auth.logout());
+      router.delete(route('logout.custom'));
     },
   },
 ]);
@@ -89,11 +79,11 @@ const toggleProfileMenu = (event) => {
           @click="openOrganizationsDialog"
         >
           <i class="pi pi-building-columns" />
-          {{ auth?.user?.org_code }}
+          {{ user.org_code }}
         </Button>
         <div class="h-6 w-px bg-gray-200 mx-2" />
         <Avatar
-          v-tooltip="`${auth?.user?.fio ? auth.user.fio : ''} (${auth?.user?.name})`"
+          v-tooltip="`${user.fio || ''} (${user.name})`"
           aria-controls="overlay_menu_profile"
           class="font-extrabold cursor-pointer"
           shape="circle"
