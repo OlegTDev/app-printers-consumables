@@ -2,7 +2,6 @@
 import { Head, router } from '@inertiajs/vue3';
 import pickBy from 'lodash/pickBy';
 import Layout from '@/Shared/Layout.vue';
-import throttle from 'lodash/throttle';
 import Tag from 'primevue/tag';
 import { reactive, ref, watch } from 'vue';
 import DataTable from 'primevue/datatable';
@@ -13,7 +12,7 @@ import InputIcon from 'primevue/inputicon';
 import MultiSelect from 'primevue/multiselect';
 import Breadcrumbs from '@/Shared/Breadcrumbs.vue';
 import Button from 'primevue/button';
-import { useConfig } from '@/Composables/useConfig';
+import { debounce } from 'lodash';
 
 const props = defineProps({
   filters: Object,
@@ -27,8 +26,6 @@ defineOptions({
 
 const filters = reactive(props.filters);
 
-const { urls } = useConfig();
-
 const form = reactive({
   search: filters.search,
   role: filters.role,
@@ -37,19 +34,19 @@ const form = reactive({
 
 watch(
   () => form,
-  throttle(() => {
-    router.get(urls.users.index(), pickBy(form), { preserveState: true });
-  }, 150),
+  debounce(() => {
+    router.get(route('users.index'), pickBy(form), { preserveState: true });
+  }, 300),
   { deep: true }
 );
 
 
 const create = () => {
-  router.get(urls.users.create());
+  router.get(route('users.create'));
 };
 
 const onRowSelect = (event) => {
-  router.get(urls.users.edit(event.data.id));
+  router.get(route('users.edit', { user: event.data.id }));
 };
 
 const refTableUsers = ref(null);
@@ -62,14 +59,13 @@ const onPageChange = () => {
 };
 
 const title = 'Пользователи';
-
 </script>
 <template>
   <div>
     <Head :title="title" />
 
     <Breadcrumbs
-      :home="{ label: 'Главная', url: urls.home }"
+      :home="{ label: 'Главная', url: route('home') }"
       :items="[
         { label: title },
       ]"

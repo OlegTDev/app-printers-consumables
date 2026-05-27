@@ -9,7 +9,6 @@ import { ref, computed } from 'vue';
 import Menu from 'primevue/menu';
 import ProgressSpinner from 'primevue/progressspinner';
 import Button from 'primevue/button';
-import { useConfig } from '@/Composables/useConfig';
 import { useAuth } from '@/Composables/useAuth';
 import { useConfirm } from 'primevue/useconfirm';
 
@@ -23,7 +22,6 @@ defineOptions({
   layout: Layout
 });
 
-const { urls } = useConfig();
 const { can } = useAuth();
 const confirm = useConfirm();
 
@@ -51,7 +49,7 @@ const form = useForm({
 const title = `${props.user.fio ?? ''} (${props.user.name})`;
 
 function update() {
-  form.put(urls.users.update(props.user.id), {
+  form.put(route('users.update', { user: props.user.id }), {
     onError: () => {
 
     },
@@ -65,9 +63,9 @@ const destroy = () => {
     message: 'Вы уверены, что хотите удалить данного пользователя?',
     header: 'Удаление',
     accept: () => {
-      form.delete(urls.users.delete(props.user.id), {
+      form.delete(route('users.destroy', { user: props.user.id }), {
         onSuccess: () => {
-          router.get(urls.users.edit(props.user.id));
+          router.get(route('users.edit', { user: props.user.id }));
         },
       });
     },
@@ -79,9 +77,9 @@ const restore = () => {
     message: 'Вы уверены, что хотите восстановить данного пользователя?',
     header: 'Восстановление',
     accept: () => {
-      form.put(urls.users.restore(props.user.id), {
+      form.put(route('users.restore', { user: props.user.id }), {
         onSuccess: () => {
-          router.get(urls.users.edit(props.user.id));
+          router.get(route('users.edit', { user: props.user.id }));
         },
       });
     },
@@ -97,9 +95,9 @@ const isSelectedAdmin = computed(() => {
   <Head :title="title" />
 
   <Breadcrumbs
-    :home="{ label: 'Главная', url: urls.home }"
+    :home="{ label: 'Главная', url: route('home') }"
     :items="[
-      { label: 'Пользователи', url: urls.users.index() },
+      { label: 'Пользователи', url: route('users.index') },
       { label: form.name }
     ]"
   />

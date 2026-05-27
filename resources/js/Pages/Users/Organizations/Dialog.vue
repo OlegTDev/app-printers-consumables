@@ -7,12 +7,10 @@ import TreeTable from 'primevue/treetable';
 import Column from 'primevue/column';
 import Button from 'primevue/button';
 import organizationService from '@/Services/organizationService';
-import { useConfig } from '@/Composables/useConfig';
 
 const dialogRef = inject('dialogRef');
 const loading = ref(true);
 const errorMessage = ref(null);
-const { urls } = useConfig();
 const organizations = ref([]);
 const organizationLabels = ref({});
 const selectedOrganization = ref();
@@ -28,7 +26,7 @@ onMounted(async () => {
 const loadOrganizations = async() => {
   try {
     loading.value = true;
-    const data = await organizationService.fetch(urls.users.organizations.index());
+    const data = await organizationService.fetch(route('users.organizations'));
     organizations.value = data.organizations;
     organizationLabels.value = data.labels;
     expandedKeys.value = organizationService.expandAll(organizations.value);
@@ -45,7 +43,7 @@ const dialogClose = () => dialogRef.value.close();
 const change = (code) => {
   if (code !== selectedOrganization.value) {
     saving.value = code;
-    const url = urls.users.organizations.change(code);
+    const url = route('users.organizations.change', { organization: code });
     router.post(url, {}, {
       onFinish: () => {
         dialogClose();
