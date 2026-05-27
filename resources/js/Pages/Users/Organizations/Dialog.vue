@@ -7,19 +7,21 @@ import TreeTable from 'primevue/treetable';
 import Column from 'primevue/column';
 import Button from 'primevue/button';
 import organizationService from '@/Services/organizationService';
+import { useAuth } from '@/Composables/useAuth';
 
 const dialogRef = inject('dialogRef');
 const loading = ref(true);
 const errorMessage = ref(null);
 const organizations = ref([]);
 const organizationLabels = ref({});
-const selectedOrganization = ref();
+const selectedOrganization = ref(null);
 const saving = ref(null);
-
 const expandedKeys = ref({});
 
+const { user } = useAuth();
+
 onMounted(async () => {
-  selectedOrganization.value = dialogRef.value.data.auth.user.org_code;
+  selectedOrganization.value = user.value.org_code;
   await loadOrganizations();
 });
 
