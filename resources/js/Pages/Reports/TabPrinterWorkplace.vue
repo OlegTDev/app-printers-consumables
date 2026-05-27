@@ -52,12 +52,12 @@ const exportToExcel = async () => {
     <Panel header="Список организаций">
       <div v-for="organization in organizations" :key="organization.code" class="flex items-center mt-2">
         <Checkbox
-          :id="organization.code"
           v-model="form.selectedOrganizations"
+          :input-id="`printer-workplace-${organization.code}`"
           name="organizations"
           :value="organization.code"
         />
-        <label :for="organization.code" class="ml-2 cursor-pointer">
+        <label :for="`printer-workplace-${organization.code}`" class="ml-2 cursor-pointer">
           {{ organization.label }}
         </label>
       </div>
