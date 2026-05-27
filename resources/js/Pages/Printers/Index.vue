@@ -6,7 +6,6 @@ import Breadcrumbs from '@/Shared/Breadcrumbs.vue';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import Button from 'primevue/button';
-import TableTitle from '@/Shared/TableTitle.vue';
 import InputText from 'primevue/inputtext';
 import pickBy from 'lodash/pickBy';
 import Badge from 'primevue/badge';
@@ -18,6 +17,8 @@ import InputIcon from 'primevue/inputicon';
 import PrinterWorkplace from '@/Shared/DataTable/PrinterWorkplace.vue';
 import debounce from 'lodash/debounce';
 import Skeleton from 'primevue/skeleton';
+import Title from '@/Shared/Title.vue';
+
 
 const props = defineProps({
   printersWorkplace: {
@@ -105,7 +106,8 @@ const toggleConsumable = (id) => {
     :items="[{ label: title }]"
   />
 
-  <Card :padding-body-classes="['p-5']">
+  <Card>
+    <Title>{{ title }}</Title>
     <DataTable
       ref="refTablePrintersWorkplace"
       v-model:selection="selectedRow"
@@ -120,10 +122,7 @@ const toggleConsumable = (id) => {
       @row-select="onRowSelect"
     >
       <template #header>
-        <TableTitle class="border-b border-gray-200 pb-2">
-          {{ title }}
-        </TableTitle>
-        <div class="flex justify-between mt-5">
+        <div class="flex justify-between">
           <div>
             <Button v-if="can('admin', 'editor-printer-workplace')" severity="info" @click="actions.create">
               Добавить принтер
