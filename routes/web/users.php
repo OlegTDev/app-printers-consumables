@@ -12,4 +12,4 @@ Route::put('users/{user}/restore', [UsersController::class, 'restore'])
 Route::get('users/organizations', [UsersOrganizationsController::class, 'index'])
     ->name('users.organizations');
 Route::post('users/organizations/{organization}', [UsersOrganizationsController::class, 'change'])
-    ->named('users.organizations.change');
+    ->name('users.organizations.change');
