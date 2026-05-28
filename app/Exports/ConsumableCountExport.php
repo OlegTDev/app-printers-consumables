@@ -4,54 +4,37 @@ namespace App\Exports;
 
 use App\Models\Consumable\CartridgeColors;
 use App\Models\Consumable\ConsumableTypesEnum;
-use Illuminate\Support\Facades\DB;
+use App\Services\Query\ConsumableCountQueryService;
+use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithStyles;
 
+/**
+ * Отчет "Остатки расходных материалов"
+ */
 class ConsumableCountExport implements FromQuery, WithMapping, WithHeadings, ShouldAutoSize, WithStyles
 {
-    private $indexRow = 0;
-
-    /**
-     * @param array $organizations    
-     */
     public function __construct(
-        private array $organizations,     
+        private array $organizations,
+        private ConsumableCountQueryService $queryService,
     ) {}
 
     /**
-     * Запрос
-     * {@inheritDoc}
+     * @return EloquentBuilder|Relation
      */
     public function query()
-    {        
-        return DB::table('consumables_counts')
-            ->select([
-                'consumables_counts.count', 
-                'consumables_counts_organizations.org_code', 
-                'consumables.type',
-                'consumables.name',
-                'consumables.color',
-                'consumables.description',
-            ])
-            ->leftJoin('consumables_counts_organizations', 'consumables_counts_organizations.id_consumable_count', '=', 'consumables_counts.id')
-            ->rightJoin('consumables', 'consumables.id', '=', 'consumables_counts.id_consumable')
-            ->whereIn('org_code', $this->organizations)
-            ->orderBy('org_code', 'asc')
-            ->orderBy('name', 'asc');
+    {
+        return $this->queryService->buildConsumableCountByOrganizations($this->organizations);
     }
 
-    /**
-     * @param \stdClass $row
-     * @return array
-     */
     public function map($row): array
     {
         return [
-            ++$this->indexRow,
+            $row->row_num,
             $row->org_code,
             $this->getConsumableType($row->type),
             $row->name,
@@ -59,30 +42,8 @@ class ConsumableCountExport implements FromQuery, WithMapping, WithHeadings, Sho
             $row->count,
             $row->description,
         ];
-    }    
-
-    /**
-     * @param string|null $color
-     * @return string|null
-     */
-    private function getNameByColor($color)
-    {
-        return CartridgeColors::getNameByColor($color);
     }
 
-    /**
-     * @param string $type
-     * @return string
-     */
-    private function getConsumableType($type)
-    {
-        return ConsumableTypesEnum::getValueByName($type);
-    }
-
-    /**
-     * Заголовки
-     * @return array
-     */
     public function headings(): array
     {
         return [
@@ -96,12 +57,7 @@ class ConsumableCountExport implements FromQuery, WithMapping, WithHeadings, Sho
         ];
     }
 
-    /**
-     * Стилизация
-     * @param \PhpOffice\PhpSpreadsheet\Worksheet\Worksheet $sheet
-     * @return void
-     */
-    public function styles(\PhpOffice\PhpSpreadsheet\Worksheet\Worksheet $sheet)
+    public function styles(\PhpOffice\PhpSpreadsheet\Worksheet\Worksheet $sheet): void
     {
         $styleArray = [
             'font' => ['bold' => true],
@@ -122,6 +78,16 @@ class ConsumableCountExport implements FromQuery, WithMapping, WithHeadings, Sho
         $sheet->getStyle($rangeHeaderRow)->applyFromArray($styleArray);
         // фильтр
         $sheet->setAutoFilter($rangeHeaderRow);
+    }
+
+    private function getNameByColor(?string $color): ?string
+    {
+        return CartridgeColors::getNameByColor($color);
+    }
+
+    private function getConsumableType(?string $type): string
+    {
+        return ConsumableTypesEnum::getValueByName($type);
     }
 
 }

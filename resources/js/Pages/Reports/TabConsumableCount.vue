@@ -26,7 +26,10 @@ const exportToExcel = async() => {
   displayErrors.value = [];
 
   try {
-    const response = await axios.post(props.url, form.value, { responseType: 'blob' });
+    const response = await axios.get(props.url, {
+      params: form.value,
+      responseType: 'blob',
+    });
     emit('downloadFile', response.data, 'consumable-count.xlsx');
   }
   catch (error) {

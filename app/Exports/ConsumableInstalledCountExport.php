@@ -4,8 +4,9 @@ namespace App\Exports;
 
 use App\Models\Consumable\CartridgeColors;
 use App\Models\Consumable\ConsumableTypesEnum;
-use Illuminate\Database\Query\Builder;
-use Illuminate\Support\Facades\DB;
+use App\Services\Query\ConsumableCountInstalledQueryService;
+use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\WithHeadings;
@@ -16,80 +17,27 @@ use Maatwebsite\Excel\Concerns\WithStyles;
 
 class ConsumableInstalledCountExport implements FromQuery, WithMapping, WithHeadings, ShouldAutoSize, WithStyles, WithStrictNullComparison
 {
-    /**
-     * Порядковый номер
-     * @var int
-     */
-    private $indexRow = 0;
 
-    /**
-     * @param array $organizations    
-     */
     public function __construct(
         private array $organizations,
-        private bool $withoutPeriod,
         private string $dateFrom,
         private string $dateTo,
+        private ConsumableCountInstalledQueryService $queryService,
     ) {
     }
 
     /**
-     * Запрос
-     * {@inheritDoc}
+     * @return EloquentBuilder|Relation
      */
     public function query()
     {
-        $query = DB::table('consumables_counts AS cons_counts')
-            // SELECT
-            ->select([
-                'cons.id',
-                'cons.type',
-                'cons.name',
-                'cons.color',
-                'cons.description',
-                DB::raw('STRING_AGG(DISTINCT cons_counts_org.org_code, \',\') AS org_code'),
-                DB::raw('COALESCE(SUM(cons_counts_inst.count), 0) AS count_installed'),
-                DB::raw('cons_counts.count AS count_now'),
-                DB::raw('cons_counts.id AS count_id'),
-            ])
-            // JOINS
-            ->rightJoin('consumables AS cons', 'cons.id', '=', 'cons_counts.id_consumable')
-            ->leftJoin('consumables_counts_organizations AS cons_counts_org', 'cons_counts_org.id_consumable_count', '=', 'cons_counts.id')
-            ->leftJoin('consumables_counts_installed AS cons_counts_inst', 'cons_counts_inst.id_consumable_count', '=', 'cons_counts.id')
-            ->leftJoin('printers_workplace AS pr_wrk', 'pr_wrk.id', '=', 'cons_counts_inst.id_printer_workplace')
-            // WHERE
-            ->whereIn('cons_counts_org.org_code', $this->organizations)
-            ->whereRaw('(pr_wrk.id IS NULL OR pr_wrk.org_code = cons_counts_org.org_code)')
-            // GROUP BY
-            ->groupBy(['cons.id', 'cons.type', 'cons.name', 'cons.color', 'cons.description', 'cons_counts.count', 'cons_counts.id'])
-            // ORDER BY
-            ->orderBy(DB::raw('STRING_AGG(DISTINCT cons_counts_org.org_code, \',\')'))
-            ->orderBy('cons.type')
-            ->orderBy('cons.name');
-
-
-        // Фильтрация по дате
-        if (!$this->withoutPeriod) {
-            $query->where(function (Builder $query) {
-                $query->whereRaw('cons_counts_inst.id IS NULL');
-                $query->orWhere(function (Builder $query) {
-                    $query->where(DB::raw('DATE(cons_counts_inst.created_at)'), '>=', $this->dateFrom);
-                    $query->where(DB::raw('DATE(cons_counts_inst.created_at)'), '<=', $this->dateTo);
-                });
-            });
-        }
-
-        return $query;
+        return $this->queryService->buildCountInstalled($this->organizations, $this->dateFrom, $this->dateTo);
     }
 
-    /**
-     * @param \stdClass $row
-     * @return array
-     */
     public function map($row): array
     {
         return [
-            ++$this->indexRow,
+            $row->row_num,
             $row->org_code,
             $this->getConsumableType($row->type),
             $row->name,
@@ -100,28 +48,16 @@ class ConsumableInstalledCountExport implements FromQuery, WithMapping, WithHead
         ];
     }
 
-    /**
-     * @param string|null $color
-     * @return string|null
-     */
-    private function getNameByColor($color)
+    private function getNameByColor(?string $color): ?string
     {
         return CartridgeColors::getNameByColor($color);
     }
 
-    /**
-     * @param string $type
-     * @return string
-     */
-    private function getConsumableType($type)
+    private function getConsumableType(?string $type): string
     {
         return ConsumableTypesEnum::getValueByName($type);
     }
 
-    /**
-     * Заголовки
-     * @return array
-     */
     public function headings(): array
     {
         return [
@@ -132,16 +68,11 @@ class ConsumableInstalledCountExport implements FromQuery, WithMapping, WithHead
             'Цветная печать', // E
             'Количество установленных расходных материалов', // F
             'Количество оставшихся расходных материалов', // G
-            'Описание', // H       
+            'Описание', // H
         ];
     }
 
-    /**
-     * Стилизация
-     * @param \PhpOffice\PhpSpreadsheet\Worksheet\Worksheet $sheet
-     * @return void
-     */
-    public function styles(\PhpOffice\PhpSpreadsheet\Worksheet\Worksheet $sheet)
+    public function styles(\PhpOffice\PhpSpreadsheet\Worksheet\Worksheet $sheet): void
     {
         $styleArray = [
             'font' => ['bold' => true],

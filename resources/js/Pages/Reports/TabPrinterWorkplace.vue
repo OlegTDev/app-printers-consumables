@@ -32,12 +32,15 @@ const exportToExcel = async () => {
   displayErrors.value = [];
 
   try {
-    const response = await axios.post(props.url, {
-      ...form.value,
-      dateFrom: formatDate(form.value.dateFrom, 'YYYY-MM-DD'),
-      dateTo: formatDate(form.value.dateTo, 'YYYY-MM-DD'),
-    }, { responseType: 'blob' });
-    emit('downloadFile', response.data, 'consumable-installed-count.xlsx');
+    const response = await axios.get(props.url, {
+      params: {
+        ...form.value,
+        dateFrom: formatDate(form.value.dateFrom, 'YYYY-MM-DD'),
+        dateTo: formatDate(form.value.dateTo, 'YYYY-MM-DD'),
+      },
+      responseType: 'blob',
+    });
+    emit('downloadFile', response.data, 'printers-workplace.xlsx');
   }
   catch (error) {
     handleError(error);

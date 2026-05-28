@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace App\Services\Query;
 
+use App\Models\Consumable\ConsumableCount;
+use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
 use Illuminate\Support\Facades\DB;
 
 class ConsumableCountQueryService
@@ -28,5 +30,24 @@ class ConsumableCountQueryService
             ->where('consumables_counts_organizations.org_code', '=', $orgCode)
             ->where('printers.id', '=', $printerWorkplaceId)
             ->get();
+    }
+
+    public function buildConsumableCountByOrganizations(array $orgCodes): EloquentBuilder
+    {
+        return ConsumableCount::query()
+            ->select([
+                DB::raw('ROW_NUMBER() OVER (ORDER BY consumables_counts_organizations.org_code ASC, consumables.name ASC) AS row_num'),
+                'consumables_counts.count',
+                'consumables_counts_organizations.org_code',
+                'consumables.type',
+                'consumables.name',
+                'consumables.color',
+                'consumables.description',
+                ])
+            ->join('consumables_counts_organizations', 'consumables_counts_organizations.id_consumable_count', '=', 'consumables_counts.id')
+            ->join('consumables', 'consumables.id', '=', 'consumables_counts.id_consumable')
+            ->whereIn('consumables_counts_organizations.org_code', $orgCodes)
+            ->orderBy('consumables_counts_organizations.org_code')
+            ->orderBy('consumables.name');
     }
 }

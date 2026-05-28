@@ -33,11 +33,15 @@ const exportToExcel = async () => {
   displayErrors.value = [];
 
   try {
-    const response = await axios.post(props.url, {
-      ...form.value,
-      dateFrom: formatDate(form.value.dateFrom, 'YYYY-MM-DD'),
-      dateTo: formatDate(form.value.dateTo, 'YYYY-MM-DD'),
-    }, { responseType: 'blob' });
+    const response = await axios.get(props.url, {
+      params: {
+        ...form.value,
+        dateFrom: formatDate(form.value.dateFrom, 'YYYY-MM-DD'),
+        dateTo: formatDate(form.value.dateTo, 'YYYY-MM-DD'),
+        withoutPeriod: form.value.withoutPeriod ? 1 : 0,
+      },
+      responseType: 'blob',
+    });
     emit('downloadFile', response.data, 'consumable-installed-count.xlsx');
   }
   catch (error) {
