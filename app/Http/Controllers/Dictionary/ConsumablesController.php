@@ -3,12 +3,13 @@
 namespace App\Http\Controllers\Dictionary;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Traits\BuildsListQuery;
 use App\Http\Requests\Dictionary\ConsumableRequest;
 use App\Http\Resources\ConsumableResource;
+use App\Http\Resources\PrinterResource;
 use App\Models\Consumable\CartridgeColors;
 use App\Models\Consumable\Consumable;
 use App\Models\Consumable\ConsumableTypesEnum;
-use App\Models\Printer\Printer;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -17,21 +18,21 @@ use Inertia\Inertia;
  */
 class ConsumablesController extends Controller
 {
+    use BuildsListQuery;
+
     /**
      * @route GET /dictionary/consumables
      */
     public function index(Request $request): \Inertia\Response
     {
-        $field = $request->input('sortField', 'id');
-        $order = $request->input('sortOrder', '1') == '1' ? 'asc' : 'desc';
-        $consumables = Consumable::filter($request->only(['search']))
-            ->orderBy($field, $order)
-            ->paginate(config('per_page.dictionary_consumables'))
-            ->withQueryString();
+        $params = $this->getPaginatedData(
+            request: $request,
+            query: Consumable::with('author'),
+            allowSortFields: ['id', 'type', 'name', 'created_at']
+        );
 
         return Inertia::render('Dictionary/Consumables/Index', [
-            'consumables' => $consumables,
-            'filters' => $request->only(['search', 'sortField', 'sortOrder']),
+            ...$params,
             'consumableTypes' => ConsumableTypesEnum::array(),
             'cartridgeColors' => CartridgeColors::get(),
             'labels' => config('labels.consumable'),
@@ -39,10 +40,9 @@ class ConsumablesController extends Controller
     }
 
     /**
-     * Создание расходного материала
-     * @return \Inertia\Response
+     * @route GET /dictionary/consumables/create
      */
-    public function create()
+    public function create(): \Inertia\Response
     {
         return Inertia::render('Dictionary/Consumables/Create', [
             'labels' => config('labels.consumable'),
@@ -52,59 +52,42 @@ class ConsumablesController extends Controller
     }
 
     /**
-     * Сохранение нового расходного материала
-     * @param ConsumableRequest $request
-     * @return \Illuminate\Http\RedirectResponse
+     * @route POST /dictionary/consumables
      */
-    public function store(ConsumableRequest $request)
+    public function store(ConsumableRequest $request): \Illuminate\Http\RedirectResponse
     {
-        $consumable = Consumable::create($request->only(['type', 'name', 'color', 'description']));
-        if (!$consumable) {
-            return redirect()->back();
-        }
-        return redirect()->route('dictionary.consumables.index')
+        Consumable::create($request->validated());
+        return to_route('dictionary.consumables.index')
             ->with('success', 'Запись успешно добавлена!');
     }
 
     /**
-     * Подробные сведения о расходном материале
-     * @param Consumable $consumable расходный материал
-     * @return \Inertia\Response
+     * @route GET /dictionary/consumables/{consumable}
      */
-    public function show(Consumable $consumable)
+    public function show(Consumable $consumable): \Inertia\Response
     {
+        $consumable->load(['author', 'printers']);
         return Inertia::render('Dictionary/Consumables/Show', [
-            'consumable' => [
-                'id' => $consumable->id,
-                'type' => $consumable->type,
-                'name' => $consumable->name,
-                'description' => $consumable->description,
-                'color' => $consumable->color,
-                'author' => $consumable->author,
-                'created_at' => $consumable->created_at,
-                'updated_at' => $consumable->updated_at,
-            ],
+            'consumable' => new ConsumableResource($consumable),
             'cartridgeColors' => CartridgeColors::get(),
             'consumableTypes' => ConsumableTypesEnum::array(),
             'consumableLabels' => config('labels.consumable'),
             'consumableTypeValue' => ConsumableTypesEnum::getValueByName($consumable->type),
 
-            'printersNotIn' => $consumable->printersNotIn()->get(),
-            'printers' => $consumable->printers,
-            'printerLabels' => Printer::labels(),
+            'printersNotIn' => PrinterResource::collection($consumable->printersNotIn()->get()),
+            'printers' => PrinterResource::collection($consumable->printers),
+            'printerLabels' => config('labels.printer'),
         ]);
     }
 
     /**
-     * Редактирование расходного материала
-     * @param Consumable $consumable расходный материал
-     * @return \Inertia\Response
+     * @route GET /dictionary/consumables/{consumable}/edit
      */
-    public function edit(Consumable $consumable)
+    public function edit(Consumable $consumable): \Inertia\Response
     {
         return Inertia::render('Dictionary/Consumables/Edit', [
             'labels' => config('labels.consumable'),
-            'consumable' => $consumable,
+            'consumable' => new ConsumableResource($consumable),
             'cartridgeColors' => CartridgeColors::get(),
             'consumableTypes' => ConsumableTypesEnum::array(),
             'consumableTypeValue' => ConsumableTypesEnum::getValueByName($consumable->type),
@@ -112,46 +95,23 @@ class ConsumablesController extends Controller
     }
 
     /**
-     * Сохранение измененного расходного материала
-     * @param ConsumableRequest $request
-     * @param Consumable $consumable расходный материал
-     * @return \Illuminate\Http\RedirectResponse
+     * @route PUT /dictionary/consumables/{consumable}
      */
-    public function update(ConsumableRequest $request, Consumable $consumable)
+    public function update(ConsumableRequest $request, Consumable $consumable): \Illuminate\Http\RedirectResponse
     {
-        $consumableUpdate = $consumable->update($request->only(['type', 'name', 'color', 'description']));
-        if (!$consumableUpdate) {
-            return redirect()->back();
-        }
-        return redirect()->route('dictionary.consumables.index')
+        $consumable->update($request->validated());
+        return to_route('dictionary.consumables.index')
             ->with('success', 'Запись успешно обновлена!');
     }
 
     /**
-     * Удаление расходного материала
-     * @param Consumable $consumable расходный материал
-     * @return \Illuminate\Http\RedirectResponse
+     * @route DELETE /dictionary/consumables/{consumable}
      */
-    public function destroy(Consumable $consumable)
+    public function destroy(Consumable $consumable): \Illuminate\Http\RedirectResponse
     {
         $consumable->delete();
-        return redirect()->route('dictionary.consumables.index')
+        return to_route('dictionary.consumables.index')
             ->with('success', 'Запись успешно удалена!');
-    }
-
-    /**
-     * @route GET dictionary/consumables/{printer}/other
-     */
-    public function otherConsumablesForPrinter(Printer $printer)
-    {
-        $items = Consumable::queryWithOtherTypesByPrinter($printer->id)->get();
-        return ConsumableResource::collection($items);
-    }
-
-    public function notOtherConsumablesForPrinter()
-    {
-        $items = Consumable::queryWithoutOtherTypesByPrinter()->get();
-        return ConsumableResource::collection($items);
     }
 
 }
