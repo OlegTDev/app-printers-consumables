@@ -18,6 +18,7 @@ trait BuildsListQuery
         array $allowSortFields = [],
         array $filterFields = ['search'],
         int $perPage = 10,
+
     ): AbstractPaginator {
         return $this->baseBuildQuery($request, $query, $allowSortFields, $filterFields, $perPage);
     }
@@ -28,9 +29,19 @@ trait BuildsListQuery
         array $allowSortFields = [],
         array $filterFields = ['search'],
         int $perPage = 10,
+        ?string $resourceClass = null,
     ): array {
+        $paginator = $this->baseBuildQuery($request, $query, $allowSortFields, $filterFields, $perPage);
+
+        if ($resourceClass && class_exists($resourceClass)) {
+            $paginator = $paginator->through(fn($model) => (new $resourceClass($model))->toArray($request));
+            $items = $paginator->toArray();
+        } else {
+            $items = $paginator;
+        }
+
         return [
-            'items' => $this->baseBuildQuery($request, $query, $allowSortFields, $filterFields, $perPage),
+            'items' => $items,
             'query' => $request->only([...$filterFields, self::SORT_FIELD, self::SORT_ORDER]),
         ];
     }
