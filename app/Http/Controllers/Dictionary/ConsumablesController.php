@@ -28,7 +28,8 @@ class ConsumablesController extends Controller
         $params = $this->getPaginatedData(
             request: $request,
             query: Consumable::with('author'),
-            allowSortFields: ['id', 'type', 'name', 'created_at']
+            allowSortFields: ['id', 'type', 'name', 'created_at'],
+            resourceClass: ConsumableResource::class,
         );
 
         return Inertia::render('Dictionary/Consumables/Index', [
