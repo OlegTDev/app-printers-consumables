@@ -10,8 +10,6 @@ use Illuminate\Http\Resources\Json\JsonResource;
  */
 class ConsumableCountResource extends JsonResource
 {
-    public static $wrap = null;
-
     /**
      * Transform the resource into an array.
      *
