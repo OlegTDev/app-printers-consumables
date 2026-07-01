@@ -1,24 +1,17 @@
 <script setup>
 import { Head, router } from '@inertiajs/vue3';
 import Layout from '@/Shared/Layout.vue';
-import { watch, reactive } from 'vue';
 import Breadcrumbs from '@/Shared/Breadcrumbs.vue';
-import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import Button from 'primevue/button';
-import InputText from 'primevue/inputtext';
-import pickBy from 'lodash/pickBy';
 import { useAuth } from '@/Composables/useAuth';
 import Title from '@/Shared/Title.vue';
 import Card from '@/Shared/Card.vue';
-import IconField from 'primevue/iconfield';
-import InputIcon from 'primevue/inputicon';
-import { debounce } from 'lodash';
+import RemoteDataTable from '@/Shared/DataTable/RemoteDataTable.vue';
 
 const props = defineProps({
   printer: Object,
-  filters: Object,
-  consumables: Object,
+  items: Object,
   consumableTypes: Object,
   consumableLabels: Object,
   cartridgeColors: Object,
@@ -30,18 +23,6 @@ defineOptions({
 
 const title = `Привязка расходного материала`;
 const { can } = useAuth();
-const filters = reactive(props.filters);
-
-const form = reactive({
-  search: filters.search,
-});
-watch(
-  () => form,
-  debounce(() => {
-    router.get(route('dictionary.printers.consumables.index', { printer: props.printer.id }), pickBy(form), { preserveState: true });
-  }, 300),
-  { deep: true }
-);
 
 const addConsumable = (id) => {
   const url = route('dictionary.printers.consumables.add', { printer: props.printer.id, consumable: id });
@@ -64,31 +45,11 @@ const addConsumable = (id) => {
   <Card>
     <Title>{{ title }}</Title>
 
-    <DataTable
-      :value="consumables"
-      paginator
-      :rows="10"
-      data-key="id"
-      :meta-key-selection="false"
-      table-style="min-width: 50rem"
+    <RemoteDataTable
+      :model="items"
+      :url="route('dictionary.printers.consumables.index', { printer: props.printer.id })"
       selection-mode="single"
     >
-      <template #header>
-        <div class="flex justify-between">
-          <div>
-            <Button type="button" severity="secondary" outlined @click="router.get(route('dictionary.printers.show', { printer: printer.id }))">
-              <i class="pi pi-arrow-circle-left" />
-              Назад
-            </Button>
-          </div>
-          <IconField icon-position="left" class="w-72">
-            <InputIcon>
-              <i class="pi pi-search" />
-            </InputIcon>
-            <InputText v-model="form.search" placeholder="Поиск" />
-          </IconField>
-        </div>
-      </template>
       <Column header="#" field="id" header-style="width:3rem" />
       <Column :header="consumableLabels.type">
         <template #body="{ data }">
@@ -124,6 +85,6 @@ const addConsumable = (id) => {
       <template #empty>
         Нет данных
       </template>
-    </DataTable>
+    </RemoteDataTable>
   </Card>
 </template>
