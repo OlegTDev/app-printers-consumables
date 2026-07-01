@@ -5,6 +5,9 @@ namespace App\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+/**
+ * @mixin \App\Models\Consumable\Consumable
+ */
 class ConsumableResource extends JsonResource
 {
 
@@ -15,7 +18,6 @@ class ConsumableResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        /** @var \App\Models\Consumable\Consumable $this */
         return [
             'id' => $this->id,
             'type' => $this->type,
@@ -23,7 +25,7 @@ class ConsumableResource extends JsonResource
             'color' => $this->color,
             'description' => $this->description,
             'arch' => $this->arch,
-            'author' => new UserResourceShort($this->author),
+            'author' => new UserResourceShort($this->whenLoaded('author')),
             'created_at' => $this->created_at,
             'updated_at'=> $this->updated_at,
         ];
