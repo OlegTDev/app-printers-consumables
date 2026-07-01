@@ -71,8 +71,9 @@ const deleteConsumable = () => {
   <Breadcrumbs
     :home="{ label: 'Главная', url: route('dashboard') }"
     :items="[
+      { label: 'Справочники' },
       {
-        label: 'Расходные материалы (справочник)',
+        label: 'Расходные материалы',
         url: route('dictionary.consumables.index'),
       },
       { label: title },
