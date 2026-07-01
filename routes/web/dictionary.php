@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\ConsumableApiController;
 use App\Http\Controllers\Dictionary\ConsumablesController;
 use App\Http\Controllers\Dictionary\ConsumablesPrintersController;
 use App\Http\Controllers\Dictionary\PrintersConsumablesController;
@@ -18,9 +19,9 @@ Route::prefix('dictionary')->name('dictionary.')->group(function() {
     });
 
     // Расходные материалы
-    Route::get('/consumables/not-other', [ConsumablesController::class, 'notOtherConsumablesForPrinter'])
+    Route::get('/consumables/not-other', [ConsumableApiController::class, 'notOtherConsumablesForPrinter'])
         ->name('consumables.not-other');
-    Route::get('/consumables/{printer}/other', [ConsumablesController::class, 'otherConsumablesForPrinter'])
+    Route::get('/consumables/{printer}/other', [ConsumableApiController::class, 'otherConsumablesForPrinter'])
         ->name('consumables.other');
     Route::resource('consumables', ConsumablesController::class);
     Route::middleware('role:admin,editor-dictionary')->group(function() {
