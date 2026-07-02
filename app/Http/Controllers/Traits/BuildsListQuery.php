@@ -30,12 +30,15 @@ trait BuildsListQuery
         array $filterFields = ['search'],
         int $perPage = 10,
         ?string $resourceClass = null,
+        \Closure $transformCallback = null,
     ): array {
         $paginator = $this->baseBuildQuery($request, $query, $allowSortFields, $filterFields, $perPage);
 
         if ($resourceClass && class_exists($resourceClass)) {
-            $paginator = $paginator->through(fn($model) => (new $resourceClass($model))->toArray($request));
+            $paginator = $paginator->through(fn ($model) => (new $resourceClass($model))->toArray($request));
             $items = $paginator->toArray();
+        } elseif (is_callable($transformCallback)) {
+            $items = $transformCallback($paginator->toArray());
         } else {
             $items = $paginator;
         }
@@ -87,4 +90,5 @@ trait BuildsListQuery
             $buildQuery->reorder()->orderBy($field, $order);
         }
     }
+
 }
