@@ -26,8 +26,8 @@ Route::prefix('dictionary')->name('dictionary.')->group(function() {
     Route::resource('consumables', ConsumablesController::class);
     Route::middleware('role:admin,editor-dictionary')->group(function() {
         Route::resource('consumables.printers', ConsumablesPrintersController::class)->only(['index', 'destroy']);
-        Route::post('/consumables/{consumable}/printers/{printer}/add', [ConsumablesPrintersController::class, 'add'])
-            ->name('consumables.printers.add');
+        Route::post('/consumables/{consumable}/printers/{printer}', [ConsumablesPrintersController::class, 'store'])
+            ->name('consumables.printers.store');
     });
 
     // Организации

@@ -3,11 +3,12 @@
 namespace App\Http\Controllers\Dictionary;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Traits\BuildsListQuery;
+use App\Http\Resources\PrinterResource;
 use App\Models\Consumable\Consumable;
 use App\Models\Consumable\ConsumableTypesEnum;
 use App\Models\Printer\Printer;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Request;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 /**
@@ -15,16 +16,21 @@ use Inertia\Inertia;
  */
 class ConsumablesPrintersController extends Controller
 {
+    use BuildsListQuery;
+
     /**
-     * Список привязанных принтеров к расходному материалу
-     * @param Consumable $consumable расходный материал
-     * @return \Inertia\Response
+     * @route GET /dictionary/consumables/{consumable}/printers
      */
-    public function index(Consumable $consumable)
-    {        
+    public function index(Consumable $consumable, Request $request): \Inertia\Response
+    {
+        $params = $this->getPaginatedData(
+            request: $request,
+            query: $consumable->printersNotIn(),
+            allowSortFields: ['id', 'name', 'created_at'],
+            resourceClass: PrinterResource::class,
+        );
         return Inertia::render('Dictionary/Consumables/Printers/Index', [
-            'printers' => $consumable->printersNotIn()->filter(Request::only(['search']))->get(),
-            'filters' => Request::all(['search']),
+            ...$params,
             'consumable' => $consumable,
             'consumableTypes' => ConsumableTypesEnum::array(),
             'consumableTypeValue' => ConsumableTypesEnum::getValueByName($consumable->type),
@@ -32,28 +38,22 @@ class ConsumablesPrintersController extends Controller
     }
 
     /**
-     * Привязка принтера $printer с расходным материалом $consumable
-     * @param Printer $printer 
-     * @param Consumable $consumable
-     * @return \Illuminate\Http\RedirectResponse
+     * @route POST /dictionary/consumables/{consumable}/printers/{printer}
      */
-    public function add(Consumable $consumable, Printer $printer)
+    public function store(Consumable $consumable, Printer $printer): \Illuminate\Http\RedirectResponse
     {
-        $consumable->printers()->attach($printer->id, ['id_author' => Auth::id()]);
-        return redirect()->route('dictionary.consumables.show', [$consumable])
+        $consumable->printers()->syncWithoutDetaching([$printer->id => ['id_author' => auth()->id()]]);
+        return to_route('dictionary.consumables.show', [$consumable->id])
             ->with('success', 'Связь успешно добавлена!');
     }
 
     /**
-     * Удаление привязки принтера $printer с расходным материалом $consumable
-     * @param Printer $printer
-     * @param Consumable $consumable
-     * @return \Illuminate\Http\RedirectResponse
+     * @route DELETE /dictionary/consumables/{consumable}/printers/{printer}
      */
-    public function destroy(Consumable $consumable, Printer $printer)
+    public function destroy(Consumable $consumable, Printer $printer): \Illuminate\Http\RedirectResponse
     {
         $consumable->printers()->detach($printer->id);
-        return redirect()->route('dictionary.consumables.show', [$consumable])
-            ->with('success', 'Связь успешно удалена!');        
+        return to_route('dictionary.consumables.show', [$consumable->id])
+            ->with('success', 'Связь успешно удалена!');
     }
 }
