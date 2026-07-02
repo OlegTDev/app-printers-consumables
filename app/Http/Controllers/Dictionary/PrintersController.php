@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Dictionary;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Traits\BuildsListQuery;
 use App\Http\Requests\Dictionary\PrinterRequest;
+use App\Http\Resources\ConsumableResource;
 use App\Http\Resources\PrinterResource;
 use App\Models\Consumable\CartridgeColors;
 use App\Models\Consumable\ConsumableTypesEnum;
@@ -21,12 +22,6 @@ class PrintersController extends Controller
 {
     use BuildsListQuery;
 
-    public function __construct()
-    {
-        $this->middleware('role:admin,editor-dictionary')
-            ->only(['create', 'store', 'edit', 'update', 'destroy']);
-    }
-
     /**
      * @route GET /dictionary/printers
      */
@@ -36,6 +31,7 @@ class PrintersController extends Controller
             request: $request,
             query: Printer::query(),
             allowSortFields: ['id', 'vendor', 'model', 'created_at'],
+            resourceClass: PrinterResource::class,
         );
 
         return Inertia::render('Dictionary/Printers/Index', $params);
@@ -46,10 +42,7 @@ class PrintersController extends Controller
      */
     public function create(ManufacturerQueryService $manufacturerQueryService): \Inertia\Response
     {
-        $manufacturers = $manufacturerQueryService->getAll()->transform(fn(Manufacturer $item) => [
-            'label' => $item->name,
-            'value' => $item->name,
-        ]);
+        $manufacturers = $this->manufacturers($manufacturerQueryService);
 
         return Inertia::render('Dictionary/Printers/Create', [
             'labels' => config('labels.printer'),
@@ -60,7 +53,7 @@ class PrintersController extends Controller
     /**
      * @route POST /dictionary/printers
      */
-    public function store(PrinterRequest $request, ): \Illuminate\Http\RedirectResponse
+    public function store(PrinterRequest $request): \Illuminate\Http\RedirectResponse
     {
         Printer::create($request->validated());
 
@@ -73,12 +66,12 @@ class PrintersController extends Controller
      */
     public function show(Printer $printer): \Inertia\Response
     {
+        $printer->load(['author', 'consumables']);
         return Inertia::render('Dictionary/Printers/Show', [
             'printer' => new PrinterResource($printer),
             'printerLabels' => config('labels.printer'),
 
-            'consumables' => $printer->consumables,
-            'consumablesNotIn' => $printer->consumablesNotIn()->get(),
+            'consumables' => ConsumableResource::collection($printer->consumables),
             'cartridgeColors' => CartridgeColors::get(),
             'consumableTypes' => ConsumableTypesEnum::array(),
             'consumableLabels' => config('labels.consumable'),
@@ -88,12 +81,10 @@ class PrintersController extends Controller
     /**
      * @route GET /dictionary/printers/{printer}/edit
      */
-    public function edit(Printer $printer, ManufacturerQueryService $manufacturerQueryService)
+    public function edit(Printer $printer, ManufacturerQueryService $manufacturerQueryService): \Inertia\Response
     {
-        $manufacturers = $manufacturerQueryService->getAll()->transform(fn(Manufacturer $item) => [
-            'label' => $item->name,
-            'value' => $item->name,
-        ]);
+        $manufacturers = $this->manufacturers($manufacturerQueryService);
+
         return Inertia::render('Dictionary/Printers/Edit', [
             'printer' => new PrinterResource($printer),
             'labels' => config('labels.printer'),
@@ -104,7 +95,7 @@ class PrintersController extends Controller
     /**
      * @route PUT /dictionary/printers/{printer}
      */
-    public function update(PrinterRequest $request, Printer $printer)
+    public function update(PrinterRequest $request, Printer $printer): \Illuminate\Http\RedirectResponse
     {
         $printer->update($request->validated());
 
@@ -115,11 +106,19 @@ class PrintersController extends Controller
     /**
      * @route DELETE /dictionary/printers/{printer}
      */
-    public function destroy(Printer $printer)
+    public function destroy(Printer $printer): \Illuminate\Http\RedirectResponse
     {
         $printer->delete();
 
         return to_route('dictionary.printers.index')
             ->with('success', 'Запись успешно удалена!');
+    }
+
+    private function manufacturers(ManufacturerQueryService $manufacturerQueryService): \Illuminate\Database\Eloquent\Collection
+    {
+        return $manufacturerQueryService->getAll()->transform(fn(Manufacturer $item) => [
+            'label' => $item->name,
+            'value' => $item->name,
+        ]);
     }
 }
