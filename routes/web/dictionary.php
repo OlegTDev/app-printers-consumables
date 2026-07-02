@@ -9,28 +9,30 @@ use App\Http\Controllers\Dictionary\OrganizationsController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('dictionary')->name('dictionary.')->group(function() {
+    // Организации
+    Route::resource('organizations', OrganizationsController::class)->middleware('role:admin');
 
-    // принтеры
-    Route::resource('printers', PrintersController::class);
-    Route::middleware('role:admin,editor-dictionary')->group(function() {
+    // === ГРУППА ДЛЯ АДМИНИСТРАТОРОВ И РЕДАКТОРОВ СПРАВОЧНИКОВ ===
+    Route::middleware('role:admin,editor-dictionary')->group(function () {
+        // принтеры
+        Route::resource('printers', PrintersController::class)->only(['create', 'store', 'edit', 'update', 'destroy']);
         Route::resource('printers.consumables', PrintersConsumablesController::class)->only(['index', 'destroy']);
         Route::post('/printers/{printer}/consumables/{consumable}/add', [PrintersConsumablesController::class, 'add'])
             ->name('printers.consumables.add');
+
+        // // расходные материалы
+        Route::resource('consumables', ConsumablesController::class)->only(['create', 'store', 'edit', 'update', 'destroy']);
+        Route::resource('consumables.printers', ConsumablesPrintersController::class)->only(['index', 'store', 'destroy']);
     });
+
+    // === ОБЩЕДОСТУПНЫЕ МАРШРУТЫ СПРАВОЧНИКОВ (Чтение) ===
+    Route::resource('printers', PrintersController::class)->only(['index', 'show']);
+    Route::resource('consumables', ConsumablesController::class)->only(['index', 'show']);
 
     // Расходные материалы
     Route::get('/consumables/not-other', [ConsumableApiController::class, 'notOtherConsumablesForPrinter'])
         ->name('consumables.not-other');
     Route::get('/consumables/{printer}/other', [ConsumableApiController::class, 'otherConsumablesForPrinter'])
         ->name('consumables.other');
-    Route::resource('consumables', ConsumablesController::class);
-    Route::middleware('role:admin,editor-dictionary')->group(function() {
-        Route::resource('consumables.printers', ConsumablesPrintersController::class)->only(['index', 'destroy']);
-        Route::post('/consumables/{consumable}/printers/{printer}', [ConsumablesPrintersController::class, 'store'])
-            ->name('consumables.printers.store');
-    });
-
-    // Организации
-    Route::resource('organizations', OrganizationsController::class)->middleware('role:admin');
 
 });
