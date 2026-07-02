@@ -20,7 +20,6 @@ defineOptions({
 const props = defineProps({
   printer: Object,
   consumables: Object,
-  consumablesNotIn: Object,
   printerLabels: Object,
 
   cartridgeColors: Object,
