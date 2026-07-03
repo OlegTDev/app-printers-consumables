@@ -2,35 +2,41 @@
 
 namespace App\Http\Controllers\Order;
 
+use App\Http\Controllers\Traits\BuildsListQuery;
 use App\Http\Requests\Orders\OrderConsumableRequest;
 use App\Http\Resources\OrderConsumableResource;
 use App\Models\Consumable\CartridgeColors;
 use App\Models\Consumable\ConsumableTypesEnum;
-use App\Models\Order\Order;
 use App\Models\Order\OrderConsumableDetails;
 use App\Models\Order\Roles;
 use App\Services\Order\OrderStatusButtonService;
+use App\Services\Query\OrderQueryService;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
-
+/**
+ * Заказы картриджей
+ */
 class OrderConsumableDetailsController extends Controller
 {
+    use BuildsListQuery;
 
     /**
      * @route GET orders/consumables
      */
-    public function index(Request $request)
+    public function index(Request $request): \Inertia\Response
     {
-        $orders = OrderConsumableDetails::queryWithFilterByOrgCode()
-            ->filter($request->only(['search', 'status', 'organizations']))
-            ->orderBy('id', 'desc')
-            ->get();
+        $paginatedData = $this->getPaginatedData(
+            request: $request,
+            query: OrderConsumableDetails::filterByOrgCode()->orderBy('id', 'desc'),
+            filterFields: ['search', 'status', 'organizations'],
+            resourceClass: OrderConsumableResource::class,
+        );
 
         return Inertia::render('Orders/Consumable/Index', [
-            'filters' => $request->all(['search', 'status', 'organizations']),
-            'orders' => OrderConsumableResource::collection($orders),
+            ...$paginatedData,
             'statuses' => config('order_statuses'),
             'cartridgeColors' => CartridgeColors::get(),
             'consumableTypes' => ConsumableTypesEnum::array(),
@@ -45,7 +51,7 @@ class OrderConsumableDetailsController extends Controller
     /**
      * @route GET orders/consumables/create
      */
-    public function create()
+    public function create(): \Inertia\Response
     {
         return Inertia::render('Orders/Consumable/Create', [
             'labels' => [
@@ -60,33 +66,38 @@ class OrderConsumableDetailsController extends Controller
     /**
      * @route POST orders/consumables
      */
-    public function store(OrderConsumableRequest $request)
+    public function store(OrderConsumableRequest $request, OrderQueryService $orderQueryService): \Illuminate\Http\RedirectResponse
     {
-        $modelConsumable = $this->createOrderConsumable($request);
-        $this->createChildOrder($modelConsumable,
-            $request->input('quantity', 1),
-            $request->input('comment'),
-            $request->input('service_request_number'),
-            $request->input('service_request_date'),
-        );
+        DB::transaction(function () use ($request, $orderQueryService) {
+            $modelConsumable = $this->createOrderConsumable($request);
 
-        return redirect()->route('orders.consumables.index')
+            $orderQueryService->createWithChildOrder(
+                subOrder: $modelConsumable,
+                authUserOrgCode: auth()->user()->org_code,
+                authUserId: auth()->id(),
+                comment: $request->input('comment'),
+                serviceRequestNumber: $request->input('service_request_number'),
+                serviceRequestDate: $request->input('service_request_date'),
+                quantity: $request->input('quantity', 1),
+            );
+        });
+
+        return to_route('orders.consumables.index')
             ->with('success', 'Заявка успешно добавлена!');
     }
 
     /**
      * @route GET /orders/consumables/{orderConsumableDetails}
      */
-    public function show(OrderConsumableDetails $orderConsumableDetails, OrderStatusButtonService $orderStatusButtonService)
+    public function show(OrderConsumableDetails $orderConsumableDetails, OrderStatusButtonService $orderStatusButtonService): \Inertia\Response
     {
         $userRoles = auth()->user()->getRoleNames();
         $order = $orderConsumableDetails->order;
-        $isAuthor = $order->requested_by === auth()->user()->id;
+        $isAuthor = $order->requested_by === auth()->id();
         if ($isAuthor) {
             $userRoles[] = Roles::ORDER_AUTHOR->value;
         }
         $buttons = $orderStatusButtonService->getAvailableButtons($order->status, $userRoles);
-
 
         return Inertia::render('Orders/Consumable/Show', [
             'orderConsumableDetail' => new OrderConsumableResource($orderConsumableDetails),
@@ -105,7 +116,7 @@ class OrderConsumableDetailsController extends Controller
     /**
      * @route GET /orders/consumables/{orderConsumableDetails}/edit
      */
-    public function edit(OrderConsumableDetails $orderConsumableDetails)
+    public function edit(OrderConsumableDetails $orderConsumableDetails): \Inertia\Response
     {
         $this->authorize('update', $orderConsumableDetails->order);
 
@@ -123,37 +134,34 @@ class OrderConsumableDetailsController extends Controller
     /**
      * @route PUT orders/consumables/{orderConsumableDetails}
      */
-    public function update(OrderConsumableRequest $request, OrderConsumableDetails $orderConsumableDetails)
+    public function update(OrderConsumableRequest $request, OrderConsumableDetails $orderConsumableDetails): \Illuminate\Http\RedirectResponse
     {
         $this->authorize('update', $orderConsumableDetails->order);
 
-        $orderConsumableDetails->update($request->only(['id_consumable']));
-        $orderConsumableDetails->order()->update($request->only(['quantity', 'comment', 'service_request_number', 'service_request_date']));
-        return redirect()->route('orders.consumables.show', ['orderConsumableDetails' => $orderConsumableDetails])
+        $validated = $request->safe();
+
+        DB::transaction(function () use ($orderConsumableDetails, $validated) {
+            $orderConsumableDetails->update($validated->only(['id_consumable']));
+            $orderConsumableDetails->order()->update($validated->only([
+                'quantity',
+                'comment',
+                'service_request_number',
+                'service_request_date',
+            ]));
+        });
+        return to_route('orders.consumables.show', [$orderConsumableDetails->id])
             ->with('success', 'Изменения сохранены!');
     }
 
 
-    private function createOrderConsumable(Request $request): OrderConsumableDetails
+    private function createOrderConsumable(OrderConsumableRequest $request): OrderConsumableDetails
     {
-        $model = new OrderConsumableDetails($request->only([
+        $model = new OrderConsumableDetails($request->safe()->only([
             'id_consumable',
             'quantity',
         ]));
         $model->id_author = auth()->id();
         return $model;
-    }
-
-    private function createChildOrder(OrderConsumableDetails $orderConsumable,
-        int $quantity, ?string $comment, ?string $service_request_number, ?string $service_request_date): void
-    {
-        Order::createWithChildOrder(
-            subOrder: $orderConsumable,
-            comment: $comment,
-            service_request_number: $service_request_number,
-            service_request_date: $service_request_date,
-            quantity: $quantity,
-        );
     }
 
 }

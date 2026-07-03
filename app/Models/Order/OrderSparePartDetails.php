@@ -23,7 +23,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property Consumable $sparePart
  * @property OrderSparePartDetailsFile $files
  */
-class OrderSparePartDetails extends Model
+class OrderSparePartDetails extends SubOrderContract
 {
     use HasFactory, OrderOrgCodeFilterable;
 
