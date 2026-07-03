@@ -25,14 +25,15 @@ Route::prefix('dictionary')->name('dictionary.')->group(function() {
         Route::resource('consumables.printers', ConsumablesPrintersController::class)->only(['index', 'store', 'destroy']);
     });
 
-    // === ОБЩЕДОСТУПНЫЕ МАРШРУТЫ СПРАВОЧНИКОВ (Чтение) ===
-    Route::resource('printers', PrintersController::class)->only(['index', 'show']);
-    Route::resource('consumables', ConsumablesController::class)->only(['index', 'show']);
-
     // Расходные материалы
     Route::get('/consumables/not-other', [ConsumableApiController::class, 'notOtherConsumablesForPrinter'])
         ->name('consumables.not-other');
     Route::get('/consumables/{printer}/other', [ConsumableApiController::class, 'otherConsumablesForPrinter'])
         ->name('consumables.other');
+
+    // === ОБЩЕДОСТУПНЫЕ МАРШРУТЫ СПРАВОЧНИКОВ (Чтение) ===
+    Route::resource('printers', PrintersController::class)->only(['index', 'show']);
+    Route::resource('consumables', ConsumablesController::class)->only(['index', 'show']);
+
 
 });
