@@ -4,7 +4,7 @@ import { reactive, ref, watch } from 'vue';
 import { router, usePage } from '@inertiajs/vue3';
 import { debounce, pickBy } from 'lodash';
 
-const { url, model } = defineProps({
+const props = defineProps({
   url: {
     type: String,
     required: true,
@@ -24,6 +24,10 @@ const { url, model } = defineProps({
     type: Boolean,
     default: true,
   },
+  filters: {
+    type: Object,
+    default: () => ({}),
+  },
 });
 
 const loading = ref(false);
@@ -32,13 +36,13 @@ const pageProps = usePage().props;
 
 const form = reactive({
   search: query.value?.search || pageProps.query?.search || '',
-  page: 1,
+  page: Number(props.model?.current_page) || 1,
   sortField: query.value.sortField || pageProps.query?.sortField || null,
   sortOrder: pageProps.query?.sortOrder ? (pageProps.query.sortOrder === 'asc' ? 1 : -1) : null,
 });
 
 const update = () => {
-  router.get(url, pickBy(form), {
+  router.get(props.url, pickBy({...form, ...props.filters}), {
     preserveState: true,
     replace: true,
     onStart: () => loading.value = true,
@@ -54,7 +58,16 @@ watch(
   debounce(() => {
     form.page = 1;
     update();
-  }, 300)
+  }, 300),
+);
+
+watch(
+  () => props.filters,
+  () => {
+    form.page = 1;
+    update();
+  },
+  { deep: true }
 );
 
 const onLazyChange = (event) => {
@@ -87,12 +100,15 @@ const onLazyChange = (event) => {
         <div>
           <slot name="header" />
         </div>
-        <IconField v-if="withSearch" icon-position="left" class="w-72">
-          <InputIcon>
-            <i class="pi pi-search" />
-          </InputIcon>
-          <InputText v-model="form.search" placeholder="Поиск" />
-        </IconField>
+        <div class="flex gap-4">
+          <slot name="filters" />
+          <IconField v-if="withSearch" icon-position="left" class="w-72">
+            <InputIcon>
+              <i class="pi pi-search" />
+            </InputIcon>
+            <InputText v-model="form.search" placeholder="Поиск" />
+          </IconField>
+        </div>
       </div>
     </template>
     <slot />
