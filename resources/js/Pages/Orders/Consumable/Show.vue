@@ -14,13 +14,13 @@ import Title from '@/Shared/Title.vue';
 import DetailViewer from '@/Shared/DetailViewer.vue';
 import Timestamps from '@/Shared/DataTable/Timestamps.vue';
 import { useActions } from '../Composables/useActions';
+import { useAuth } from '@/Composables/useAuth';
 
 defineOptions({
   layout: Layout,
 });
 
 const props = defineProps({
-  auth: Object,
   orderConsumableDetail: Object,
   labels: Object,
   isAuthor: Boolean,
@@ -31,9 +31,8 @@ const props = defineProps({
 });
 
 const { formatDate } = useDate();
-const orderConsumableDetail = computed(() => props.orderConsumableDetail?.data || { order: {}, consumable: {} });
-const title = `Заказ № ${orderConsumableDetail.value?.order?.id || '-'} от ${formatDate(orderConsumableDetail.value?.order?.created_at, 'L')}`;
-const orderId = computed(() => orderConsumableDetail.value.order?.id);
+const title = `Заказ № ${props.orderConsumableDetail?.order?.id || '-'} от ${formatDate(props.orderConsumableDetail?.order?.created_at, 'L')}`;
+const orderId = computed(() => props.orderConsumableDetail?.order?.id);
 const ConfirmDialog = defineAsyncComponent(() => import('../Shared/ConfirmDialog.vue'));
 const {
   agree,
@@ -44,10 +43,11 @@ const {
   receive,
   remove,
 } = useActions('consumables', ConfirmDialog, orderId, props.labels.order?.comment || '');
+const { isAdmin } = useAuth();
 
 const actions = {
   edit: () => {
-    router.get(route('orders.consumables.edit', { orderConsumableDetails: orderConsumableDetail.value.id }));
+    router.get(route('orders.consumables.edit', { orderConsumableDetails: props.orderConsumableDetail?.id }));
   },
   delete: () => remove(route('orders.destroy', { order: orderId.value })),
   cancel: () => cancel(route('orders.cancel', { order: orderId.value })),
@@ -139,8 +139,8 @@ const actions = {
         </div>
 
         <div class="flex gap-2">
-          <Button v-if="auth.isAdmin || isAuthor" class="font-bold" label="Редактировать" @click="actions.edit" />
-          <Button v-if="auth.isAdmin" severity="danger" class="font-bold" label="Удалить" @click="actions.delete" />
+          <Button v-if="isAdmin || isAuthor" class="font-bold" label="Редактировать" @click="actions.edit" />
+          <Button v-if="isAdmin" severity="danger" class="font-bold" label="Удалить" @click="actions.delete" />
         </div>
       </div>
     </template>
