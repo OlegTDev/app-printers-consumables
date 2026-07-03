@@ -7,8 +7,8 @@ export default {
    */
   async fetch(url) {
     const response = await axios.get(url);
-    if (Array.isArray(response.data?.data)) {
-      return response.data.data.map((item) => ({
+    if (Array.isArray(response.data)) {
+      return response.data.map((item) => ({
         id: item.id,
         type: item.type,
         name: item.name,

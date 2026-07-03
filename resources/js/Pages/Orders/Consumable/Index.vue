@@ -3,10 +3,7 @@ import Layout from '@/Shared/Layout.vue';
 import { Head, router } from '@inertiajs/vue3';
 import Breadcrumbs from '@/Shared/Breadcrumbs.vue';
 import Button from 'primevue/button';
-import InputText from 'primevue/inputtext';
-import DataTable from 'primevue/datatable';
-import { computed, onMounted, reactive, ref, watch } from 'vue';
-import { pickBy } from 'lodash';
+import { computed, onMounted, reactive, ref } from 'vue';
 import TreeSelect from 'primevue/treeselect';
 import Column from 'primevue/column';
 import OrderStatus from '../Shared/OrderStatus.vue';
@@ -18,9 +15,7 @@ import { useNotification } from '@/Composables/useNotification';
 import Card from '@/Shared/Card.vue';
 import Title from '@/Shared/Title.vue';
 import Select from 'primevue/select';
-import IconField from 'primevue/iconfield';
-import InputIcon from 'primevue/inputicon';
-import { debounce } from 'lodash';
+import RemoteDataTable from '@/Shared/DataTable/RemoteDataTable.vue';
 
 
 defineOptions({
@@ -28,8 +23,8 @@ defineOptions({
 });
 
 const props = defineProps({
-  filters: Object,
-  orders: Object,
+  items: Object,
+  query: Object,
   labels: Object,
   statuses: Object,
   consumableTypes: Object,
@@ -42,10 +37,16 @@ const listStatuses = computed(() => {
   return result;
 });
 
-const propsFiltersOrganizations = computed(() => {
-  if (props.filters?.organizations) {
-    return props.filters.organizations.reduce((acc, val) => {
-      acc[val] = true;
+const initialOrganizations = computed(() => {
+  if (props.query?.organizations) {
+    const orgs = Array.isArray(props.query.organizations)
+      ? props.query.organizations
+      : [props.query.organizations];
+
+    return orgs.reduce((acc, val) => {
+      if (val) {
+        acc[val] = true;
+      }
       return acc;
     }, {});
   }
@@ -55,9 +56,16 @@ const propsFiltersOrganizations = computed(() => {
 const { showError } = useNotification();
 
 const form = reactive({
-  search: props.filters?.search,
-  status: props.filters?.status,
-  organizations: propsFiltersOrganizations.value,
+  status: props.query?.status,
+  organizations: initialOrganizations.value,
+});
+
+const computedFilters = computed(() => {
+  const activeOrgs = Object.keys(form.organizations).filter(key => form.organizations[key]);
+  return {
+    status: form.status || null,
+    organizations: activeOrgs.length ? activeOrgs : null,
+  };
 });
 
 const organizations = ref();
@@ -89,15 +97,6 @@ const onRowSelect = (event) => {
   actions.show(event.data.id);
 };
 
-watch(
-  () => form,
-  debounce(() => {
-    const picked = pickBy(form);
-    picked.organizations = Object.keys(picked.organizations ?? {});
-    router.get(route('orders.consumables.index'), pickBy(picked), { preserveState: true });
-  }, 300),
-  { deep: true }
-);
 
 const title = 'Заказ картриджей';
 </script>
@@ -108,49 +107,41 @@ const title = 'Заказ картриджей';
 
   <Card>
     <Title>{{ title }}</Title>
-    <DataTable
-      :value="orders?.data"
-      paginator
-      :rows="10"
+
+    <RemoteDataTable
+      :model="items"
+      :url="route('orders.consumables.index')"
+      :filters="computedFilters"
       data-key="id"
-      :meta-key-selection="false"
-      table-style="min-width: 50rem"
       selection-mode="single"
       @row-select="onRowSelect"
     >
       <template #header>
-        <div class="flex justify-between">
-          <div>
-            <Button severity="info" @click="actions.create">
-              Заказать
-            </Button>
-          </div>
-
-          <div class="flex justify-between gap-3">
-            <TreeSelect
-              v-model="form.organizations"
-              :options="organizations"
-              selection-mode="multiple"
-              placeholder="Организации"
-              class="w-xs"
-            />
-            <Select
-              v-model="form.status"
-              :options="listStatuses"
-              option-label="label"
-              option-value="key"
-              placeholder="Статус"
-              show-clear
-              class="w-auto"
-            />
-            <IconField icon-position="left">
-              <InputIcon><i class="pi pi-search" /></InputIcon>
-              <InputText v-model="form.search" placeholder="Поиск" />
-            </IconField>
-          </div>
-        </div>
+        <Button severity="info" @click="actions.create">
+          Заказать
+        </Button>
       </template>
+      <template #filters>
+        <TreeSelect
+          v-if="organizations"
+          v-model="form.organizations"
+          :options="organizations"
+          selection-mode="multiple"
+          placeholder="Организации"
+          class="w-xs"
+        />
+        <div v-else class="w-64 h-10 bg-gray-100 animate-pulse rounded-md border border-gray-300" />
 
+        <Select
+          v-model="form.status"
+          :options="listStatuses"
+          option-label="label"
+          option-value="key"
+          placeholder="Статус"
+          show-clear
+          class="w-auto"
+        />
+      </template>
       <Column header="#" field="id" header-style="width:3rem" />
       <Column :header="labels.order.status">
         <template #body="{ data }">
@@ -209,6 +200,6 @@ const title = 'Заказ картриджей';
       <template #empty>
         Нет данных
       </template>
-    </DataTable>
+    </RemoteDataTable>
   </Card>
 </template>
