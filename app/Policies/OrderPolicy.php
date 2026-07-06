@@ -8,6 +8,19 @@ use App\Models\Order\OrderStatusEnum;
 
 class OrderPolicy
 {
+    public function cancel(User $user, Order $order): bool
+    {
+        return $user->can('admin') || $user->id === $order->requested_by;
+    }
+
+    public function delete(User $user, Order $order): bool
+    {
+        if ($user->can('admin')) {
+            return true;
+        }
+        return $user->id === $order->requested_by
+            && $order->status !== OrderStatusEnum::STATUS_COMPLETED;
+    }
 
     public function update(User $user, Order $order): bool
     {

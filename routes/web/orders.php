@@ -5,14 +5,20 @@ use App\Http\Controllers\Order\OrderController;
 use App\Http\Controllers\Order\OrderMiscDetailsController;
 use App\Http\Controllers\Order\OrderSparePartDetailsController;
 use App\Http\Controllers\Order\OrderStatusHistoryController;
+use App\Models\Order\Roles;
 
 Route::name('orders.')->group(function() {
     // Order
-    Route::put('orders/{order}/agree', [OrderController::class, 'agree'])->name('agree');
-    Route::put('orders/{order}/reject', [OrderController::class, 'reject'])->name('reject');
-    Route::put('orders/{order}/ordered', [OrderController::class, 'ordered'])->name('ordered');
+    Route::middleware('role:' . implode(',', ['admin', Roles::ORDER_APPROVER->value]))->group(function () {
+        Route::put('orders/{order}/agree', [OrderController::class, 'agree'])->name('agree');
+        Route::put('orders/{order}/reject', [OrderController::class, 'reject'])->name('reject');
+    });
+    Route::middleware('role:' . implode(',', ['admin', Roles::ORDER_APPROVER->value, Roles::ORDER_EXECUTOR->value]))->group(function () {
+        Route::put('orders/{order}/ordered', [OrderController::class, 'ordered'])->name('ordered');
+        Route::put('orders/{order}/complete', [OrderController::class, 'complete'])->name('complete');
+    });
+
     Route::put('orders/{order}/receive', [OrderController::class, 'receive'])->name('receive');
-    Route::put('orders/{order}/complete', [OrderController::class, 'complete'])->name('complete');
     Route::put('orders/{order}/cancel', [OrderController::class, 'cancel'])->name('cancel');
     Route::delete('orders/{order}', [OrderController::class, 'destroy'])->name('destroy');
 
