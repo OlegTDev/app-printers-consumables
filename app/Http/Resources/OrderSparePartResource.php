@@ -17,6 +17,7 @@ class OrderSparePartResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+
         return [
             'id' => $this->id,
             'id_order' => $this->id_order,
@@ -24,9 +25,10 @@ class OrderSparePartResource extends JsonResource
             'id_spare_part' => $this->id_spare_part,
             'call_specialist' => $this->call_specialist,
 
-            'sparePart' => new ConsumableResource($this->whenLoaded('sparePart')),
-            'printerWorkplace' => new PrinterWorkplaceResource($this->whenLoaded('printerWorkplace')),
-            'order' => new OrderResource($this->whenLoaded('order')),
+            // @phpstan-ignore ternary.alwaysTrue
+            'sparePart' => $this->sparePart ? new ConsumableResource($this->sparePart) : null,
+            'printerWorkplace' => PrinterWorkplaceResource::make($this->whenLoaded('printerWorkplace')),
+            'order' => OrderResource::make($this->whenLoaded('order')),
             'files' => OrderSparePartFileResource::collection($this->whenLoaded('files')),
         ];
     }
