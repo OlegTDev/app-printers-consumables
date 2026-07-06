@@ -4,7 +4,6 @@ import { Head } from '@inertiajs/vue3';
 import Breadcrumbs from '@/Shared/Breadcrumbs.vue';
 import Form from './Form.vue';
 import { useDate } from '@/Composables/useDate';
-import { computed } from 'vue';
 
 defineOptions({
   layout: Layout,
@@ -12,14 +11,13 @@ defineOptions({
 
 const { formatDate } = useDate();
 
-const props = defineProps({
+defineProps({
   orderConsumableDetail: Object,
   labels: Object,
   consumableTypes: Object,
   cartridgeColors: Object,
 });
 
-const orderConsumable = computed(() => props.orderConsumableDetail?.data || {});
 const title = 'Изменение заказа';
 </script>
 <template>
@@ -30,19 +28,20 @@ const title = 'Изменение заказа';
     :items="[
       { label: 'Заказ запчастей', url: route('orders.consumables.index') },
       {
-        label: orderConsumable?.id
-          ? `Заказ № ${orderConsumable?.order?.id} от ${formatDate(orderConsumable?.order?.created_at, 'L')}`
+        label: orderConsumableDetail?.id
+          ? `Заказ № ${orderConsumableDetail?.order?.id} от ${formatDate(orderConsumableDetail?.order?.created_at, 'L')}`
           : 'Загрузка',
-        url: route('orders.consumables.show', { orderConsumableDetails: orderConsumable?.id }),
+        url: route('orders.consumables.show', { orderConsumableDetails: orderConsumableDetail?.id }),
       },
       { label: title },
     ]"
   />
 
   <Form
-    :order-consumable="orderConsumable"
+    :order-consumable="orderConsumableDetail"
     :labels="labels"
     :consumable-types="consumableTypes"
     :cartridge-colors="cartridgeColors"
+    :title
   />
 </template>
