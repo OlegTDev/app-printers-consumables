@@ -15,12 +15,4 @@ trait OrderOrgCodeFilterable
             $subQuery->where('org_code', auth()->user()->org_code);
         });
     }
-
-    // @deprecated
-    public static function queryWithFilterByOrgCode(): Builder
-    {
-        return static::query()
-            ->with('order')
-            ->filterByOrgCode();
-    }
 }
