@@ -16,10 +16,6 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
-  spareParts: {
-    type: Array,
-    required: true,
-  },
   labels: {
     type: Object,
     required: true,
@@ -97,7 +93,7 @@ const emitChangeServiceRequestDate = (date) => {
 };
 
 const urlOtherConsumablesForPrinter = computed(() => {
-  if (form.id_printers_workplace) {
+  if (form.id_printers_workplace && idPrinter.value) {
     return route('dictionary.consumables.other', { printer: idPrinter.value });
   }
   return null;

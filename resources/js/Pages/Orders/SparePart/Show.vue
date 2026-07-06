@@ -14,13 +14,13 @@ import DetailViewer from '@/Shared/DetailViewer.vue';
 import { useDate } from '@/Composables/useDate';
 import Timestamps from '@/Shared/DataTable/Timestamps.vue';
 import { useActions } from '../Composables/useActions';
+import { useAuth } from '@/Composables/useAuth';
 
 defineOptions({
   layout: Layout,
 });
 
 const props = defineProps({
-  auth: Object,
   orderSparePartDetail: Object,
   labels: Object,
   isAuthor: Boolean,
@@ -30,8 +30,9 @@ const props = defineProps({
 
 const ConfirmDialog = defineAsyncComponent(() => import('../Shared/ConfirmDialog.vue'));
 const { formatDate } = useDate();
-const orderSparePartDetail = computed(() => props.orderSparePartDetail.data || []);
-const orderId = computed(() => orderSparePartDetail.value?.order?.id || null);
+const { isAdmin } = useAuth();
+
+const orderId = computed(() => props.orderSparePartDetail?.order?.id || null);
 const {
   agree,
   reject,
@@ -43,8 +44,8 @@ const {
 } = useActions('spare-parts', ConfirmDialog, orderId, props.labels.order?.comment || '');
 
 const actions = {
-  edit: () => router.get(route('orders.spare-parts.edit', { orderSparePartDetails: orderSparePartDetail.value.id })),
-  editFiles: () => router.get(route('orders.spare-parts.files.edit', { orderSparePartDetails: orderSparePartDetail.value.id })),
+  edit: () => router.get(route('orders.spare-parts.edit', { orderSparePartDetails: props.orderSparePartDetail.id })),
+  editFiles: () => router.get(route('orders.spare-parts.files.edit', { orderSparePartDetails: props.orderSparePartDetail.id })),
   delete: () => remove(route('orders.destroy', { order: orderId.value })),
   cancel: () => cancel(route('orders.cancel', { order: orderId.value })),
   agree: () => agree(route('orders.agree', { order: orderId.value })),
@@ -54,7 +55,7 @@ const actions = {
   complete: () => complete(route('orders.complete', { order: orderId.value })),
 };
 
-const title = computed(() => `Заказ № ${orderSparePartDetail.value.order.id} от ${formatDate(orderSparePartDetail.value.order.created_at, 'L')}`);
+const title = computed(() => `Заказ № ${props.orderSparePartDetail?.order?.id} от ${formatDate(props.orderSparePartDetail?.order?.created_at, 'L')}`);
 </script>
 <template>
   <Head :title="title" />
@@ -139,9 +140,9 @@ const title = computed(() => `Заказ № ${orderSparePartDetail.value.order.
         </div>
 
         <div class="flex gap-2">
-          <Button v-if="auth.isAdmin || isAuthor" class="font-bold" label="Редактировать файлы" @click="actions.editFiles" />
-          <Button v-if="auth.isAdmin || isAuthor" class="font-bold" label="Редактировать" @click="actions.edit" />
-          <Button v-if="auth.isAdmin" severity="danger" class="font-bold" label="Удалить" @click="actions.remove" />
+          <Button v-if="isAdmin || isAuthor" class="font-bold" label="Редактировать файлы" @click="actions.editFiles" />
+          <Button v-if="isAdmin || isAuthor" class="font-bold" label="Редактировать" @click="actions.edit" />
+          <Button v-if="isAdmin" severity="danger" class="font-bold" label="Удалить" @click="actions.delete" />
         </div>
       </div>
     </template>

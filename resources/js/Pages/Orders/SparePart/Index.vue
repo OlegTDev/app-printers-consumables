@@ -2,39 +2,29 @@
 import Layout from '@/Shared/Layout.vue';
 import { Head, router } from '@inertiajs/vue3';
 import Breadcrumbs from '@/Shared/Breadcrumbs.vue';
-import DataTable from 'primevue/datatable';
 import Card from '@/Shared/Card.vue';
-import InputText from 'primevue/inputtext';
 import Column from 'primevue/column';
-import { computed, onMounted, reactive, ref, watch } from 'vue';
+import { computed, onMounted, reactive, ref } from 'vue';
 import Button from 'primevue/button';
 import OrderStatus from '../Shared/OrderStatus.vue';
 import PrinterWorkplace from '@/Shared/DataTable/PrinterWorkplace.vue';
 import Author from '@/Shared/DataTable/Author.vue';
 import Timestamps from '@/Shared/DataTable/Timestamps.vue';
-import { pickBy, debounce } from 'lodash';
 import axios from 'axios';
 import TreeSelect from 'primevue/treeselect';
 import Title from '@/Shared/Title.vue';
 import { useNotification } from '@/Composables/useNotification';
-import InputIcon from 'primevue/inputicon';
-import IconField from 'primevue/iconfield';
 import Select from 'primevue/select';
 import { useDate } from '@/Composables/useDate';
+import RemoteDataTable from '@/Shared/DataTable/RemoteDataTable.vue';
 
 defineOptions({
   layout: Layout,
 });
 
 const props = defineProps({
-  filters: {
-    type: Object,
-    required: true,
-  },
-  orders: {
-    type: Object,
-    default: () => ({ data: []}),
-  },
+  items: Object,
+  query: Object,
   labels: {
     type: Object,
     required: true,
@@ -52,10 +42,16 @@ const listStatuses = computed(() =>
   }))
 );
 
-const propsFiltersOrganizations = computed(() => {
-  if (props.filters?.organizations) {
-    return props.filters.organizations.reduce((acc, val) => {
-      acc[val] = true;
+const initialOrganizations = computed(() => {
+  if (props.query?.organizations) {
+    const orgs = Array.isArray(props.query.organizations)
+      ? props.query.organizations
+      : [props.query.organizations];
+
+    return orgs.reduce((acc, val) => {
+      if (val) {
+        acc[val] = true;
+      }
       return acc;
     }, {});
   }
@@ -66,9 +62,16 @@ const { showError } = useNotification();
 const { formatDate } = useDate();
 
 const form = reactive({
-  search: props.filters?.search,
-  status: props.filters?.status,
-  organizations: propsFiltersOrganizations.value,
+  status: props.query?.status,
+  organizations: initialOrganizations.value,
+});
+
+const computedFilters = computed(() => {
+  const activeOrgs = Object.keys(form.organizations).filter(key => form.organizations[key]);
+  return {
+    status: form.status || null,
+    organizations: activeOrgs.length ? activeOrgs : null,
+  };
 });
 
 const organizations = ref();
@@ -102,17 +105,6 @@ const onRowSelect = (event) => {
   actions.show(event.data.id);
 };
 
-watch(
-  () => [form.search, form.status, form.organizations],
-  debounce(() => {
-    const picked = pickBy(form);
-    if (picked.organizations) {
-      picked.organizations = Object.keys(picked.organizations);
-    }
-    router.get(route('orders.spare-parts.index'), picked, { preserveState: true });
-  }, 300)
-);
-
 const title = 'Заказ запчастей';
 </script>
 <template>
@@ -126,47 +118,39 @@ const title = 'Заказ запчастей';
   <Card>
     <Title>{{ title }}</Title>
 
-    <DataTable
-      :value="orders?.data"
-      paginator
-      :rows="10"
+    <RemoteDataTable
+      :model="items"
+      :url="route('orders.spare-parts.index')"
+      :filters="computedFilters"
       data-key="id"
-      :meta-key-selection="false"
-      class="w-full"
-      table-style="min-width: 50rem"
       selection-mode="single"
       @row-select="onRowSelect"
     >
       <template #header>
-        <div class="flex justify-between">
-          <div>
-            <Button severity="info" type="button" @click="actions.create">
-              Заказать
-            </Button>
-          </div>
-          <div class="flex justify-between gap-3">
-            <TreeSelect
-              v-model="form.organizations"
-              :options="organizations"
-              selection-mode="multiple"
-              placeholder="Организации"
-              class="w-xs"
-            />
-            <Select
-              v-model="form.status"
-              :options="listStatuses"
-              option-label="label"
-              option-value="key"
-              placeholder="Статус"
-              show-clear
-              class="w-auto"
-            />
-            <IconField icon-position="left">
-              <InputIcon><i class="pi pi-search" /></InputIcon>
-              <InputText v-model="form.search" placeholder="Поиск" />
-            </IconField>
-          </div>
-        </div>
+        <Button severity="info" @click="actions.create">
+          Заказать
+        </Button>
+      </template>
+      <template #filters>
+        <TreeSelect
+          v-if="organizations"
+          v-model="form.organizations"
+          :options="organizations"
+          selection-mode="multiple"
+          placeholder="Организации"
+          class="w-xs"
+        />
+        <div v-else class="w-64 h-10 bg-gray-100 animate-pulse rounded-md border border-gray-300" />
+
+        <Select
+          v-model="form.status"
+          :options="listStatuses"
+          option-label="label"
+          option-value="key"
+          placeholder="Статус"
+          show-clear
+          class="w-auto"
+        />
       </template>
       <Column header="#" header-style="width:3rem">
         <template #body="{ data }">
@@ -243,6 +227,6 @@ const title = 'Заказ запчастей';
       <template #empty>
         Нет данных
       </template>
-    </DataTable>
+    </RemoteDataTable>
   </Card>
 </template>
