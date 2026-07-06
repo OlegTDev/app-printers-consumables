@@ -2,7 +2,6 @@
 import Layout from '@/Shared/Layout.vue';
 import { Head } from '@inertiajs/vue3';
 import Breadcrumbs from '@/Shared/Breadcrumbs.vue';
-import { computed } from 'vue';
 import Form from './Form.vue';
 import { useDate } from '@/Composables/useDate';
 
@@ -10,13 +9,12 @@ defineOptions({
   layout: Layout,
 });
 
-const props = defineProps({
+defineProps({
   orderMiscDetail: Object,
   labels: Object,
 });
 
 const { formatDate } = useDate();
-const orderMiscDetail = computed(() => props.orderMiscDetail?.data || {});
 const title = 'Изменение заказа';
 </script>
 <template>
