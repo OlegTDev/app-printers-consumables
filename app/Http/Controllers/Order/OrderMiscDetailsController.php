@@ -3,34 +3,39 @@
 namespace App\Http\Controllers\Order;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Traits\BuildsListQuery;
 use App\Http\Requests\Orders\OrderMiscRequest;
 use App\Http\Resources\OrderMiscResource;
-use App\Models\Order\Order;
 use App\Models\Order\OrderMiscDetails;
 use App\Models\Order\Roles;
 use App\Services\Order\OrderStatusButtonService;
+use App\Services\Query\OrderQueryService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class OrderMiscDetailsController extends Controller
 {
+    use BuildsListQuery;
 
     /**
      * @route GET orders/misc
      */
-    public function index(Request $request)
+    public function index(Request $request): \Inertia\Response
     {
-        $orders = OrderMiscDetails::queryWithFilterByOrgCode()
-            ->filter($request->only(['search', 'status', 'organizations']))
-            ->orderByDesc('id')
-            ->get();
+        $query = OrderMiscDetails::filterByOrgCode()->orderByDesc('id');
+        $query->with(['order.requested', 'order.organization']);
+
+        $paginatedData = $this->getPaginatedData(
+            request: $request,
+            query: $query,
+            filterFields: ['search', 'status', 'organizations'],
+            resourceClass: OrderMiscResource::class,
+        );
 
         return Inertia::render('Orders/Misc/Index', [
-            'filters' => $request->all(['search', 'status', 'organizations']),
-            'orders' => OrderMiscResource::collection($orders),
+            ...$paginatedData,
             'statuses' => config('order_statuses'),
-
-
             'labels' => [
                 'order' => config('labels.order'),
                 'order_misc' => config('labels.order_misc'),
@@ -41,7 +46,7 @@ class OrderMiscDetailsController extends Controller
     /**
      * @route GET orders/misc/create
      */
-    public function create()
+    public function create(): \Inertia\Response
     {
         return Inertia::render('Orders/Misc/Create', [
             'labels' => [
@@ -54,24 +59,31 @@ class OrderMiscDetailsController extends Controller
     /**
      * @route POST orders/misc
      */
-    public function store(OrderMiscRequest $request)
+    public function store(OrderMiscRequest $request, OrderQueryService $orderQueryService): \Illuminate\Http\RedirectResponse
     {
-        $modelOrderMisc = $this->createOrderMisc($request);
-        $this->createChildOrder(
-            orderMisc: $modelOrderMisc,
-            quantity: $request->input('quantity', 1),
-            comment: $request->input('comment'),
-        );
+        DB::transaction(function () use ($request, $orderQueryService) {
+            $modelOrderMisc = $this->createOrderMisc($request);
 
-        return redirect()->route('orders.misc.index')
+            $orderQueryService->createWithChildOrder(
+                subOrder: $modelOrderMisc,
+                authUserOrgCode: auth()->user()->org_code,
+                authUserId: auth()->id(),
+                comment: $request->input('comment'),
+                quantity: $request->input('quantity', 1),
+            );
+        });
+
+        return to_route('orders.misc.index')
             ->with('success', 'Заявка успешно добавлена!');
     }
 
     /**
      * @route GET orders/misc/{orderMiscDetails}
      */
-    public function show(OrderMiscDetails $orderMiscDetails, OrderStatusButtonService $orderStatusButtonService)
+    public function show(OrderMiscDetails $orderMiscDetails, OrderStatusButtonService $orderStatusButtonService): \Inertia\Response
     {
+        $orderMiscDetails->load(['order.requested']);
+
         $userRoles = auth()->user()->getRoleNames();
         $order = $orderMiscDetails->order;
         $isAuthor = $order->requested_by === auth()->user()->id;
@@ -95,8 +107,10 @@ class OrderMiscDetailsController extends Controller
     /**
      * @route GET orders/misc/{orderMiscDetails}/edit
      */
-    public function edit(OrderMiscDetails $orderMiscDetails)
+    public function edit(OrderMiscDetails $orderMiscDetails): \Inertia\Response
     {
+        $orderMiscDetails->load(['order']);
+
         $this->authorize('update', $orderMiscDetails->order);
 
         return Inertia::render('Orders/Misc/Edit', [
@@ -111,13 +125,17 @@ class OrderMiscDetailsController extends Controller
     /**
      * @route PUT orders/misc/{orderMiscDetails}
      */
-    public function update(OrderMiscRequest $request, OrderMiscDetails $orderMiscDetails)
+    public function update(OrderMiscRequest $request, OrderMiscDetails $orderMiscDetails): \Illuminate\Http\RedirectResponse
     {
         $this->authorize('update', $orderMiscDetails->order);
 
-        $orderMiscDetails->update($request->only(['name', 'description']));
-        $orderMiscDetails->order()->update($request->only(['comment']));
-        return redirect()->route('orders.misc.show', ['orderMiscDetails' => $orderMiscDetails])
+        $validated = $request->safe();
+
+        DB::transaction(function () use ($orderMiscDetails, $validated) {
+            $orderMiscDetails->update($validated->only(['name', 'description']));
+            $orderMiscDetails->order()->update($validated->only(['comment']));
+        });
+        return to_route('orders.misc.show', ['orderMiscDetails' => $orderMiscDetails->id])
             ->with('success', 'Изменения сохранены!');
     }
 
@@ -131,19 +149,5 @@ class OrderMiscDetailsController extends Controller
         $model->id_author = auth()->id();
         return $model;
     }
-
-    private function createChildOrder(OrderMiscDetails $orderMisc,
-        int $quantity, ?string $comment, ?string $service_request_number = null, ?string $service_request_date = null): void
-    {
-        Order::createWithChildOrder(
-            subOrder: $orderMisc,
-            comment: $comment,
-            service_request_number: $service_request_number,
-            service_request_date: $service_request_date,
-            quantity: $quantity,
-        );
-    }
-
-
 
 }
