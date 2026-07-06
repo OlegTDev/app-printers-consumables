@@ -28,9 +28,12 @@ class OrderConsumableDetailsController extends Controller
      */
     public function index(Request $request): \Inertia\Response
     {
+        $query = OrderConsumableDetails::filterByOrgCode()->orderBy('id', 'desc');
+        $query->with(['consumable.author', 'order.requested', 'order.organization']);
+
         $paginatedData = $this->getPaginatedData(
             request: $request,
-            query: OrderConsumableDetails::filterByOrgCode()->orderBy('id', 'desc'),
+            query: $query,
             filterFields: ['search', 'status', 'organizations'],
             resourceClass: OrderConsumableResource::class,
         );
@@ -91,6 +94,8 @@ class OrderConsumableDetailsController extends Controller
      */
     public function show(OrderConsumableDetails $orderConsumableDetails, OrderStatusButtonService $orderStatusButtonService): \Inertia\Response
     {
+        $orderConsumableDetails->load(['order.requested', 'consumable.author']);
+
         $userRoles = auth()->user()->getRoleNames();
         $order = $orderConsumableDetails->order;
         $isAuthor = $order->requested_by === auth()->id();
