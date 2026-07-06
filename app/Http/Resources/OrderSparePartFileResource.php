@@ -5,6 +5,9 @@ namespace App\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+/**
+ * @mixin \App\Models\Order\OrderSparePartDetailsFile
+ */
 class OrderSparePartFileResource extends JsonResource
 {
     /**
@@ -14,7 +17,6 @@ class OrderSparePartFileResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        /** @var \App\Models\Order\OrderSparePartDetailsFile $this */
         return [
             'id' => $this->id,
             'id_spare_part_order_detail' => $this->id_spare_part_order_detail,

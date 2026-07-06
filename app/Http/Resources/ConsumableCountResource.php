@@ -21,7 +21,7 @@ class ConsumableCountResource extends JsonResource
             'id' => $this->id,
             'id_consumable' => $this->id_consumable,
             'count' => $this->count,
-            'organizations' => OrganizationResource::collection($this->organizations),
+            'organizations' => OrganizationResource::collection($this->whenLoaded('organizations')),
         ];
     }
 }

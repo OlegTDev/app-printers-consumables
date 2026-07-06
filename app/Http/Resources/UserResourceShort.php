@@ -5,6 +5,9 @@ namespace App\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+/**
+ * @mixin \App\Models\Auth\User
+ */
 class UserResourceShort extends JsonResource
 {
     /**
@@ -14,7 +17,6 @@ class UserResourceShort extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        /** @var \App\Models\Auth\User $this */
         return [
             'id' => $this->id,
             'name' => $this->name,
