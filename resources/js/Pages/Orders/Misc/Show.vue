@@ -29,9 +29,8 @@ const props = defineProps({
 
 const { formatDate } = useDate();
 
-const orderMiscDetail = computed(() => props.orderMiscDetail?.data || { order: {} });
-const orderId = computed(() => orderMiscDetail.value.order.id);
-const title = `Заказ № ${orderMiscDetail.value.order.id} от ${formatDate(orderMiscDetail.value.order.created_at, 'L')}`;
+const orderId = computed(() => props.orderMiscDetail.order.id);
+const title = `Заказ № ${props.orderMiscDetail.order.id} от ${formatDate(props.orderMiscDetail.order.created_at, 'L')}`;
 const ConfirmDialog = defineAsyncComponent(() => import('../Shared/ConfirmDialog.vue'));
 const {
   agree,
@@ -44,7 +43,7 @@ const {
 } = useActions('misc', ConfirmDialog, orderId, props.labels.order?.comment || '');
 
 const actions = {
-  edit: () => router.get(route('orders.misc.edit', { orderMiscDetails: orderMiscDetail.value.id })),
+  edit: () => router.get(route('orders.misc.edit', { orderMiscDetails: props.orderMiscDetail.id })),
   delete: () => remove(route('orders.destroy', { order: orderId.value })),
   cancel: () => cancel(route('orders.cancel', { order: orderId.value })),
   agree: () => agree(route('orders.agree', { order: orderId.value })),
