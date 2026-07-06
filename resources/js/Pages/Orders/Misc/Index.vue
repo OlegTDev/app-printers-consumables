@@ -110,7 +110,7 @@ const title = 'Заказ мелочей';
 
     <RemoteDataTable
       :model="items"
-      :url="route('orders.consumables.index')"
+      :url="route('orders.misc.index')"
       :filters="computedFilters"
       data-key="id"
       selection-mode="single"
