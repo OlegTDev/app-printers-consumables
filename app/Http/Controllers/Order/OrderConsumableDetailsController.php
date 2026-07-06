@@ -123,6 +123,8 @@ class OrderConsumableDetailsController extends Controller
      */
     public function edit(OrderConsumableDetails $orderConsumableDetails): \Inertia\Response
     {
+        $orderConsumableDetails->load('order');
+
         $this->authorize('update', $orderConsumableDetails->order);
 
         return Inertia::render('Orders/Consumable/Edit', [
