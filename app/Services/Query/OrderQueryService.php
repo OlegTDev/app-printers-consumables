@@ -15,8 +15,8 @@ class OrderQueryService
         string $authUserOrgCode,
         int $authUserId,
         ?string $comment,
-        ?string $serviceRequestNumber,
-        ?string $serviceRequestDate,
+        ?string $serviceRequestNumber = null,
+        ?string $serviceRequestDate = null,
         int $quantity = 1,
     ): void
     {
