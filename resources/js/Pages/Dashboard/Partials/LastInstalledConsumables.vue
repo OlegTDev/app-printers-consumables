@@ -75,7 +75,7 @@ const btnInstalledDialog = () => {
 };
 
 const fieldPrinter = (item) => {
-  const p = item.printer_workplace?.printer;
+  const p = item.printerWorkplace?.printer;
   return p ? `${p.vendor} ${p.model}` : 'Принтер не указан';
 };
 </script>
@@ -107,26 +107,29 @@ const fieldPrinter = (item) => {
     <Column header="Расходный материал" sortable field="count" class="align-middle">
       <template #body="{ data }">
         <div class="flex gap-4">
-          <span class="shrink-0 size-8 text-sm font-bold bg-gray-100 text-gray-800 rounded-full flex items-center justify-center border border-gray-200 shadow-inner">
-            x{{ data.count || 1 }}
+          <span
+            v-tooltip="`Количество`"
+            class="shrink-0 size-8 text-sm font-bold bg-gray-100 text-gray-800 rounded-full flex items-center justify-center border border-gray-200 shadow-inner"
+          >
+            {{ data.count || 1 }}
           </span>
 
           <div class="flex flex-col gap-0.5">
             <span class="font-semibold text-gray-900 text-sm">
-              {{ consumableTypes[data.consumable_count?.consumable?.type] }}
-              {{ data.consumable_count?.consumable?.name }}
+              {{ consumableTypes[data.consumableCount?.consumable?.type] }}
+              {{ data.consumableCount?.consumable?.name }}
             </span>
             <div
-              v-if="data.consumable_count?.consumable?.type == 'cartridge'"
+              v-if="data.consumableCount?.consumable?.type == 'cartridge'"
               class="flex items-center gap-1.5 text-sm text-gray-500 bg-gray-50 px-2 py-0.5 rounded-md border border-gray-100 w-fit"
             >
               <span
                 class="size-2 rounded-full shadow-sm"
                 :class="[
-                  cartridgeColors[data.consumable_count?.consumable?.color]?.bg,
+                  cartridgeColors[data.consumableCount?.consumable?.color]?.bg,
                 ]"
               />
-              <span>{{ cartridgeColors[data.consumable_count?.consumable?.color]?.name }}</span>
+              <span>{{ cartridgeColors[data.consumableCount?.consumable?.color]?.name }}</span>
             </div>
           </div>
         </div>
@@ -135,16 +138,16 @@ const fieldPrinter = (item) => {
     <Column header="Принтер" :field="fieldPrinter" sortable>
       <template #body="{ data }">
         <div
-          v-tooltip="`Серийный номер: ${data.printer_workplace?.serial_number}, \n инв. номер: ${data.printer_workplace?.inventory_number}`"
+          v-tooltip="`Серийный номер: ${data.printerWorkplace?.serial_number}, \n инв. номер: ${data.printerWorkplace?.inventory_number}`"
           class="flex flex-col gap-0.5 w-fit"
           placeholder="Bottom"
         >
           <div class="flex items-center gap-1.5 text-sm font-medium text-gray-800 group-hover:text-blue-600 transition-colors">
             <i class="pi pi-print text-gray-400 text-xs" />
-            <span>{{ data.printer_workplace?.printer?.vendor }} {{ data.printer_workplace?.printer?.model }}</span>
+            <span>{{ data.printerWorkplace?.printer?.vendor }} {{ data.printerWorkplace?.printer?.model }}</span>
           </div>
           <div class="text-sm text-gray-400 pl-4.5">
-            {{ data.printer_workplace?.location }} кабинет
+            {{ data.printerWorkplace?.location }} кабинет
           </div>
         </div>
       </template>
