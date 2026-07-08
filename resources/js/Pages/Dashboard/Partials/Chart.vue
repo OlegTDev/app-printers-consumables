@@ -101,6 +101,7 @@ onMounted(() => {
     <div class="w-full min-w-0 overflow-hidden">
       <ApexChart
         v-if="loadedChart"
+        title
         :chart-options="chartOptions"
         :chart-series="chartSeries"
         type="area"
