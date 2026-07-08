@@ -10,6 +10,7 @@ import Select from 'primevue/select';
 import Card from '@/Shared/Card.vue';
 import FieldRowVertical from '@/Shared/Form/FieldRowVertical.vue';
 import Message from 'primevue/message';
+import { computed } from 'vue';
 
 const { user } = useAuth();
 
@@ -50,6 +51,13 @@ const form = useForm({
   serial_number: props.printerWorkplace.serial_number,
   inventory_number: props.printerWorkplace.inventory_number,
   org_code: props.printerWorkplace.org_code ?? user.value?.org_code,
+});
+
+const printersList = computed(() => {
+  return props.printers.map((printer) => ({
+    id: printer.id,
+    name: `${printer.vendor} ${printer.model}`,
+  }));
 });
 
 const organizationSelected = ref({});
@@ -99,7 +107,7 @@ watch(
                 id="id_printer"
                 v-model="form.id_printer"
                 filter
-                :options="printers"
+                :options="printersList"
                 option-label="name"
                 option-value="id"
                 placeholder="Выберите принтер"
