@@ -2,38 +2,41 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\ConsumableCountAddedResource;
 use App\Models\Consumable\Consumable;
 use App\Models\Consumable\ConsumableCount;
 use App\Models\Consumable\ConsumableCountAdded;
-use Illuminate\Auth\Access\AuthorizationException;
+use App\Services\Consumables\ConsumableCountService;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Gate;
 
 class ConsumablesCountsAddedController extends Controller
 {
 
     /**
-     * Список количества добавленных расходных материалов
-     * @param Consumable $consumable расходный материал
-     * @param ConsumableCount $count общее количество
-     * @return \Illuminate\Database\Eloquent\Collection
+     * @route GET /consumables/{consumable}/counts/{count}/added
      */
-    public function index(Consumable $consumable, ConsumableCount $count)
+    public function index(Consumable $consumable, ConsumableCount $count): JsonResource
     {
-        return $count->consumablesAdded()->with('author')->get();
+        $count->load(['consumablesAdded.author']);
+        return ConsumableCountAddedResource::collection($count->consumablesAdded);
     }
 
     /**
      * @route DELETE /consumables/{consumable}/counts/{count}/added/{added}
      */
-    public function destroy(Consumable $consumable, ConsumableCount $count, ConsumableCountAdded $added): RedirectResponse
+    public function destroy(
+        Consumable $consumable,
+        ConsumableCount $count,
+        ConsumableCountAdded $added,
+        ConsumableCountService $consumableCountService,
+    ): RedirectResponse
     {
-        $this->middleware('role:admins')->only(['destroy']);
-        if (Auth::user()->hasRole('admin') || $added->id_author !== Auth::user()->id) {
-            $added->delete();
-            return redirect()->back()
-                ->with('success', 'Запись удалена');
-        }
-        throw new AuthorizationException();
+        Gate::authorize('delete', $added);
+
+        $consumableCountService->removeConsumableCountAdded($added);
+
+        return back()->with('success', 'Запись удалена');
     }
 }
