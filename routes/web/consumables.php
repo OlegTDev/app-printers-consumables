@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\ConsumableApiController;
 use App\Http\Controllers\ConsumablesCountsAddedController;
 use App\Http\Controllers\ConsumablesCountsController;
 use App\Http\Controllers\ConsumablesCountsInstalledController;
@@ -22,6 +23,10 @@ Route::get('consumables/counts/{count}/journal-installed', [ConsumablesCountsCon
 Route::get('consumables/counts/list-by-printer/{printer}', [ConsumablesCountsController::class, 'listByPrinter'])
     ->name('consumables.counts.list-by-printer');
 
-Route::resource('consumables.counts.added', ConsumablesCountsAddedController::class)->only(['index', 'destroy']);
-Route::resource('consumables.counts.installed', ConsumablesCountsInstalledController::class)->only(['index', 'store', 'destroy']);
-Route::get('consumables/counts/installed/last', [ConsumablesCountsInstalledController::class, 'last'])->name('consumables.counts.installed.last');
+Route::scopeBindings()->group(function () {
+    Route::resource('consumables.counts.added', ConsumablesCountsAddedController::class)
+        ->only(['index', 'destroy']);
+    Route::resource('consumables.counts.installed', ConsumablesCountsInstalledController::class)->only(['index', 'store', 'destroy']);
+});
+Route::get('consumables/counts/installed/last', [ConsumableApiController::class, 'lastConsumableCountInstalled'])
+    ->name('consumables.counts.installed.last');
