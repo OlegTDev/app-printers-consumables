@@ -32,5 +32,6 @@ const title = 'Добавление принтера';
     :labels="labels"
     :printers="printers"
     :organizations="organizations"
+    :title
   />
 </template>

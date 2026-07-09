@@ -63,16 +63,14 @@ const activeTab = ref("0");
       <TabPanel value="0">
         <TabPrinterInfo
           :title="title"
-          :printer="printer"
           :printer-labels="printerLabels"
           :printer-workplace-labels="printerWorkplaceLabels"
           :printer-workplace="printerWorkplace"
-          :organization="organization"
         />
       </TabPanel>
       <TabPanel value="1">
         <TabConsumables
-          :consumables="consumables"
+          :consumables="printerWorkplace.printer.consumables"
           :consumable-labels="consumableLabels"
           :cartridge-colors="cartridgeColors"
           :consumable-count-labels="consumableCountLabels"

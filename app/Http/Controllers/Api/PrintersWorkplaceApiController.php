@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api;
 
+use App\Http\Resources\ConsumableCountInstalledResource;
 use App\Http\Resources\PrinterWorkplaceResource;
 use App\Models\Consumable\Consumable;
 use App\Models\Printer\PrinterWorkplace;
@@ -27,10 +28,24 @@ class PrintersWorkplaceApiController
      */
     public function all(): JsonResource
     {
-        //return PrinterWorkplace::with('printer')->where('org_code', Auth::user()->org_code)->get();
         $workplaces = PrinterWorkplace::with('printer')
             ->where('org_code', auth()->user()->org_code)
             ->get();
+
         return PrinterWorkplaceResource::collection($workplaces);
     }
+
+    /**
+     * @route GET /printers/workplace/consumables-installed/{workplace}
+     */
+    public function consumablesInstalledByPrinterWorkplace(PrinterWorkplace $workplace): JsonResource
+    {
+        $items = $workplace
+            ->consumableCountInstalled()
+            ->with(['consumableCount.consumable', 'author'])
+            ->get();
+
+        return ConsumableCountInstalledResource::collection($items);
+    }
+
 }

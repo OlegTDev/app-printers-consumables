@@ -5,7 +5,6 @@ import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import { useNotification } from '@/Composables/useNotification';
 import { useDate } from '@/Composables/useDate';
-import { useConfig } from '@/Composables/useConfig';
 import Author from '@/Shared/DataTable/Author.vue';
 import Badge from 'primevue/badge';
 
@@ -21,12 +20,11 @@ const items = ref([]);
 const loading = ref(false);
 const { formatDate } = useDate();
 const { showError } = useNotification();
-const { urls } = useConfig();
 
 onMounted(async () => {
   loading.value = true;
   try {
-    const url = urls.printers.consumablesInstalled(props.printerId);
+    const url = route('printers.workplace.consumables-installed', { workplace: props.printerId });
     const resp = await axios.get(url);
     items.value = await resp.data;
   } catch (error) {
@@ -47,34 +45,34 @@ onMounted(async () => {
     selection-mode="single"
     :loading="loading"
   >
-    <Column header="Дата" field="date_installed">
+    <Column header="Дата" field="created_at">
       <template #body="{ data }">
-        {{ formatDate(data.date_installed) }}
+        {{ formatDate(data.created_at) }}
       </template>
     </Column>
     <Column :header="consumableLabels.type" field="type">
       <template #body="{ data }">
-        {{ consumableTypes[data.type] }}
+        {{ consumableTypes[data.consumableCount?.consumable?.type] }}
       </template>
     </Column>
     <Column :header="consumableLabels.name" field="name">
       <template #body="{ data }">
         <div class="grid grid-rows-2 gap-4">
           <div>
-            {{ data.name }}
+            {{ data.consumableCount?.consumable?.name }}
           </div>
-          <div v-if="data.type === 'cartridge'">
+          <div v-if="data.consumableCount?.consumable?.type === 'cartridge'">
             <div class="flex">
               <div
                 :class="[
                   'rounded-full',
                   'size-4',
                   'mr-2',
-                  cartridgeColors[data.color]?.bg,
+                  cartridgeColors[data.consumableCount?.consumable?.color]?.bg,
                 ]"
               />
               <div>
-                {{ cartridgeColors[data.color]?.name }}
+                {{ cartridgeColors[data.consumableCount?.consumable?.color]?.name }}
               </div>
             </div>
           </div>
@@ -92,14 +90,7 @@ onMounted(async () => {
     </Column>
     <Column header="Исполнитель">
       <template #body="{ data }">
-        <Author
-          :user="{
-            name: data.user_name,
-            fio: data.user_fio,
-            department: data.user_department,
-            post: data.user_post,
-          }"
-        />
+        <Author :user="data.author" />
       </template>
     </Column>
 

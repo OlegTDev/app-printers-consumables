@@ -38,5 +38,6 @@ const title = 'Редактирование';
     :printers="printers"
     :printer-workplace="printerWorkplace"
     :organizations="organizations"
+    :title
   />
 </template>

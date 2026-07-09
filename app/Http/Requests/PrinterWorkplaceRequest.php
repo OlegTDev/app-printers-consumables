@@ -18,7 +18,7 @@ class PrinterWorkplaceRequest extends FormRequest
      * Determine if the user is authorized to make this request.
      */
     public function authorize(): bool
-    {                
+    {
         return true;
     }
 
@@ -29,17 +29,17 @@ class PrinterWorkplaceRequest extends FormRequest
      */
     public function rules(): array
     {
-        $id = Route::input('workplace')?->id;        
-        return [            
+        $id = Route::input('workplace')?->id;
+        return [
             'id_printer' => 'required',
-            'location' => 'required',            
+            'location' => 'required',
             'inventory_number' => [
                 'required',
                 Rule::unique('printers_workplace')
                     ->where(function($query) use ($id) {
                         $query->where('org_code', Auth::user()->org_code)
                             ->where('id', '<>', $id);
-                    }),                  
+                    }),
             ],
             'org_code' => 'required',
         ];
@@ -50,6 +50,6 @@ class PrinterWorkplaceRequest extends FormRequest
      */
     public function attributes()
     {
-        return PrinterWorkplace::labels();
+        return config('labels.printer_workplace');
     }
 }

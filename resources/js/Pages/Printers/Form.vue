@@ -11,6 +11,7 @@ import Card from '@/Shared/Card.vue';
 import FieldRowVertical from '@/Shared/Form/FieldRowVertical.vue';
 import Message from 'primevue/message';
 import { computed } from 'vue';
+import Title from '@/Shared/Title.vue';
 
 const { user } = useAuth();
 
@@ -42,6 +43,10 @@ const props = defineProps({
       org_code: null,
     }),
   },
+  title: {
+    type: String,
+    default: '',
+  }
 });
 
 const form = useForm({
@@ -97,6 +102,7 @@ watch(
   <form @submit.prevent="save">
     <Card class="mb-4">
       <template #default>
+        <Title>{{ title }}</Title>
         <div class="w-1/2 grid gap-y-10">
           <FieldRowVertical>
             <template #label>

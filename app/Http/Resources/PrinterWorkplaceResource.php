@@ -19,6 +19,7 @@ class PrinterWorkplaceResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'id_printer' => $this->id_printer,
             'org_code' => $this->org_code,
             'location' => $this->location,
             'serial_number' => $this->serial_number,
@@ -27,6 +28,8 @@ class PrinterWorkplaceResource extends JsonResource
             'updated_at'=> $this->updated_at,
 
             'printer' => new PrinterResource($this->whenLoaded('printer')),
+            'organization' => $this->whenLoaded('organization', fn() => OrganizationResource::make($this->organization)),
+            'author' => $this->whenLoaded('author', fn() => UserResourceShort::make($this->author)),
         ];
     }
 }

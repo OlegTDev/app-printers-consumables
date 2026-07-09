@@ -26,6 +26,8 @@ class PrinterResource extends JsonResource
             'author' => new UserResourceShort($this->whenLoaded('author')),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
+
+            'consumables' => $this->whenLoaded('consumables', fn() => ConsumableResource::collection($this->consumables)),
         ];
     }
 }
