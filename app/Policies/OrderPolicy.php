@@ -10,12 +10,12 @@ class OrderPolicy
 {
     public function cancel(User $user, Order $order): bool
     {
-        return $user->can('admin') || $user->id === $order->requested_by;
+        return $user->hasRole('admin') || $user->id === $order->requested_by;
     }
 
     public function delete(User $user, Order $order): bool
     {
-        if ($user->can('admin')) {
+        if ($user->hasRole('admin')) {
             return true;
         }
         return $user->id === $order->requested_by
@@ -25,7 +25,7 @@ class OrderPolicy
     public function update(User $user, Order $order): bool
     {
         // редактирование документа не возможно, так как заказ уже прошел процедуру согласования
-        return $user->can('admin') || (
+        return $user->hasRole('admin') || (
             $order->requested_by == $user->id
             && \in_array($order->status, [OrderStatusEnum::STATUS_PENDING, OrderStatusEnum::STATUS_ORDERED]));
     }
