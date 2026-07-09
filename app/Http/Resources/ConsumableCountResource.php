@@ -21,10 +21,10 @@ class ConsumableCountResource extends JsonResource
             'id' => $this->id,
             'id_consumable' => $this->id_consumable,
             'count' => $this->count,
-            'organizations' => OrganizationResource::collection($this->whenLoaded('organizations')),
-            'consumable' => $this->whenNotNull(
-                ConsumableResource::make($this->whenLoaded('consumable')),
-            ),
+            'organizations' => $this->whenLoaded('organizations', fn() => OrganizationResource::collection($this->whenLoaded('organizations'))),
+            'consumable' => $this->whenLoaded('consumable', fn() => ConsumableResource::make($this->consumable)),
+            'created_at' => $this->created_at,
+            'updated_at'=> $this->updated_at,
         ];
     }
 }

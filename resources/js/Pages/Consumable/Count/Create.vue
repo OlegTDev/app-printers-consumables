@@ -55,7 +55,7 @@ const findConsumable = async() => {
   form.changeOrganization = false;
   consumableData.value = null;
   try {
-    const response = await axios.get(route('consumables.counts.exists', { idConsumable: form.id_consumable }));
+    const response = await axios.get(route('consumables.counts.by-consumable', { idConsumable: form.id_consumable }));
     consumableData.value = response.data?.id ? response.data : null;
   } catch (e) {
     if (e.response?.status == 404) {

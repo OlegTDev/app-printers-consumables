@@ -22,6 +22,7 @@ class ConsumableResource extends JsonResource
             'id' => $this->id,
             'type' => $this->type,
             'name' => $this->name,
+            'title' => $this->title(),
             'color' => $this->color,
             'description' => $this->description,
             'arch' => $this->arch,

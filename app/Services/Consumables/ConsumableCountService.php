@@ -64,6 +64,11 @@ class ConsumableCountService
         return $consumableCount->decrement('count', $count);
     }
 
+    public function correctBalance(ConsumableCount $consumableCount, int $count): void
+    {
+        $consumableCount->update(['count' => $count]);
+    }
+
     private function firstOrCreateConsumableCount(int $idConsumable, int $count = 0): ConsumableCount
     {
         return ConsumableCount::firstOrCreate(['id_consumable' => $idConsumable], ['count' => $count]);

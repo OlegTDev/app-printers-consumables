@@ -2,195 +2,139 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Traits\BuildsListQuery;
 use App\Http\Requests\ConsumableCountCorrectRequest;
 use App\Http\Requests\ConsumableCountRequest;
-use App\Http\Requests\ConsumableCountRequestValidate;
 use App\Http\Resources\ConsumableCountResource;
+use App\Http\Resources\OrganizationResource;
 use App\Models\Consumable\CartridgeColors;
 use App\Models\Consumable\Consumable;
 use App\Models\Consumable\ConsumableCount;
-use App\Models\Consumable\ConsumableCountAdded;
 use App\Models\Consumable\ConsumableTypesEnum;
 use App\Models\Organization;
-use App\Models\Printer\Printer;
 use App\Services\Consumables\ConsumableCountService;
-use App\Services\Query\ConsumableCountQueryService;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
-use Redirect;
 
 class ConsumablesCountsController extends Controller
 {
+    use BuildsListQuery;
 
-    public function __construct()
+    private function allConsumables(): \Illuminate\Support\Collection
     {
-        $this->middleware('role:admin,add-consumables')->only(['store']);
-        $this->middleware('role:admin,subtract-consumable')->only(['update']);
-    }
-
-    /**
-     * Поиск всех расходных материалов (для списка)
-     * @use ConsumablesCountsController::index()
-     * @return \Illuminate\Support\Collection
-     */
-    private function allConsumables()
-    {
-        return Consumable::all()->transform(fn(Consumable $consumable) => [
-            'id' => $consumable->id,
-            'name' => ConsumableTypesEnum::getValueByName($consumable->type) . ' ' . $consumable->name
-                . ($consumable->type === 'cartridge' ? ' (' . (CartridgeColors::get()[$consumable->color]['name'] ?? $consumable->color) . ')' : ''),
+        return Consumable::select(['id', 'name', 'type', 'color'])
+            ->get()
+            ->map(fn(Consumable $consumable) => [
+                'id' => $consumable->id,
+                'name' => $consumable->title(),
         ]);
     }
 
     /**
      * @route GET /consumables/counts
      */
-    public function index(): \Inertia\Response
+    public function index(Request $request): \Inertia\Response
     {
-        $consumablesCounts = ConsumableCount::filter(Request::only(['search', 'consumableType']))->forCurrentUser()->get();
+        $query = ConsumableCount::forCurrentUser();
+
+        $paginatedData = $this->getPaginatedData(
+            request: $request,
+            query: $query,
+            filterFields: ['search', 'consumableType'],
+            resourceClass: ConsumableCountResource::class,
+        );
+
         return Inertia::render('Consumable/Count/Index', [
-            'filters' => Request::all(['search', 'consumableType']),
-            'consumablesCounts' => $consumablesCounts,
+            ...$paginatedData,
             'consumableLabels' => config('labels.consumable'),
-            'consumableCountLabels' => ConsumableCount::labels(),
+            'consumableCountLabels' => config('labels.consumable_count'),
             'consumableTypes' => ConsumableTypesEnum::array(),
             'cartridgeColors' => CartridgeColors::get(),
         ]);
     }
 
     /**
-     * Список расходных материалов связанных с принтером $printer
-     * и текущей организацией
-     * @param Printer $printer
-     * @return array
+     * @route GET /consumables/counts/create
      */
-    public function listByPrinter(Printer $printer, ConsumableCountQueryService $consumableCountQueryService)
-    {
-        return
-        [
-            'consumables' => $consumableCountQueryService->getConsumableCountByPrinterWorkplace($printer->id, Auth::user()->org_code),
-            'consumableTypes' => ConsumableTypesEnum::array(),
-            'cartridgeColors' => CartridgeColors::get(),
-        ];
-    }
-
-    /**
-     * Форма создания записи ConsumableCount
-     * @return \Inertia\Response
-     */
-    public function create()
+    public function create(): \Inertia\Response
     {
         return Inertia::render('Consumable/Count/Create', [
             'consumableLabels' => config('labels.consumable'),
-            'consumableCountLabels' => ConsumableCount::labels(),
+            'consumableCountLabels' => config('labels.consumable_count'),
             'consumables' => $this->allConsumables(),
-            'availableOrganizations' => Auth::user()->availableOrganizations(),
+            'availableOrganizations' => auth()->user()->availableOrganizations(),
         ]);
     }
 
     /**
      * @route POST /consumables/counts
      */
-    public function store(ConsumableCountRequest $request, ConsumableCountService $consumablesCountsAddService)
+    public function store(ConsumableCountRequest $request, ConsumableCountService $consumablesCountsService): RedirectResponse
     {
-        $idConsumable = $request->integer('id_consumable');
-        $organizations = $request->collect('selectedOrganizations')->toArray();
-        $count = $request->integer('count');
-        $changeOrganization = $request->boolean('changeOrganization');
+        $validated = $request->safe();
 
-        $idConsumableCount = $consumablesCountsAddService->add($idConsumable, $changeOrganization, $organizations, $count);
+        $idConsumableCount = $consumablesCountsService->add(
+            idConsumable: $validated->integer('id_consumable'),
+            count: $validated->integer('count'),
+            idUser: auth()->id(),
+            changeOrganization: $validated->boolean('changeOrganization'),
+            organizations: $validated->array('selectedOrganizations'),
+        );
 
-        return redirect()->route('consumables.counts.show', [$idConsumableCount])
+        return to_route('consumables.counts.show', [$idConsumableCount])
             ->with('success', 'Данные успешно сохранены!');
     }
 
     /**
-     * @route GET /consumables/counts/{idConsumable}/exists
+     * @route GET /consumables/counts/{count}
      */
-    public function exists(int $idConsumable)
+    public function show(ConsumableCount $count): \Inertia\Response
     {
-        $consumableCount = ConsumableCount::where('id_consumable', $idConsumable)
-            ->forCurrentUser()->firstOrFail();
+        Gate::authorize('show', $count);
+        $count->load(['consumable', 'organizations']);
+        $organizations = Organization::select(['code', 'name'])->get();
 
-        return new ConsumableCountResource($consumableCount);
-    }
-
-    /**
-     * Валидация данных при добавлении нового документа ConsumableCount
-     * @param ConsumableCountRequestValidate $request
-     */
-    public function validateConsumableCount(ConsumableCountRequestValidate $request)
-    {
-        abort(599, 'Удалить контроллер?');
-    }
-
-    /**
-     * Отображение информации о количестве по расходному материалу $consumableCount
-     *
-     * @return \Inertia\Response
-     */
-    public function show(ConsumableCount $count)
-    {
-        $consumableCount = $count;
-        if (!in_array(Auth::user()->org_code, $consumableCount->organizationsCodes()->toArray())) {
-            abort(404);
-        }
-
-        $consumable = $consumableCount->consumable;
         return Inertia::render('Consumable/Count/Show', [
-            'consumableCount' => $consumableCount,
-            'consumable' => $consumable,
-            'consumableTitle' => $consumable->title(),
-            'consumableCountLabels' => ConsumableCount::labels(),
-            'organizations' => $consumableCount->organizations,
-            'organizationLabels' => Organization::labels(),
-            'allOrganizations' => Organization::all(),
+            'consumableCount' => ConsumableCountResource::make($count),
+            'consumableCountLabels' => config('labels.consumable_count'),
+            'organizationLabels' => config('labels.organization'),
+            'organizations' => OrganizationResource::collection($organizations),
         ]);
     }
 
     /**
-     * Прибавление количества (поступление расходных материалов)
-     * @param ConsumableCountRequest|mixed $request
-     * @param ConsumableCount $count общее количество
-     * @return \Illuminate\Http\RedirectResponse
+     * @route PUT /consumables/counts/{count}
      */
-    public function update(ConsumableCountRequest $request, ConsumableCount $count)
+    public function update(
+        ConsumableCountRequest $request,
+        ConsumableCount $count,
+        ConsumableCountService $consumablesCountsAddService,
+    ): RedirectResponse
     {
-        DB::beginTransaction();
+        $consumablesCountsAddService->add(
+            idConsumable: $count->id_consumable,
+            changeOrganization: false,
+            count: $request->safe()->integer('count'),
+            idUser: auth()->id(),
+        );
 
-        // создание модели ConsumableCountAdded с добавляемым количеством count
-        $consumableCountAdded = new ConsumableCountAdded([
-            'id_consumable_count' => $count->id,
-            'count' => $request->get('count'),
-        ]);
-
-        // результаты выполнения
-        if (!$consumableCountAdded->save()) {
-            DB::rollBack();
-            return redirect()->back()
-                ->with('error', 'Возникла ошибка при сохранении!');
-        }
-
-        DB::commit();
-
-        return redirect()->back()
-            ->with('success', 'Данные успешно сохранены!');
-
+        return back()->with('success', 'Данные успешно сохранены!');
     }
 
     /**
      * @route POST /consumables/counts/{count}/correct
      */
-    public function correctCount(ConsumableCountCorrectRequest $request, ConsumableCount $count): RedirectResponse
+    public function correctCount(
+        ConsumableCountCorrectRequest $request,
+        ConsumableCount $count,
+        ConsumableCountService $consumableCountService,
+    ): RedirectResponse
     {
-        $count->count = $request->input('count', 0);
-        $count->save();
+        $consumableCountService->correctBalance($count, $request->safe()->input('count'));
 
-        return redirect()->back()
-            ->with('success', 'Данные успешно сохранены!');
+        return back()->with('success', 'Данные успешно сохранены!');
     }
 
     /**
@@ -198,9 +142,11 @@ class ConsumablesCountsController extends Controller
      */
     public function updateOrganizations(ConsumableCountRequest $request, ConsumableCount $count): RedirectResponse
     {
-        $organizations = $request->collect('selectedOrganizations')->toArray();
+        $organizations = $request->safe()->collect('selectedOrganizations')->toArray();
+
         $count->organizations()->sync($organizations);
-        return redirect()->route('consumables.counts.show', [$count])
+
+        return to_route('consumables.counts.show', [$count])
             ->with('success', 'Данные успешно сохранены!');
     }
 

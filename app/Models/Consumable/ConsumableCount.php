@@ -6,7 +6,9 @@ use App\Models\Organization;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * Количество расходного материала
@@ -14,10 +16,12 @@ use Illuminate\Support\Facades\DB;
  * @property int $id
  * @property int $id_consumable
  * @property int $count
+ * @property string $created_at
+ * @property string $updated_at
  *
- * @property Consumable $consumable
- * @property ConsumableCountAdded[] $consumablesAdded
- * @property Organization[] $organizations
+ * @property-read Consumable $consumable
+ * @property-read \Illuminate\Database\Eloquent\Collection|ConsumableCountAdded[] $consumablesAdded
+ * @property-read \Illuminate\Database\Eloquent\Collection|Organization[] $organizations
  */
 class ConsumableCount extends Model
 {
@@ -37,33 +41,32 @@ class ConsumableCount extends Model
     ];
 
 
-    /**
-     * Родительский расходный материал
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
-     */
-    public function consumable()
+    public function consumable(): BelongsTo
     {
         return $this->belongsTo(Consumable::class, 'id_consumable');
     }
 
-    /**
-     * Записи, содержащие количество добавленных расходных материалов
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
-     */
-    public function consumablesAdded()
+    public function consumablesAdded(): HasMany
     {
         return $this->hasMany(ConsumableCountAdded::class, 'id_consumable_count')
             ->orderByDesc('created_at');
     }
 
-    /**
-     * Записи, содержащие количество установленных расходных материалов
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
-     */
-    public function consumablesInstalled()
+    // заглушка для роутов
+    public function addeds(): HasMany
+    {
+       return $this->consumablesAdded();
+    }
+
+    public function consumablesInstalled(): HasMany
     {
         return $this->hasMany(ConsumableCountInstalled::class, 'id_consumable_count')
             ->orderByDesc('created_at');
+    }
+
+    public function installeds(): HasMany
+    {
+        return $this->consumablesInstalled();
     }
 
     /**
@@ -91,7 +94,7 @@ class ConsumableCount extends Model
 
     public function scopeFilter(Builder $query, array $filters)
     {
-        $query
+        return $query
             ->with(['consumable'])
             ->when($filters['search'] ?? null, function (Builder $query, $search) {
                 $query->whereHas('consumable', function($query) use ($search) {
@@ -106,24 +109,14 @@ class ConsumableCount extends Model
             ->orderByDesc('created_at')->orderByDesc('updated_at');
     }
 
-    /**
-     * Привязанные коды организаций к текущей записи
-     * @return \Illuminate\Support\Collection
-     */
-    public function organizationsCodes()
-    {
-        return DB::table('consumables_counts_organizations')
-            ->where('id_consumable_count', $this->id)
-            ->pluck('org_code');
-    }
-
-    /**
-     * Привязанные организации к текущей записи
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
-     */
-    public function organizations()
+    public function organizations(): BelongsToMany
     {
         return $this->belongsToMany(Organization::class, 'consumables_counts_organizations', 'id_consumable_count', 'org_code');
+    }
+
+    public function organizationsCodes(): \Illuminate\Support\Collection
+    {
+        return $this->organizations->pluck("code");
     }
 
 }

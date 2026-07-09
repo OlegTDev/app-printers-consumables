@@ -32,6 +32,7 @@ class ConsumableCountRequest extends FormRequest
                 'integer',
                 'min:1',
             ],
+            'selectedOrganizations' => 'array',
         ];
         if ($this->isMethod('post')) {
             $rules['selectedOrganizations'] = 'required';
