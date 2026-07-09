@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use App\Models\Printer\Printer;
 use App\Models\Printer\PrinterWorkplace;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 /**
@@ -84,17 +85,23 @@ class Consumable extends Model
         return $printer;
     }
 
-    public function consumableCount(): HasOne
+    public function consumableCountCurrentOrganization(): HasOne
     {
-        return $this->hasOne(ConsumableCount::class, 'id_consumable', 'id');
+        return $this->hasOne(ConsumableCount::class, 'id_consumable', 'id')
+            ->forCurrentUser();
+    }
+
+    public function consumablesCount(): HasMany
+    {
+        return $this->hasMany(ConsumableCount::class, 'id_consumable', 'id');
     }
 
     /**
      * Заглушка для работы scope в роуте
      */
-    public function counts(): HasOne
+    public function counts(): HasMany
     {
-        return $this->consumableCount();
+        return $this->consumablesCount();
     }
 
     public function scopeFilter(Builder $query, array $filters): void
