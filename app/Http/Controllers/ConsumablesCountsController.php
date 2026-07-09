@@ -79,7 +79,7 @@ class ConsumablesCountsController extends Controller
             idConsumable: $validated->integer('id_consumable'),
             count: $validated->integer('count'),
             idUser: auth()->id(),
-            changeOrganization: $validated->boolean('changeOrganization'),
+            changeOrganization: true,
             organizations: $validated->array('selectedOrganizations'),
         );
 
