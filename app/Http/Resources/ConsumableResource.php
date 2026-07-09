@@ -26,9 +26,13 @@ class ConsumableResource extends JsonResource
             'color' => $this->color,
             'description' => $this->description,
             'arch' => $this->arch,
-            'author' => new UserResourceShort($this->whenLoaded('author')),
             'created_at' => $this->created_at,
             'updated_at'=> $this->updated_at,
+
+            'author' => new UserResourceShort($this->whenLoaded('author')),
+            'consumableCountCurrentOrganization' => $this->whenLoaded('consumableCountCurrentOrganization',
+                fn() => ConsumableCountResource::make($this->consumableCountCurrentOrganization)
+            ),
         ];
     }
 }
