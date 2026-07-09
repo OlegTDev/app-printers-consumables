@@ -54,7 +54,7 @@ const menu = computed(() => [
     icon: UsersIcon,
     href: route('users.index'),
     show: isAdmin.value,
-    active: isActive('users.index'),
+    active: isActive('users'),
     dropdown: false,
   },
   {
@@ -63,7 +63,7 @@ const menu = computed(() => [
     icon: PrinterIcon,
     href: route('workplace.index'),
     show: true,
-    active: isActive('workplace.index'),
+    active: isActive('workplace'),
     dropdown: false,
   },
   {
@@ -72,7 +72,7 @@ const menu = computed(() => [
     icon: CounterIcon,
     href: route('consumables.counts.index'),
     show: true,
-    active: isActive('consumables.counts.index'),
+    active: isActive('consumables.counts'),
     dropdown: false,
   },
   {
