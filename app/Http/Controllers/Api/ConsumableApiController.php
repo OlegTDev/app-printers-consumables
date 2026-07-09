@@ -3,13 +3,17 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Resources\ConsumableCountInstalledResource;
+use App\Http\Resources\ConsumableCountResource;
 use App\Http\Resources\ConsumableResource;
 use App\Models\Consumable\CartridgeColors;
 use App\Models\Consumable\Consumable;
+use App\Models\Consumable\ConsumableCount;
 use App\Models\Consumable\ConsumableCountInstalled;
 use App\Models\Consumable\ConsumableTypesEnum;
 use App\Models\Printer\Printer;
+use App\Services\Query\ConsumableCountQueryService;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\Resources\Json\JsonResource;
 
 class ConsumableApiController
 {
@@ -51,4 +55,32 @@ class ConsumableApiController
             'consumableTypes' => ConsumableTypesEnum::array(),
         ];
     }
+
+    /**
+     * @route GET /consumables/counts/list-by-printer/{printer}
+     */
+    public function listByPrinter(Printer $printer, ConsumableCountQueryService $consumableCountQueryService)
+    {
+        $orgCode = auth()->user()?->org_code;
+        return
+        [
+            'consumables' => $consumableCountQueryService->getConsumableCountByPrinterWorkplace($printer->id, $orgCode),
+            'consumableTypes' => ConsumableTypesEnum::array(),
+            'cartridgeColors' => CartridgeColors::get(),
+        ];
+    }
+
+    /**
+     * @route GET /consumables/counts/by-consumable/{idConsumable}
+     */
+    public function showByConsumable(int $idConsumable): JsonResource
+    {
+        $consumableCount = ConsumableCount::where('id_consumable', $idConsumable)
+            ->forCurrentUser()
+            ->firstOrFail();
+
+        return new ConsumableCountResource($consumableCount);
+    }
+
+
 }
