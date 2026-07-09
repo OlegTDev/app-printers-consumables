@@ -30,7 +30,7 @@ final class ReportController extends Controller
 
         return Inertia::render('Reports/Index', [
             'organizations' => $user->availableOrganizations(),
-            'organizationLabels' => Organization::labels(),
+            'organizationLabels' => config('labels.organization'),
         ]);
     }
 
