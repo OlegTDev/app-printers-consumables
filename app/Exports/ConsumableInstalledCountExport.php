@@ -20,8 +20,8 @@ class ConsumableInstalledCountExport implements FromQuery, WithMapping, WithHead
 
     public function __construct(
         private array $organizations,
-        private string $dateFrom,
-        private string $dateTo,
+        private ?string $dateFrom,
+        private ?string $dateTo,
         private ConsumableCountInstalledQueryService $queryService,
     ) {
     }
