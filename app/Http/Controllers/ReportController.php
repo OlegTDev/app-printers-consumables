@@ -9,6 +9,7 @@ use App\Http\Requests\ReportBaseRequest;
 use App\Http\Requests\ReportWithPeriodRequest;
 use App\Services\Query\ConsumableCountInstalledQueryService;
 use App\Services\Query\ConsumableCountQueryService;
+use App\Services\Query\OrganizationQueryService;
 use App\Services\Query\PrintersWorkplaceQueryService;
 use Inertia\Inertia;
 use Maatwebsite\Excel\Facades\Excel;
@@ -23,13 +24,13 @@ final class ReportController extends Controller
     /**
      * @route GET /reports
      */
-    public function index(): \Inertia\Response
+    public function index(OrganizationQueryService $organizationQueryService): \Inertia\Response
     {
-        /** @var \App\Models\Auth\User */
-        $user = auth()->user();
+
+        $availableOrganizations = auth()->user()->availableOrganizations();
 
         return Inertia::render('Reports/Index', [
-            'organizations' => $user->availableOrganizations(),
+            'organizations' => $organizationQueryService->getOrganizationsTree($availableOrganizations),
             'organizationLabels' => config('labels.organization'),
         ]);
     }
