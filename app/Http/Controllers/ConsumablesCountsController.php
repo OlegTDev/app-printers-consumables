@@ -13,6 +13,7 @@ use App\Models\Consumable\ConsumableCount;
 use App\Models\Consumable\ConsumableTypesEnum;
 use App\Models\Organization;
 use App\Services\Consumables\ConsumableCountService;
+use App\Services\Query\OrganizationQueryService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -58,13 +59,15 @@ class ConsumablesCountsController extends Controller
     /**
      * @route GET /consumables/counts/create
      */
-    public function create(): \Inertia\Response
+    public function create(OrganizationQueryService $organizationQueryService): \Inertia\Response
     {
+        $availableOrganizations = auth()->user()->availableOrganizations();
+
         return Inertia::render('Consumable/Count/Create', [
             'consumableLabels' => config('labels.consumable'),
             'consumableCountLabels' => config('labels.consumable_count'),
             'consumables' => $this->allConsumables(),
-            'availableOrganizations' => auth()->user()->availableOrganizations(),
+            'availableOrganizations' => $organizationQueryService->getOrganizationsTree($availableOrganizations),
         ]);
     }
 
