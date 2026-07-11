@@ -1,22 +1,18 @@
 <script setup>
 import { Head, router } from '@inertiajs/vue3';
-import pickBy from 'lodash/pickBy';
 import Layout from '@/Shared/Layout.vue';
-import Tag from 'primevue/tag';
-import { reactive, ref, watch } from 'vue';
-import DataTable from 'primevue/datatable';
+import { reactive } from 'vue';
 import Column from 'primevue/column';
-import InputText from 'primevue/inputtext';
-import IconField from 'primevue/iconfield';
-import InputIcon from 'primevue/inputicon';
 import MultiSelect from 'primevue/multiselect';
 import Breadcrumbs from '@/Shared/Breadcrumbs.vue';
 import Button from 'primevue/button';
-import { debounce } from 'lodash';
+import Title from '@/Shared/Title.vue';
+import Card from '@/Shared/Card.vue';
+import RemoteDataTable from '@/Shared/DataTable/RemoteDataTable.vue';
 
 const props = defineProps({
-  filters: Object,
-  users: Array,
+  items: Object,
+  query: Object,
   roles: Array,
 });
 
@@ -24,22 +20,9 @@ defineOptions({
   layout: Layout
 });
 
-const filters = reactive(props.filters);
-
 const form = reactive({
-  search: filters.search,
-  role: filters.role,
-  trashed: filters.trashed,
+  roles: props.query?.roles,
 });
-
-watch(
-  () => form,
-  debounce(() => {
-    router.get(route('users.index'), pickBy(form), { preserveState: true });
-  }, 300),
-  { deep: true }
-);
-
 
 const create = () => {
   router.get(route('users.create'));
@@ -47,15 +30,6 @@ const create = () => {
 
 const onRowSelect = (event) => {
   router.get(route('users.edit', { user: event.data.id }));
-};
-
-const refTableUsers = ref(null);
-
-const onPageChange = () => {
-  const elementTableUsers = refTableUsers.value.$el;
-  if (elementTableUsers) {
-    elementTableUsers.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
 };
 
 const title = 'Пользователи';
@@ -71,42 +45,32 @@ const title = 'Пользователи';
       ]"
     />
 
-    <div class="flex justify-stretch bg-white rounded-md shadow overflow-hidden mt-4">
-      <DataTable
-        ref="refTableUsers"
-        :value="users"
-        paginator
-        :rows="10"
+    <Card>
+      <Title>{{ title }}</Title>
+
+      <RemoteDataTable
+        :model="items"
+        :url="route('users.index')"
         data-key="id"
-        :meta-key-selection="false"
-        class="w-full"
-        table-style="min-width: 50rem"
         selection-mode="single"
+        :filters="form"
         @row-select="onRowSelect"
-        @page="onPageChange"
       >
         <template #header>
-          <div class="flex justify-between">
-            <Button @click="create">
-              Добавить
-            </Button>
-            <div class="flex">
-              <MultiSelect
-                v-model="form.role"
-                :options="roles"
-                option-value="name"
-                option-label="description"
-                placeholder="Роли"
-                class="w-56"
-              />
-              <IconField icon-position="left" class="ml-3">
-                <InputIcon><i class="pi pi-search" /></InputIcon>
-                <InputText v-model="form.search" placeholder="Поиск" />
-              </IconField>
-            </div>
-          </div>
+          <Button @click="create">
+            Добавить
+          </Button>
         </template>
-
+        <template #filters>
+          <MultiSelect
+            v-model="form.roles"
+            :options="roles"
+            option-value="name"
+            option-label="description"
+            placeholder="Роли"
+            class="w-56"
+          />
+        </template>
         <Column field="org_code" header="Код НО" />
         <Column field="name" header="Учетная запись">
           <template #body="{ data }">
@@ -164,11 +128,11 @@ const title = 'Пользователи';
         </Column>
         <Column header="Статус">
           <template #body="{ data }">
-            <Tag v-if="data.deleted_at" severity="danger" icon="pi pi-times" value="Удалена" />
-            <Tag v-else severity="success" icon="pi pi-check" value="Действующая" />
+            <i v-if="data.deleted_at" v-tooltip.left="`Учетная запись удалена`" class="pi pi-times text-red-600" style="font-weight: 600;" />
+            <i v-else v-tooltip.isLeftHandSideExpression="`Действующая учетная запись`" class="pi pi-check text-primary" style="font-weight: 600;" />
           </template>
         </Column>
-      </DataTable>
-    </div>
+      </RemoteDataTable>
+    </Card>
   </div>
 </template>

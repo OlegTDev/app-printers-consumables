@@ -1,21 +1,24 @@
 <script setup>
 import { Head, useForm, router } from '@inertiajs/vue3';
 import Layout from '@/Shared/Layout.vue';
-import TrashedMessage from '@/Shared/TrashedMessage.vue';
 import Breadcrumbs from '@/Shared/Breadcrumbs.vue';
-import Panel from 'primevue/panel';
 import Checkbox from 'primevue/checkbox';
 import { ref, computed } from 'vue';
-import Menu from 'primevue/menu';
-import ProgressSpinner from 'primevue/progressspinner';
 import Button from 'primevue/button';
 import { useAuth } from '@/Composables/useAuth';
 import { useConfirm } from 'primevue/useconfirm';
+import { Menu, Tree } from 'primevue';
+import { onMounted } from 'vue';
+import Card from '@/Shared/Card.vue';
+import Title from '@/Shared/Title.vue';
+import DetailViewer from '@/Shared/DetailViewer.vue';
+import TrashedMessage from './TrashedMessage.vue';
 
 const props = defineProps({
   user: Object,
   roles: Object,
   organizations: Object,
+  labels: Object,
 });
 
 defineOptions({
@@ -90,6 +93,78 @@ const isSelectedAdmin = computed(() => {
   return form.selectedRoles.indexOf('admin') >= 0;
 });
 
+// function onNodeSelect(event) {
+//   const { key, selected } = event.node;
+//   selectedKeys.value[key] = selected;
+// }
+
+// function onNodeUnselect(event) {
+//   const { key } = event.node;
+//   selectedKeys.value[key] = false;
+// }
+
+// function toggleNode(node) {
+//   selectedKeys.value[node.key] = !selectedKeys.value[node.key];
+// }
+
+const expandedKeys = ref({});
+function expandAll() {
+  const keys = {};
+
+  const collectKeys = (list) => {
+    for (const node of list) {
+      keys[node.key] = true;
+      if (node.children && node.children.length) {
+        collectKeys(node.children);
+      }
+    }
+  };
+
+  collectKeys(props.organizations);
+  expandedKeys.value = keys;
+}
+onMounted(() => expandAll());
+
+const details = computed(() => [
+  {
+    label: props.labels.name,
+    value: props.user.name,
+  },
+  {
+    label: props.labels.fio,
+    value: props.user.fio,
+  },
+  {
+    label: props.labels.email,
+    value: props.user.email,
+  },
+  {
+    label: props.labels.domain,
+    value: props.user.domain,
+  },
+  {
+    label: props.labels.organization,
+    value: `${props.user.org_code} ${(props.user.company ?? '')}`,
+  },
+  {
+    label: props.labels.department,
+    value: props.user.department,
+  },
+  {
+    label: props.labels.post,
+    value: props.user.post,
+  },
+  {
+    label: props.labels.telephone,
+    value: props.user.telephone,
+  },
+  {
+    label: props.labels.lotus_mail,
+    value: props.user.lotus_mail,
+  },
+  { label: 'Роли', keySlot: 'roles' },
+  { label: 'Контекст', keySlot: 'context', hide: form.selectedRoles.includes('admin') },
+]);
 </script>
 <template>
   <Head :title="title" />
@@ -102,127 +177,73 @@ const isSelectedAdmin = computed(() => {
     ]"
   />
 
-  <trashed-message v-if="user.deleted_at" class="mb-6 text-lg" @restore="restore">
-    Пользователь был удален.
-  </trashed-message>
+  <Card>
+    <Title>
+      {{ title }}
+      <template v-if="can('admin')" #icons>
+        <button class="p-panel-icon-header p-link cursor-pointer" @click="toggleMenu">
+          <i class="pi pi-cog" />
+        </button>
+        <Menu ref="menu" :model="menuItems" popup />
+      </template>
+    </Title>
 
-  <Panel>
-    <template #header>
-      <h1 class="font-bold text-xl">
-        {{ user.fio }} ({{ user.name }})
-      </h1>
-    </template>
-    <template v-if="can('admin')" #icons>
-      <button class="p-panel-icon-header p-link" @click="toggleMenu">
-        <i class="pi pi-cog" />
-      </button>
-      <Menu ref="menu" :model="menuItems" popup />
-    </template>
+    <trashed-message v-if="user.deleted_at" @restore="restore" />
 
-    <div class="grid grid-cols-6 gap-6">
-      <template
-        v-for="[ label, value ] in [
-          ['Имя', user.name],
-          ['ФИО', user.fio],
-          ['Учетная запись', user.email],
-          ['Домен', user.domain],
-          ['Организация', user.org_code + ' ' + (user.company ?? '')],
-          ['Отдел', user.department],
-          ['Должность', user.post],
-          ['Телефон', user.telephone],
-          ['Email', user.lotus_mail]
-        ]"
-        :key="label"
-      >
-        <div class="text-gray-500 font-semibold col-span-1">
-          {{ label }}
+    <DetailViewer :items="details">
+      <template #roles>
+        <div v-if="can('admin')">
+          <div v-for="role in roles" :key="role.name" class="flex items-center mt-2">
+            <template v-if="!(isSelectedAdmin && role.name != 'admin')">
+              <Checkbox v-model="form.selectedRoles" :input-id="role.name" name="roles" :value="role.name" />
+              <label :for="role.name" class="ml-2 cursor-pointer">
+                {{ role.description }}
+              </label>
+            </template>
+          </div>
         </div>
-        <div class="col-span-5">
-          {{ value }}
+        <div v-else>
+          <div v-if="user.roles.length == 0" class="text-orange-600">
+            Роли не назначены
+          </div>
+          <ul v-else>
+            <li v-for="role in user.roles" :key="role" class="mt-2">
+              <i class="pi pi-users me-1" />
+              {{ role.description }}
+            </li>
+          </ul>
         </div>
       </template>
-
-      <ProgressSpinner v-if="form.processing" />
-      <template v-else>
-        <div class="text-gray-500 font-semibold col-span-1">
-          Роли
-        </div>
-        <div class="col-span-5">
-          <div v-if="can('admin')">
-            <div v-for="role in roles" :key="role.name" class="flex items-center mt-2">
-              <template v-if="!(isSelectedAdmin && role.name != 'admin')">
-                <Checkbox v-model="form.selectedRoles" :input-id="role.name" name="roles" :value="role.name" />
-                <label :for="role.name" class="ml-2 cursor-pointer">
-                  {{ role.description }}
+      <template #context>
+        <Tree
+          :value="organizations"
+          :expanded-keys="expandedKeys"
+        >
+          <template #default="slotProps">
+            <div class="flex items-center gap-2">
+              <template v-if="can('admin')">
+                <Checkbox
+                  v-model="form.selectedOrganizations"
+                  :input-id="slotProps.node.key"
+                  name="organizations"
+                  :value="slotProps.node.key"
+                />
+                <label :for="slotProps.node.key" class="ml-2 cursor-pointer">
+                  {{ slotProps.node.label }}
                 </label>
               </template>
+              <template v-else>
+                <i class="pi pi-building-columns" />
+                {{ slotProps.node.label }}
+              </template>
             </div>
-          </div>
-          <div v-else>
-            <div v-if="user.roles.length == 0" class="text-orange-600">
-              Роли не назначены
-            </div>
-            <ul v-else>
-              <li v-for="role in user.roles" :key="role" class="mt-2">
-                <i class="pi pi-users me-1" />
-                {{ role.description }}
-              </li>
-            </ul>
-          </div>
-        </div>
-
-        <div class="text-gray-500 font-semibold col-span-1">
-          Контекст
-        </div>
-        <div class="col-span-5">
-          <div v-if="can('admin')">
-            <div v-for="organization in organizations" :key="organization.code" class="mb-2">
-              <Checkbox
-                v-model="form.selectedOrganizations"
-                :input-id="organization.code"
-                name="organizations"
-                :value="organization.code"
-              />
-              <label :for="organization.code" class="ml-2 cursor-pointer">
-                {{ `${organization.name} (${organization.code})` }}
-              </label>
-              <div v-if="organization.children.length > 0" class="my-2">
-                <div v-for="subOrganization in organization.children" :key="subOrganization.code" class="ms-5 mb-2">
-                  <Checkbox
-                    v-model="form.selectedOrganizations"
-                    :input-id="subOrganization.code"
-                    name="organizations"
-                    :value="subOrganization.code"
-                  />
-                  <label :for="subOrganization.code" class="ml-2 cursor-pointer">
-                    {{ `${subOrganization.name} (${subOrganization.code})` }}
-                  </label>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div v-else>
-            <ul>
-              <li v-for="organization in organizations" :key="organization.code" class="mt-2">
-                <i class="pi pi-building me-1" />
-                {{ organization.name }}
-                <template v-if="organization.children.length > 0">
-                  <ul class="ms-5">
-                    <li v-for="subOrganization in organization.children" :key="subOrganization.code" class="mt-2">
-                      <i class="pi pi-building me-1" />
-                      {{ subOrganization.name }}
-                    </li>
-                  </ul>
-                </template>
-              </li>
-            </ul>
-          </div>
-        </div>
+          </template>
+        </Tree>
       </template>
+    </DetailViewer>
 
-      <div v-if="form.isDirty" class="col-span-6">
-        <Button :loading="form.processing" class="font-bold" type="button" label="Сохранить" @click="update" />
-      </div>
-    </div>
-  </Panel>
+    <template v-if="form.isDirty" #footer>
+      <Button :loading="form.processing" class="font-bold" type="button" label="Сохранить" @click="update" />
+    </template>
+  </Card>
 </template>

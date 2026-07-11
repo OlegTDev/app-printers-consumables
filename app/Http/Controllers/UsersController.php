@@ -2,15 +2,17 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\UserRequest;
+use App\Http\Controllers\Traits\BuildsListQuery;
+use App\Http\Requests\UserCreateRequest;
+use App\Http\Requests\UserUpdateRequest;
+use App\Http\Resources\RoleResource;
+use App\Http\Resources\UserResource;
 use App\Models\Auth\LdapUser;
 use App\Models\Auth\Role;
 use App\Models\Auth\User;
-use App\Models\Organization;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Request;
-use Illuminate\Support\Facades\Session;
-use Illuminate\Support\Facades\URL;
+use App\Services\Query\OrganizationQueryService;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 
 /**
@@ -18,194 +20,106 @@ use Inertia\Inertia;
  */
 class UsersController extends Controller
 {
-
-    /**
-     * {@inheritDoc}
-     */
-    public function __construct()
-    {
-        // настройка прав доступа
-        $this->middleware('role:admin')
-            ->only(['create', 'store', 'destroy']);
-    }
+    use BuildsListQuery;
 
 
     /**
-     * Все доступные роли
-     * @return \Illuminate\Support\Collection
+     * @route GET /users
      */
-    private function roles(): mixed
+    public function index(Request $request): \Inertia\Response
     {
-        return Role::all()->transform(fn(Role $role) => [
-            'name' => $role->name,
-            'description' => $role->description,
-        ]);
-    }
+        $paginatedData = $this->getPaginatedData(
+            request: $request,
+            query: User::with(['roles', 'organizations'])->withTrashed(),
+            filterFields: ['search', 'roles'],
+            resourceClass: UserResource::class,
+        );
 
-    /**
-     * Все организации
-     * @return array
-     */
-    private function getOrganizationsTree($parent = null)
-    {
-        $items = Organization::where('parent', '=',  $parent)->get();
-        $result = [];
-        foreach ($items as $item) {
-            $result[] = [
-                'code' => $item->code,
-                'name' => $item->name,
-                'children' => $this->getOrganizationsTree($item->code),
-            ];
-        }
-        return $result;
-    }
+        $roles = RoleResource::collection(Role::all());
 
-    /**
-     * Данные о пользователе
-     * @return callable
-     */
-    private function transformUser()
-    {
-        return fn(User $user) => [
-            'id' => $user->id,
-            'name' => $user->name,
-            'email' => $user->email,
-            'org_code' => $user->org_code,
-            'fio' => $user->fio,
-            'department' => $user->department,
-            'lotus_mail' => $user->lotus_mail,
-            'telephone' => $user->telephone,
-            'photo' => $user->photo_path ? URL::route('image', ['path' => $user->photo_path, 'w' => 40, 'h' => 40, 'fit' => 'crop']) : null,
-            'roles' => $user->roles,
-            'permissions' => $user->permissions,
-            'deleted_at' => $user->deleted_at,
-            'organizations' => $user->organizations,
-        ];
-    }
-
-    /**
-     * Список пользователей
-     * @return \Inertia\Response
-     */
-    public function index()
-    {
         return Inertia::render('Users/Index', [
-            'filters' => Request::all(['search', 'role']),
-            'users' => User::filter(Request::only(['search', 'role']))
-                ->get()
-                ->transform($this->transformUser()),
-            'roles' => $this->roles(),
+            ...$paginatedData,
+            'roles' => $roles,
         ]);
     }
 
     /**
-     * Создание пользователя
-     * @return \Inertia\Response
+     * @route /users/create
      */
-    public function create()
+    public function create(): \Inertia\Response
     {
-        return Inertia::render('Users/Create', [
-            'domainName' => env('DOMAIN_NAME'),
-        ]);
+        return Inertia::render('Users/Create');
     }
 
     /**
-     * Сохранение нового пользователя
-     * @param UserRequest $request
-     * @return \Illuminate\Http\RedirectResponse|void
+     * @route POST /users
      */
-    public function store(UserRequest $request, LdapUser $ldapUser)
+    public function store(UserCreateRequest $request, LdapUser $ldapUser): \Illuminate\Http\RedirectResponse
     {
-        $username = $request->name;
+        $validated = $request->safe();
+
+        $username = $validated->string('name');
         $domain = 'default';
 
         if (!$user = $ldapUser->findOrCreate($username, $domain)) {
-            return Session::flash('error', "Пользователь {$request->name} не найден!");
+            return back()->with('error', "Пользователь {$request->name} не найден!");
         }
 
-        return redirect()->route('users.edit', [$user])
+        return to_route('users.edit', [$user->id])
             ->with('success', 'Пользователь успешно создан!');
     }
 
     /**
-     * Редактирование пользователя @param User $user
-     * изменение данных пользователя, изменение прав доступа
-     * @return \Inertia\Response
+     * @route GET /users/edit/{$user}
      */
-    public function edit(User $user)
+    public function edit(User $user, OrganizationQueryService $organizationQueryService): \Inertia\Response
     {
-        if (Auth::check() && !Auth::user()->hasRole('admin')) {
-            if (Auth::user()->id !== $user->id) {
-                abort(403);
-            }
-        }
+        Gate::authorize('edit', $user);
+
+        $user->load(['roles', 'organizations']);
+        $roles = RoleResource::collection(Role::all());
+
+        $availableOrganizations = auth()->user()->availableOrganizations();
+        $organizations = $organizationQueryService->getOrganizationsTree($availableOrganizations);
+
         return Inertia::render('Users/Edit', [
-            'user' => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-                'photo' => $user->photo_path ? URL::route('image', ['path' => $user->photo_path, 'w' => 60, 'h' => 60, 'fit' => 'crop']) : null,
-                'deleted_at' => $user->deleted_at,
-                'roles' => $user->roles()->get()->transform(fn(Role $role) => [
-                    'name' => $role->name,
-                    'description' => $role->description,
-                ]),
-                'organizations' => $user->organizations,
-                'fio' => $user->fio,
-                'domain' => $user->domain,
-                'org_code' => $user->org_code,
-                'company' => $user->company,
-                'department' => $user->department,
-                'post' => $user->post,
-                'telephone' => $user->telephone,
-                'lotus_mail' => $user->lotus_mail,
-            ],
-            'roles' => $this->roles(),
-            'organizations' => $this->getOrganizationsTree(),
+            'user' => UserResource::make($user),
+            'roles' => $roles,
+            'organizations' => $organizations,
+            'labels' => config('labels.user'),
         ]);
     }
 
     /**
-     * Сохранение измененных данных пользователя @param User $user
-     * @return \Illuminate\Http\RedirectResponse
+     * @route PUT /users/{user}
      */
-    public function update(User $user)
+    public function update(User $user, UserUpdateRequest $request): \Illuminate\Http\RedirectResponse
     {
-        // валидация
-        Request::validate([
-            'photo' => ['nullable', 'image'],
-        ]);
+        $validated = $request->safe();
 
-        // изменение фотографии
-        if (Request::file('photo')) {
-            $user->update(['photo_path' => Request::file('photo')->store('users')]);
-        }
-        // изменение прав доступа
-        if (Auth::user()->hasRole('admin')) {
-            $user->updateRoles(Request::get('selectedRoles'));
-            $user->updateOrganizations(Request::get('selectedOrganizations'));
-        }
+        $user->updateRoles($validated->array('selectedRoles'));
+        $user->updateOrganizations($validated->array('selectedOrganizations'));
 
-        return redirect()->back()->with('success', 'Данные пользователя обновлены.');
+        return back()->with('success', 'Данные пользователя обновлены.');
     }
 
     /**
-     * Удаление пользователя @param User $user
-     * @return \Illuminate\Http\RedirectResponse
+     * @route DELETE /users/{id}
      */
-    public function destroy(User $user)
+    public function destroy(User $user): \Illuminate\Http\RedirectResponse
     {
         $user->delete();
-        return redirect()->back()->with('success', 'Пользователь удален.');
+
+        return back()->with('success', 'Пользователь удален.');
     }
 
     /**
-     * Восстановление удаленного пользователя @param User $user
-     * @return \Illuminate\Http\RedirectResponse
+     * @route PUT /users/{user}/restore
      */
-    public function restore(User $user)
+    public function restore(User $user): \Illuminate\Http\RedirectResponse
     {
         $user->restore();
-        return redirect()->back()->with('success', 'Пользователь восстановлен.');
+
+        return back()->with('success', 'Пользователь восстановлен.');
     }
 }
