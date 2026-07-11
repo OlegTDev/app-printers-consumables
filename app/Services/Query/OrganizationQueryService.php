@@ -3,18 +3,25 @@
 namespace App\Services\Query;
 
 use App\Models\Organization;
+use Illuminate\Database\Eloquent\Builder;
 
 class OrganizationQueryService
 {
 
+    public function getAllOrganizationsQuery(): Builder
+    {
+        return Organization::query();
+    }
+
     public function getUserOrganizationsCodes(bool $isAdmin, int $userId): array
     {
-        $query = Organization::query();
-        if (!$isAdmin) {
-            $query->join('users_organizations', 'users_organizations.org_code', '=', 'organizations.code')
-                ->where('users_organizations.id_user', $userId);
+        if ($isAdmin) {
+            return Organization::pluck('code')->toArray();
         }
-        return $query->pluck('organizations.code')->toArray();
+
+        return Organization::whereHas('users', fn (Builder $query) => $query->where('users_organizations.id_user', $userId))
+            ->pluck('code')
+            ->toArray();
     }
 
     public function getOrganizationsByCodes(array $availableCodes): array
@@ -25,12 +32,7 @@ class OrganizationQueryService
             ->toArray();
     }
 
-    public function getAllOrganizationsQuery()
-    {
-        return Organization::query();
-    }
-
-    public function getOrganizationsTree(array $items)
+    public function getOrganizationsTree(array $items): array
     {
         $flatContainer = [];
         $tree = [];
@@ -44,23 +46,25 @@ class OrganizationQueryService
             $parentCode = $node['data']['parent'];
 
             if ($parentCode === null) {
-                $tree[$code] = &$node;
+                $tree[] = &$node;
             } else {
                 if (isset($flatContainer[$parentCode])) {
-                    $flatContainer[$parentCode]['children'][$code] = &$node;
+                    $flatContainer[$parentCode]['children'][] = &$node;
                 } else {
-                    $tree[$code] = &$node;
+                    $tree[] = &$node;
                 }
             }
         }
 
-        return $this->cleanKeys($tree);
+        return $tree;
     }
 
-    private function treeItemMapper($item)
+    private function treeItemMapper(array $item): array
     {
         return [
             'key' => $item['code'],
+            'label' => "{$item['name']} ({$item['code']})",
+            'code' => $item['code'],
             'data' => [
                 'code' => $item['code'],
                 'parent' => $item['parent'],
@@ -69,19 +73,6 @@ class OrganizationQueryService
                 'updated_at' => $item['updated_at'],
             ],
         ];
-    }
-
-    private function cleanKeys(array $tree): array
-    {
-        $result = array_values($tree);
-        foreach ($result as $key => $item) {
-            if (isset($item['children']) && !empty($item['children'])) {
-                $result[$key]['children'] = $this->cleanKeys($item['children']);
-            } else {
-                $result[$key]['children'] = [];
-            }
-        }
-        return $result;
     }
 
 }
