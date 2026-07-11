@@ -12,8 +12,7 @@ class UsersOrganizationsController extends Controller
 {
 
     public function __construct(private OrganizationAccessService $organizationAccessService)
-    {
-    }
+    {}
 
     private function getUserIdAndIsAdmin(): array
     {
@@ -21,7 +20,7 @@ class UsersOrganizationsController extends Controller
         $auth = auth()->user();
         return [
             $auth->id,
-            $auth->isAdmin(),
+            $auth->hasRole('admin'),
         ];
     }
 
