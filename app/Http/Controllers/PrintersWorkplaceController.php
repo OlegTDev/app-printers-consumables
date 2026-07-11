@@ -11,6 +11,7 @@ use App\Models\Consumable\ConsumableCount;
 use App\Models\Consumable\ConsumableTypesEnum;
 use App\Models\Printer\Printer;
 use App\Models\Printer\PrinterWorkplace;
+use App\Services\Query\OrganizationQueryService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
@@ -51,16 +52,18 @@ class PrintersWorkplaceController extends Controller
     /**
      * @route GET /printers/workplace/create
      */
-    public function create(): \Inertia\Response
+    public function create(OrganizationQueryService $organizationQueryService): \Inertia\Response
     {
         $printers = Printer::orderBy('vendor')
             ->orderBy('model')
             ->get();
 
+        $availableOrganizations = auth()->user()->availableOrganizations();
+
         return Inertia::render('Printers/Create', [
             'labels' => config('labels.printer_workplace'),
             'printers' => PrinterResource::collection($printers),
-            'organizations' => auth()->user()->availableOrganizations(),
+            'organizations' => $organizationQueryService->getOrganizationsTree($availableOrganizations),
         ]);
     }
 
@@ -96,11 +99,13 @@ class PrintersWorkplaceController extends Controller
     /**
      * @route GET /printers/workplace/{workplace}/edit
      */
-    public function edit(PrinterWorkplace $workplace): \Inertia\Response
+    public function edit(PrinterWorkplace $workplace, OrganizationQueryService $organizationQueryService): \Inertia\Response
     {
         $printers = Printer::orderBy('vendor')
             ->orderBy('model')
             ->get();
+
+        $availableOrganizations = auth()->user()->availableOrganizations();
 
         $workplace->load(['printer']);
 
@@ -108,7 +113,7 @@ class PrintersWorkplaceController extends Controller
             'printerWorkplace' => PrinterWorkplaceResource::make($workplace),
             'printers' => PrinterResource::collection($printers),
             'labels' => config('labels.printer_workplace'),
-            'organizations' => Auth::user()->availableOrganizations(),
+            'organizations' => $organizationQueryService->getOrganizationsTree($availableOrganizations),
         ]);
     }
 
