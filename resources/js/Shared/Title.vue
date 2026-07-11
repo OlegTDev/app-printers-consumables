@@ -14,15 +14,16 @@ const sizeClasses = computed(() => ({
 </script>
 
 <template>
-  <div class="border-b border-slate-200 dark:border-slate-800 pb-3 mb-6 flex items-center gap-3">
-    <!-- Боковой цветной маркер -->
-    <span class="w-1 h-6 bg-indigo-600 rounded-full shrink-0" />
-
-    <component
-      :is="tagName"
-      :class="sizeClasses"
-    >
-      <slot />
-    </component>
+  <div class="border-b border-slate-200 dark:border-slate-800 pb-3 mb-6 flex justify-between items-center gap-3">
+    <div>
+      <span class="w-1 h-6 bg-indigo-600 rounded-full shrink-0" />
+      <component
+        :is="tagName"
+        :class="sizeClasses"
+      >
+        <slot />
+      </component>
+    </div>
+    <slot name="icons" />
   </div>
 </template>
