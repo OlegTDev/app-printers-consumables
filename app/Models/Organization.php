@@ -2,9 +2,11 @@
 
 namespace App\Models;
 
+use App\Models\Auth\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 /**
  * Организация
@@ -17,6 +19,7 @@ use Illuminate\Database\Eloquent\Model;
  *
  * @property Organization $parentOrganization
  * @property Organization[] $childOrganizations
+ * @property User[] $users
  */
 class Organization extends Model
 {
@@ -49,6 +52,11 @@ class Organization extends Model
         $query->when($filters['search'] ?? null, function (Builder $subQuery, $search) use (&$query) {
             $query->whereAny(['code', 'name'], 'ILIKE', "%{$search}%");
         });
+    }
+
+    public function users(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'users_organizations', 'org_code', 'id_user');
     }
 
 }
