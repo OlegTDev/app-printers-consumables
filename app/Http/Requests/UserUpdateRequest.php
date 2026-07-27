@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UserUpdateRequest extends FormRequest
 {
@@ -23,7 +24,18 @@ class UserUpdateRequest extends FormRequest
     {
         return [
             'selectedRoles' => ['required', 'array'],
-            'selectedOrganizations' => ['required', 'array'],
+            'selectedOrganizations' => [
+                Rule::requiredIf(function () {
+                    $roles = request()->input('selectedRoles', []);
+
+                    if (!\is_array($roles)) {
+                        return false;
+                    }
+
+                    return !\in_array('admin', $roles, true);
+                }),
+                'array',
+            ],
         ];
     }
 }

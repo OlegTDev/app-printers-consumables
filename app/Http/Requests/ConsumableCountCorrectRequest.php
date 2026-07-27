@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests;
 
-use App\Models\Consumable\ConsumableCount;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
@@ -10,12 +9,12 @@ use Illuminate\Foundation\Http\FormRequest;
  */
 class ConsumableCountCorrectRequest extends FormRequest
 {
-    
+
     /**
      * Determine if the user is authorized to make this request.
      */
     public function authorize(): bool
-    {       
+    {
         return true;
     }
 
@@ -25,7 +24,7 @@ class ConsumableCountCorrectRequest extends FormRequest
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
      */
     public function rules(): array
-    {        
+    {
         return [
             'id_consumable' => 'required',
             'count' => [
@@ -33,14 +32,14 @@ class ConsumableCountCorrectRequest extends FormRequest
                 'integer',
                 'min:0',
             ],
-        ];        
+        ];
     }
 
     /**
      * {@inheritDoc}
      */
-    public function attributes()
+    public function attributes(): array
     {
-        return ConsumableCount::labels();
+        return config('labels.consumable_count');
     }
 }

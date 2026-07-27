@@ -2,8 +2,6 @@
 
 namespace App\Http\Requests\Orders;
 
-use Illuminate\Foundation\Http\FormRequest;
-
 class OrderConsumableRequest extends OrderChildRequest
 {
     /**

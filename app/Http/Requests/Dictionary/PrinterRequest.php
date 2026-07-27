@@ -14,58 +14,42 @@ use Illuminate\Validation\Rule;
 class PrinterRequest extends FormRequest
 {
 
-    /**
-     * @var Printer|null
-     */
-    private $_printer;
+    private ?Printer $_printer;
 
-    /**
-     * Determine if the user is authorized to make this request.
-     *
-     * @return bool
-     */
     public function authorize()
     {
         $this->_printer = Route::input('printer', new Printer());
         return true;
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array
-     */
     public function rules()
     {
         return [
             'vendor' => [
                 'required',
-                'max:100',                
-                Rule::unique('printers')->where(function (Builder $query) {                    
-                    $query->where('vendor', $this?->vendor)
-                            ->where('model', $this?->model)
-                            ->where('id', '<>', $this?->_printer?->id);
+                'max:100',
+                Rule::unique('printers')->where(function (Builder $query) {
+                    $query->where('vendor', $this->vendor)
+                            ->where('model', $this->model)
+                            ->where('id', '<>', $this->_printer?->id);
                 }),
             ],
             'model' => [
                 'required',
                 'max:200',
-                Rule::unique('printers')->where(function (Builder $query) {                    
-                    $query->where('vendor', $this?->vendor)
-                            ->where('model', $this?->model)
-                            ->where('id', '<>', $this?->_printer?->id);
+                Rule::unique('printers')->where(function (Builder $query) {
+                    $query->where('vendor', $this->vendor)
+                            ->where('model', $this->model)
+                            ->where('id', '<>', $this->_printer?->id);
                 }),
             ],
             'is_color_print' => 'required|boolean',
         ];
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function attributes(): array
     {
-        return Printer::labels();
+        return config('labels.printer');
     }
-    
+
 }

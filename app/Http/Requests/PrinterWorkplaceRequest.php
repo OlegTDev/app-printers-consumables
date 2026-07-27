@@ -4,7 +4,6 @@ namespace App\Http\Requests;
 
 use App\Models\Printer\PrinterWorkplace;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Validation\Rule;
 
@@ -37,7 +36,7 @@ class PrinterWorkplaceRequest extends FormRequest
                 'required',
                 Rule::unique('printers_workplace')
                     ->where(function($query) use ($id) {
-                        $query->where('org_code', Auth::user()->org_code)
+                        $query->where('org_code', auth()->user()->org_code)
                             ->where('id', '<>', $id);
                     }),
             ],
