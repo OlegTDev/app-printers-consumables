@@ -101,7 +101,7 @@ class OrderSparePartDetailsController extends Controller
     {
         $orderSparePartDetails->load(['order.requested', 'files', 'printerWorkplace.printer']);
 
-        $userRoles = auth()->user()->getRoleNames();
+        $userRoles = auth()->user()->roles()->pluck('name')->toArray();
         $order = $orderSparePartDetails->order;
         $isAuthor = $order->requested_by === auth()->id();
         if ($isAuthor) {

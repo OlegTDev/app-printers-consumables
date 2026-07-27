@@ -84,7 +84,7 @@ class OrderMiscDetailsController extends Controller
     {
         $orderMiscDetails->load(['order.requested']);
 
-        $userRoles = auth()->user()->getRoleNames();
+        $userRoles = auth()->user()->roles()->pluck('name')->toArray();
         $order = $orderMiscDetails->order;
         $isAuthor = $order->requested_by === auth()->user()->id;
         if ($isAuthor) {

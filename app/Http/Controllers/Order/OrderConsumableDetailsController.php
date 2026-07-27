@@ -96,7 +96,7 @@ class OrderConsumableDetailsController extends Controller
     {
         $orderConsumableDetails->load(['order.requested', 'consumable.author']);
 
-        $userRoles = auth()->user()->getRoleNames();
+        $userRoles = auth()->user()->roles()->pluck('name')->toArray();
         $order = $orderConsumableDetails->order;
         $isAuthor = $order->requested_by === auth()->id();
         if ($isAuthor) {
