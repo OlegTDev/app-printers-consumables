@@ -17,9 +17,12 @@ import { computed } from "vue";
  * }}
  */
 export function useAuth() {
+
+  const objectToArray = (obj, field) => Array.from(Object.values(obj), (key) => key[field]);
+
   const page = usePage();
   const user = computed(() => page.props.auth?.user);
-  const userRoles = computed(() => page.props.auth?.user?.roles ?? []);
+  const userRoles = computed(() => objectToArray(page.props.auth?.user?.roles, 'name') ?? []);
   const isAdmin = computed(() => userRoles.value.includes('admin'));
 
   const can = (...roles) => {

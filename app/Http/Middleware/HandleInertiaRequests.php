@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App;
+use App\Http\Resources\UserResource;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -20,7 +21,7 @@ class HandleInertiaRequests extends Middleware
      * Determines the current asset version.
      *
      * @see https://inertiajs.com/asset-versioning
-     * @param  \Illuminate\Http\Request  $request
+     * @param  Request  $request
      * @return string|null
      */
     public function version(Request $request)
@@ -32,7 +33,7 @@ class HandleInertiaRequests extends Middleware
      * Defines the props that are shared by default.
      *
      * @see https://inertiajs.com/shared-data
-     * @param  \Illuminate\Http\Request  $request
+     * @param  Request  $request
      * @return array
      */
     public function share(Request $request)
@@ -40,20 +41,10 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'auth' => function () use ($request) {
-                $roles = [];
                 $user = $request->user();
-                if ($user) {
-                    $roles = cache()->remember(
-                        "user_roles_{$user->id}",
-                        10,
-                        fn() => $user?->roles()->pluck('name')->toArray()
-                    ) ?? [];
-                }
+                $user->load(['roles']);
                 return [
-                    'user' => $user
-                        ? $request->user()->only(['id', 'name', 'email', 'fio', 'org_code'])
-                        + ['roles' => $roles]
-                        : null,
+                    'user' => new UserResource($user),
                     'isAdmin' => $user ? $user->isAdmin() : false,
                 ];
             },
@@ -63,7 +54,6 @@ class HandleInertiaRequests extends Middleware
                     'error' => $request->session()->get('error'),
                 ],
             'appName' => config('app.name'),
-
         ];
     }
 }
