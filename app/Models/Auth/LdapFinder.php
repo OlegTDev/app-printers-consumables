@@ -11,7 +11,7 @@ class LdapFinder
         private User $user,
     ) {}
 
-    public function query(string $username): ?User
+    public function query(string $username): User|\LdapRecord\Models\Model|null
     {
         return $this->user->where('samaccountname', '=', $username)->first();
     }
