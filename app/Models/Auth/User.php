@@ -88,16 +88,7 @@ class User extends Authenticatable implements LdapAuthenticatable
         });
     }
 
-    public function isAvailableByOrgCode(string $orgCode): bool
-    {
-        return app(OrganizationAccessService::class)->isAvailableByOrgCode(
-            orgCode: $orgCode,
-            isAdmin: $this->hasRole('admin'),
-            userId: $this->id,
-        );
-    }
-
-    public function availableOrganizations(string $parent = null): array
+    public function availableOrganizations(): array
     {
         $availableOrgCodes = app(OrganizationAccessService::class)->getUserAvailableCodes(
             isAdmin: $this->hasRole('admin'),
