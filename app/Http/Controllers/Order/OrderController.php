@@ -95,7 +95,7 @@ class OrderController extends Controller
         $this->authorize('delete', $order);
 
         if ($order->status == OrderStatusEnum::STATUS_COMPLETED) {
-            abort(422, "Невозможно удалить со статусом {$order->status}.");
+            return back()->with('error', "Невозможно удалить со статусом {$order->status}.");
         }
 
         $order->delete();
@@ -115,7 +115,7 @@ class OrderController extends Controller
     private function validateStatusOrFail(Order $order, string $correctStatus)
     {
         if ($order->status !== $correctStatus) {
-            abort(422, "Действие возможно только со статусом $correctStatus, текущий статус $order->status!");
+            return back()->with('error', "Действие возможно только со статусом $correctStatus, текущий статус $order->status!");
         }
     }
 
