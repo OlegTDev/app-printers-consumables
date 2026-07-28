@@ -22,7 +22,9 @@ Route::prefix('dictionary')->name('dictionary.')->group(function() {
 
         // // расходные материалы
         Route::resource('consumables', ConsumablesController::class)->only(['create', 'store', 'edit', 'update', 'destroy']);
-        Route::resource('consumables.printers', ConsumablesPrintersController::class)->only(['index', 'store', 'destroy']);
+        Route::post('consumables/{consumable}/printers/{printer}', [ConsumablesPrintersController::class, 'store'])
+            ->name('consumables.printers.store');
+        Route::resource('consumables.printers', ConsumablesPrintersController::class)->only(['index', 'destroy']);
     });
 
     // Расходные материалы
@@ -34,6 +36,5 @@ Route::prefix('dictionary')->name('dictionary.')->group(function() {
     // === ОБЩЕДОСТУПНЫЕ МАРШРУТЫ СПРАВОЧНИКОВ (Чтение) ===
     Route::resource('printers', PrintersController::class)->only(['index', 'show']);
     Route::resource('consumables', ConsumablesController::class)->only(['index', 'show']);
-
 
 });
