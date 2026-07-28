@@ -29,7 +29,7 @@ class PrintersController extends Controller
     {
         $params = $this->getPaginatedData(
             request: $request,
-            query: Printer::query(),
+            query: Printer::query()->with('author'),
             allowSortFields: ['id', 'vendor', 'model', 'created_at'],
             resourceClass: PrinterResource::class,
         );
