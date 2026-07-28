@@ -25,7 +25,7 @@ class ConsumablesPrintersController extends Controller
     {
         $params = $this->getPaginatedData(
             request: $request,
-            query: $consumable->printersNotIn(),
+            query: $consumable->printersNotIn()->with('author'),
             allowSortFields: ['id', 'name', 'created_at'],
             resourceClass: PrinterResource::class,
         );
