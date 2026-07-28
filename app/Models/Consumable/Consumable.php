@@ -6,12 +6,11 @@ use App\Models\Auth\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Auth;
 use App\Models\Printer\Printer;
 use App\Models\Printer\PrinterWorkplace;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
-use Illuminate\Support\Facades\DB;
 
 /**
  * Расходный материал
@@ -28,7 +27,7 @@ use Illuminate\Support\Facades\DB;
  *
  * @property User $author
  * @property Printer[] $printers
- * @property PrinterWorkplace[] $printersWorkplace
+ * @property PrinterWorkplace[] $printersWorkplaces
  */
 class Consumable extends Model
 {
@@ -41,18 +40,12 @@ class Consumable extends Model
     {
         parent::boot();
         self::creating(function(Consumable $model) {
-            $model->id_author = Auth::id();
+            $model->id_author = auth()->id();
         });
     }
 
-    /**
-     * {@inheritDoc}
-     */
     protected $table = 'consumables';
 
-    /**
-     * {@inheritDoc}
-     */
     protected $fillable = [
         'type',
         'name',
@@ -61,48 +54,26 @@ class Consumable extends Model
         'arch',
     ];
 
-
-    /**
-     * Автор записи
-     * @return HasOne
-     */
     public function author(): HasOne
     {
         return $this->hasOne(User::class, 'id', 'id_author');
     }
 
-    /**
-     * Принтеры привязанные к этому расходному материалу
-     * @return BelongsToMany
-     */
     public function printers(): BelongsToMany
     {
         return $this->belongsToMany(Printer::class, 'printers_consumables', 'id_consumable', 'id_printer');
     }
 
-    /**
-     * Принтеры (справочник) и принтеры на рабочих местах,
-     * привязанные к текущему расходному материалу
-     * @return \Illuminate\Support\Collection
-     */
-    public function printersWorkplace()
+    public function printersWorkplaces(): BelongsToMany
     {
-        return DB::table('printers_workplace')
-            ->select([
-                'printers_workplace.id',
-                'printers_workplace.location',
-                'printers_workplace.serial_number',
-                'printers_workplace.inventory_number',
-                'printers.id as id_printer',
-                'printers.vendor',
-                'printers.model',
-                'printers.is_color_print',
-            ])
-            ->join('printers', 'printers.id', '=', 'printers_workplace.id_printer')
-            ->join('printers_consumables', 'printers_consumables.id_printer', '=', 'printers.id')
-            ->where('printers_consumables.id_consumable', $this->id)
-            ->where('printers_workplace.org_code', Auth::user()->org_code)
-            ->get();
+        return $this->belongsToMany(
+            PrinterWorkplace::class,
+            'printers_consumables',
+            'id_consumable',
+            'id_printer',
+            'id',
+            'id_printer'
+        );
     }
 
     public function printersNotIn(): Builder
@@ -114,46 +85,50 @@ class Consumable extends Model
         return $printer;
     }
 
-    /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne
-     */
-    public function consumableCount()
+    public function consumableCountCurrentOrganization(): HasOne
     {
-        return $this->hasOne(ConsumableCount::class, 'id_consumable', 'id');
+        return $this->hasOne(ConsumableCount::class, 'id_consumable', 'id')
+            ->forCurrentUser();
     }
 
-
-    public function scopeFilter(Builder $query, array $filters)
+    public function consumablesCount(): HasMany
     {
-        $query->with('author');
-        $query->when($filters['search'] ?? null, function (Builder $query, $search) {
-            $query->whereAny(['name'], 'ILIKE', "%$search%");
+        return $this->hasMany(ConsumableCount::class, 'id_consumable', 'id');
+    }
+
+    /**
+     * Заглушка для работы scope в роуте
+     */
+    public function counts(): HasMany
+    {
+        return $this->consumablesCount();
+    }
+
+    public function scopeFilter(Builder $query, array $filters): void
+    {
+        $query->when($filters['search'] ?? null, function (Builder $subQuery, $search) use (&$query) {
+            $query->whereAny(['name'], 'ILIKE', "%{$search}%");
         });
     }
 
-    public static function queryWithOtherTypesByPrinter(int $idPrinter)
+    public function scopeWithOtherTypesByPrinter(Builder $query, int $idPrinter): void
     {
-        return static::query()->whereHas('printers', function(Builder $query) use($idPrinter) {
+        $query->whereHas('printers', function(Builder $query) use($idPrinter) {
             $query->where('printers.id', $idPrinter);
         })
         ->where('type', ConsumableTypesEnum::other->name);
     }
 
-    public static function queryWithoutOtherTypesByPrinter()
+    public static function queryWithoutOtherTypesByPrinter(): Builder
     {
         return static::query()->where('type', '<>', ConsumableTypesEnum::other->name);
     }
 
-
-    /**
-     * Описание расходного материала (с указанием типа, наименование и цветом (если картридж))
-     * @return string
-     */
-    public function title()
+    public function title(): string
     {
         $title = ConsumableTypesEnum::getValueByName($this->type) . ' ' . $this->name;
         if ($this->type === 'cartridge') {
-            $title .= ' (' . CartridgeColors::get()[$this->color]['name'] ?? $this->color . ')';
+            $title .= ' (' . (CartridgeColors::get()[$this->color]['name'] ?? $this->color) . ')';
         }
         return $title;
     }

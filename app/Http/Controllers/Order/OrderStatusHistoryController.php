@@ -13,8 +13,10 @@ class OrderStatusHistoryController extends Controller
      */
     public function index(Order $order)
     {
+        $order->load(['statusHistory.author']);
+
         return [
-            'statuses' => OrderStatusHistoryResource::collection($order->statusHistory()->orderBy('created_at')->get()),
+            'statuses' => OrderStatusHistoryResource::collection($order->statusHistory),
             'labels' => config('labels.order_status_history'),
         ];
     }

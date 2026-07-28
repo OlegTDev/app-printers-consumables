@@ -1,30 +1,25 @@
 <script setup>
-import { computed, reactive, ref, watch } from 'vue';
+import { computed, reactive } from 'vue';
 import { Head, router } from '@inertiajs/vue3';
 import Layout from '@/Shared/Layout.vue';
-import InputText from 'primevue/inputtext';
-import IconField from 'primevue/iconfield';
-import InputIcon from 'primevue/inputicon';
 import Breadcrumbs from '@/Shared/Breadcrumbs.vue';
-import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import Button from 'primevue/button';
-import pickBy from 'lodash/pickBy';
-import throttle from 'lodash/throttle';
 import Card from '@/Shared/Card.vue';
 import Title from '@/Shared/Title.vue';
-import { useAuth } from '@/Composables/useAuth';
 import { Select } from 'primevue';
+import RemoteDataTable from '@/Shared/DataTable/RemoteDataTable.vue';
+import { useAuth } from '@/Composables/useAuth';
 
 defineOptions({
   layout: Layout,
 });
 
 const props = defineProps({
-  consumablesCounts: Array,
+  items: Object,
+  query: Object,
   consumableLabels: Object,
   consumableCountLabels: Object,
-  filters: Object,
   consumableTypes: Object,
   cartridgeColors: Object,
 });
@@ -34,8 +29,7 @@ const { can } = useAuth();
 const title = 'Количество расходных материалов';
 
 const form = reactive({
-  search: props.filters.search || '',
-  consumableType: props.filters.consumableType,
+  consumableType: props.query?.consumableType,
 });
 
 const consumableTypesDropdown = computed(() => Object.keys(props.consumableTypes || {}).map(key => ({
@@ -43,32 +37,9 @@ const consumableTypesDropdown = computed(() => Object.keys(props.consumableTypes
   name: props.consumableTypes[key],
 })));
 
-watch(
-  () => form,
-  throttle(() => {
-    router.get(route('consumables.counts.index'), pickBy(form), {
-      preserveState: true,
-      preserveScroll: true,
-    });
-  }, 300),
-  { deep: true }
-);
-
 const actions = {
   create: () => router.get(route('consumables.counts.create')),
   show: (event) => router.get(route('consumables.counts.show', { count: event.data.id })),
-};
-
-const refTableConsumableCount = ref(null);
-
-const onPageChange = () => {
-  const elementTableConsumableCount = refTableConsumableCount.value.$el;
-  if (elementTableConsumableCount) {
-    elementTableConsumableCount.scrollIntoView({
-      behavior: 'smooth',
-      block: 'start',
-    });
-  }
 };
 </script>
 <template>
@@ -82,48 +53,28 @@ const onPageChange = () => {
   <Card>
     <Title>{{ title }}</Title>
 
-    <DataTable
-      ref="refTableConsumableCount"
-      :value="consumablesCounts"
-      paginator
-      :rows="10"
-      data-key="id"
-      :meta-key-selection="false"
-      table-style="min-width: 50rem"
+    <RemoteDataTable
+      :url="route('consumables.counts.index')"
+      :model="items"
       selection-mode="single"
+      :filters="form"
       @row-select="actions.show"
-      @page="onPageChange"
     >
       <template #header>
-        <div class="flex justify-between">
-          <div>
-            <Button
-              v-if="can('admin', 'add-consumables')"
-              severity="info"
-              @click="actions.create"
-            >
-              Добавить
-            </Button>
-          </div>
-          <div class="flex">
-            <IconField icon-position="left" class="w-72">
-              <InputIcon>
-                <i class="pi pi-search" />
-              </InputIcon>
-              <InputText v-model="form.search" placeholder="Поиск" />
-            </IconField>
-
-            <Select
-              v-model="form.consumableType"
-              class="w-72"
-              show-clear
-              :options="consumableTypesDropdown"
-              option-label="name"
-              option-value="value"
-              :placeholder="consumableLabels.type"
-            />
-          </div>
-        </div>
+        <Button v-if="can('admin', 'add-consumables')" severity="info" @click="actions.create">
+          Добавить
+        </Button>
+      </template>
+      <template #filters>
+        <Select
+          v-model="form.consumableType"
+          class="w-72"
+          show-clear
+          :options="consumableTypesDropdown"
+          option-label="name"
+          option-value="value"
+          :placeholder="consumableLabels.type"
+        />
       </template>
       <Column header="#" field="id" header-style="width:3rem" />
       <Column :header="consumableLabels.type" field="consumable.type">
@@ -164,6 +115,6 @@ const onPageChange = () => {
       <template #empty>
         Нет данных
       </template>
-    </DataTable>
+    </RemoteDataTable>
   </Card>
 </template>

@@ -8,11 +8,24 @@ use App\Models\Order\OrderStatusEnum;
 
 class OrderPolicy
 {
+    public function cancel(User $user, Order $order): bool
+    {
+        return $user->hasRole('admin') || $user->id === $order->requested_by;
+    }
+
+    public function delete(User $user, Order $order): bool
+    {
+        if ($user->hasRole('admin')) {
+            return true;
+        }
+        return $user->id === $order->requested_by
+            && $order->status !== OrderStatusEnum::STATUS_COMPLETED;
+    }
 
     public function update(User $user, Order $order): bool
     {
         // редактирование документа не возможно, так как заказ уже прошел процедуру согласования
-        return $user->can('admin') || (
+        return $user->hasRole('admin') || (
             $order->requested_by == $user->id
             && \in_array($order->status, [OrderStatusEnum::STATUS_PENDING, OrderStatusEnum::STATUS_ORDERED]));
     }

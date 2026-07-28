@@ -24,7 +24,7 @@ class AttributeHandler
 
     private function getOrgCodeBySAMAccountName(string $sAMAccountName): ?string
     {
-        if (preg_match('/^n?\d{4}/i', $sAMAccountName, $matches) && isset($matches[0])) {
+        if (preg_match('/^n?\d{4}/i', $sAMAccountName, $matches)) {
             return $matches[0];
         }
         return null;

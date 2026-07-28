@@ -10,6 +10,7 @@ import { useReportError } from './Composables/useReportErrors';
 import InputGroup from 'primevue/inputgroup';
 import InputGroupAddon from 'primevue/inputgroupaddon';
 import DatePicker from 'primevue/datepicker';
+import TreeSelectOrganizations from './TreeSelectOrganizations.vue';
 
 const props = defineProps({
   url: String,
@@ -20,11 +21,13 @@ const { moment, formatDate } = useDate();
 const emit = defineEmits(['downloadFile']);
 
 const form = ref({
-  selectedOrganizations: Object.values(props.organizations).map((item) => item.code),
+  selectedOrganizations: [],
   dateFrom: moment().subtract(6, 'months').format('YYYY-MM-DD'),
   dateTo: moment().format('YYYY-MM-DD'),
   withoutPeriod: ref(true),
 });
+
+
 const loading = ref(false);
 
 const exportToExcel = async () => {
@@ -32,12 +35,15 @@ const exportToExcel = async () => {
   displayErrors.value = [];
 
   try {
-    const response = await axios.post(props.url, {
-      ...form.value,
-      dateFrom: formatDate(form.value.dateFrom, 'YYYY-MM-DD'),
-      dateTo: formatDate(form.value.dateTo, 'YYYY-MM-DD'),
-    }, { responseType: 'blob' });
-    emit('downloadFile', response.data, 'consumable-installed-count.xlsx');
+    const response = await axios.get(props.url, {
+      params: {
+        ...form.value,
+        dateFrom: formatDate(form.value.dateFrom, 'YYYY-MM-DD'),
+        dateTo: formatDate(form.value.dateTo, 'YYYY-MM-DD'),
+      },
+      responseType: 'blob',
+    });
+    emit('downloadFile', response.data, 'printers-workplace.xlsx');
   }
   catch (error) {
     handleError(error);
@@ -46,26 +52,19 @@ const exportToExcel = async () => {
     loading.value = false;
   }
 };
+
 </script>
 <template>
   <form @submit.prevent="exportToExcel">
     <Panel header="Список организаций">
-      <div v-for="organization in organizations" :key="organization.code" class="flex items-center mt-2">
-        <Checkbox
-          :id="organization.code"
-          v-model="form.selectedOrganizations"
-          name="organizations"
-          :value="organization.code"
-        />
-        <label :for="organization.code" class="ml-2 cursor-pointer">
-          {{ organization.label }}
-        </label>
-      </div>
+      <TreeSelectOrganizations
+        :list-organizations="organizations"
+        :default-selected-organizations="organizations"
+        @update:selected-orgs="(orgs) => form.selectedOrganizations = orgs"
+      />
     </Panel>
+
     <Panel header="Период" class="mt-4">
-      <div class="text-gray-400 text-base">
-        Используется для расчета количественных значений
-      </div>
       <div class="flex items-center mt-2">
         <Checkbox
           v-model="form.withoutPeriod"
@@ -76,7 +75,6 @@ const exportToExcel = async () => {
           Без учета периода
         </label>
       </div>
-
       <div v-if="!form.withoutPeriod" class="mt-3 grid grid-cols-6 gap-2">
         <InputGroup>
           <InputGroupAddon>с</InputGroupAddon>

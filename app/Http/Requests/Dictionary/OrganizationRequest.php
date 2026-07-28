@@ -14,27 +14,21 @@ use Illuminate\Validation\Rule;
 class OrganizationRequest extends FormRequest
 {
 
-    /**
-     * @var Organization|null
-     */
-    private $_organization;    
+    private ?Organization $_organization;
 
-    /**
-     * {@inheritDoc}
-     */
     public function __construct(Factory $validationFactory)
     {
-        $this->_organization = Route::input('organization');        
-        
-        // вложенность должна быть не более 2 уровней        
+        $this->_organization = Route::input('organization');
+
+        // вложенность должна быть не более 2 уровней
         $validationFactory->extend('levelUp', function($attribute, $value, $parameters) {
             if (empty($value)) {
                 return true;
-            }            
+            }
             $parentOrg = Organization::find($value);
             if ($parentOrg !== null && !empty($parentOrg->parent)) {
                 return false;
-            }            
+            }
             return true;
         }, 'Родительская организация является дочерней. Вложенность не должна превышать 2 уровней!');
 
@@ -42,7 +36,7 @@ class OrganizationRequest extends FormRequest
         $validationFactory->extend('levelDown', function($attribute, $value, $parameters) {
             if (empty($value)) {
                 return true;
-            }                    
+            }
             $organization = Route::input('organization');
             if ($organization !== null && $organization->childOrganizations()->count() > 0) {
                 return false;
@@ -56,35 +50,25 @@ class OrganizationRequest extends FormRequest
                 return true;
             }
             $parentOrg = Organization::find($value);
-            return $parentOrg ==! null;
+
+            return !empty($parentOrg);
         }, 'Родительская организация не найдена');
 
-    }   
+    }
 
-
-    /**
-     * Determine if the user is authorized to make this request.
-     *
-     * @return bool
-     */
     public function authorize()
-    {        
+    {
         $this->_organization = Route::input('organization');
         return true;
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array
-     */
     public function rules()
     {
         return [
             'code' => [
                 'required',
                 'max:5',
-                'min:4',                
+                'min:4',
                 Rule::unique('organizations', 'code')->ignore($this->_organization?->code, 'code'),
             ],
             'parent' => [
@@ -94,17 +78,14 @@ class OrganizationRequest extends FormRequest
             ],
             'name' => [
                 'required',
-                'max:200',                
+                'max:200',
             ],
         ];
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function attributes(): array
     {
-        return Organization::labels();
+        return config('labels.organization');
     }
-    
+
 }

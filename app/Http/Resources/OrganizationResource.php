@@ -5,6 +5,9 @@ namespace App\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+/**
+ * @mixin \App\Models\Organization
+ */
 class OrganizationResource extends JsonResource
 {
     /**
@@ -14,7 +17,6 @@ class OrganizationResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        /** @var \App\Models\Organization $this */
         return [
             'code' => $this->code,
             'parent' => $this->parent,

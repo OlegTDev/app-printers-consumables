@@ -3,16 +3,14 @@ import { Head } from '@inertiajs/vue3';
 import Layout from '@/Shared/Layout.vue';
 import Form from './Form.vue';
 import Breadcrumbs from '@/Shared/Breadcrumbs.vue';
-import { useConfig } from '@/Composables/useConfig';
 
 defineOptions({
-    layout: Layout
+  layout: Layout
 });
 
 defineProps({
-    labels: Object,
+  labels: Object,
 });
-const { urls } = useConfig();
 
 const title = 'Добавление организации';
 </script>
@@ -21,10 +19,10 @@ const title = 'Добавление организации';
   <Head :title="title" />
 
   <Breadcrumbs
-    :home="{ label: 'Главная', url: urls.home }"
+    :home="{ label: 'Главная', url: route('dashboard') }"
     :items="[
       { label: 'Справочники' },
-      { label: 'Организации', url: urls.dictionary.organizations.index() },
+      { label: 'Организации', url: route('dictionary.organizations.index') },
       { label: title },
     ]"
   />

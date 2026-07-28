@@ -5,133 +5,86 @@ namespace App\Http\Controllers;
 use App\Exports\ConsumableCountExport;
 use App\Exports\ConsumableInstalledCountExport;
 use App\Exports\PrintersWorkplaceExport;
-use App\Models\Organization;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
+use App\Http\Requests\ReportBaseRequest;
+use App\Http\Requests\ReportWithPeriodRequest;
+use App\Services\Query\ConsumableCountInstalledQueryService;
+use App\Services\Query\ConsumableCountQueryService;
+use App\Services\Query\OrganizationQueryService;
+use App\Services\Query\PrintersWorkplaceQueryService;
 use Inertia\Inertia;
 use Maatwebsite\Excel\Facades\Excel;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 /**
  * Отчеты
  */
-class ReportController extends Controller
+final class ReportController extends Controller
 {
 
     /**
-     * Список отчетов
-     * @return \Inertia\Response
+     * @route GET /reports
      */
-    public function index()
+    public function index(OrganizationQueryService $organizationQueryService): \Inertia\Response
     {
+
+        $availableOrganizations = auth()->user()->availableOrganizations();
+
         return Inertia::render('Reports/Index', [
-            'organizations' => Auth::user()->availableOrganizations(),
-            'organizationLabels' => Organization::labels(),
+            'organizations' => $organizationQueryService->getOrganizationsTree($availableOrganizations),
+            'organizationLabels' => config('labels.organization'),
         ]);
     }
 
     /**
      * Формирование отчета по принтерам на местах
-     * @param \Illuminate\Http\Request $request
-     * @return \Symfony\Component\HttpFoundation\BinaryFileResponse
+     * @route POST /reports/export-printers-workplace
      */
-    public function exportPrintersWorkplace(Request $request)
+    public function exportPrintersWorkplace(ReportWithPeriodRequest $request, PrintersWorkplaceQueryService $printersWorkplaceQueryService): BinaryFileResponse
     {
-        // валидация
-        $validator = Validator::make(
-            data: $request->all(),
-            rules: [
-                'selectedOrganizations' => 'required|array',
-                'dateFrom' => 'required_if:withoutPeriod,false',
-                'dateTo' => 'required_if:withoutPeriod,false',
-            ],
-            messages: [
-                'required' => 'Поле ":attribute" является обязательным для заполнения.',
-                'required_if' => 'Поле ":attribute" является обязательным для заполнения, если не выбрано поле ":other".',
-            ],
-            attributes: [
-                'selectedOrganizations' => 'Список организаций',
-                'dateFrom' => 'Дата начала',
-                'dateTo' => 'Дата окончания',
-                'withoutPeriod' => 'Без учета периода',
-            ],
-        );
-        $validator->validate();
-        $organizations = $request->post('selectedOrganizations');
-        $withoutPeriod = $request->post('withoutPeriod', false);
-        $dateFrom = $request->post('dateFrom');
-        $dateTo = $request->post('dateTo');
+        $validated = $request->safe();
 
-        // формирование отчета
+        $withoutPeriod = $validated->boolean('withoutPeriod');
+        $dateFrom = !$withoutPeriod ? $validated->string('dateFrom') : null;
+        $dateTo = !$withoutPeriod ? $validated->string('dateTo') : null;
+        $organizations = $validated->array('selectedOrganizations');
+
         return Excel::download(
-            new PrintersWorkplaceExport($organizations, $withoutPeriod === true, $dateFrom, $dateTo),
+            new PrintersWorkplaceExport($organizations, $dateFrom, $dateTo, $printersWorkplaceQueryService),
             'printers-workplace.xlsx'
         );
     }
 
     /**
-     * Формирование отчета по остаткам картриджей
-     * @param \Illuminate\Http\Request $request
-     * @return \Symfony\Component\HttpFoundation\BinaryFileResponse
+     * Формирование отчета по остаткам расходных материалов
+     * @route POST /reports/export-consumable-count
      */
-    public function exportConsumableCount(Request $request)
+    public function exportConsumableCount(ReportBaseRequest $request, ConsumableCountQueryService $consumableCountQueryService): BinaryFileResponse
     {
-        $validator = Validator::make(
-            data: $request->all(),
-            rules: [
-                'selectedOrganizations' => 'required|array',
-            ],
-            messages: [
-                'required' => 'Поле ":attribute" является обязательным для заполнения.',
-            ],
-            attributes: [
-                'selectedOrganizations' => 'Список организаций',
-            ]
-        );
-        $validator->validate();
-        $organizations = $request->post('selectedOrganizations');
+        $validated = $request->safe();
 
-        // формирование отчета
+        $organizations = $validated->array('selectedOrganizations');
+
         return Excel::download(
-            new ConsumableCountExport($organizations),
+            new ConsumableCountExport($organizations, $consumableCountQueryService),
             'consumable-count.xlsx'
         );
     }
 
     /**
-     * Формирование отчета по остаткам картриджей
-     * @param \Illuminate\Http\Request $request
-     * @return \Symfony\Component\HttpFoundation\BinaryFileResponse
+     * Формирование отчета по установленным картриджам
+     * @route POST /reports/export-consumable-installed-count
      */
-    public function exportConsumableInstalledCount(Request $request)
+    public function exportConsumableInstalledCount(ReportWithPeriodRequest $request, ConsumableCountInstalledQueryService $queryService): BinaryFileResponse
     {
-        $validator = Validator::make(
-            data: $request->all(),
-            rules: [
-                'selectedOrganizations' => 'required|array',
-                'dateFrom' => 'required_if:withoutPeriod,false',
-                'dateTo' => 'required_if:withoutPeriod,false',
-            ],
-            messages: [
-                'required' => 'Поле ":attribute" является обязательным для заполнения.',
-                'required_if' => 'Поле ":attribute" является обязательным для заполнения, если не выбрано поле ":other".',
-            ],
-            attributes: [
-                'selectedOrganizations' => 'Список организаций',
-                'dateFrom' => 'Дата начала',
-                'dateTo' => 'Дата окончания',
-                'withoutPeriod' => 'Без учета периода',
-            ]
-        );
-        $validator->validate();
-        $organizations = $request->post('selectedOrganizations');
-        $withoutPeriod = $request->post('withoutPeriod', false);
-        $dateFrom = $request->post('dateFrom');
-        $dateTo = $request->post('dateTo');
+        $validated = $request->safe();
 
-        // формирование отчета
+        $withoutPeriod = $validated->boolean('withoutPeriod');
+        $dateFrom = !$withoutPeriod ? $validated->string('dateFrom') : null;
+        $dateTo = !$withoutPeriod ? $validated->string('dateTo') : null;
+        $organizations = $validated->array('selectedOrganizations');
+
         return Excel::download(
-            new ConsumableInstalledCountExport($organizations, $withoutPeriod == true, $dateFrom, $dateTo),
+            new ConsumableInstalledCountExport($organizations, $dateFrom, $dateTo, $queryService),
             'consumable-installed-count.xlsx'
         );
     }

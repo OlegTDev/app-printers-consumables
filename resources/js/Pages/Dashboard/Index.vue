@@ -3,6 +3,7 @@ import Layout from '@/Shared/Layout.vue';
 import { Head } from '@inertiajs/vue3';
 import LastOperationsInstalled from './Partials/LastInstalledConsumables.vue';
 import Chart from './Partials/Chart.vue';
+import { ref } from 'vue';
 
 defineOptions({
   layout: Layout,
@@ -13,15 +14,22 @@ defineProps({
   auth: Object,
 });
 
+const chartLastInstalledRefreshTrigger = ref(0);
+
+const handleConsumableInstalled = () => {
+  chartLastInstalledRefreshTrigger.value++;
+};
+
 </script>
 <template>
   <Head :title="appName" />
 
-  <div class="grid grid-cols-1 gap-4 items-stretch">
-    <LastOperationsInstalled />
-    <div class="grid grid-cols-2 gap-4">
-      <div class="col-span bg-white shadow rounded p-4 grid content-center">
+  <div class="grid gap-4 items-stretch w-full">
+    <LastOperationsInstalled @consumable:install="handleConsumableInstalled" />
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div class="bg-white shadow rounded p-5 flex flex-col justify-center min-w-0 overflow-hidden">
         <Chart
+          :key="chartLastInstalledRefreshTrigger"
           class="w-full"
           :url="route('chart.last-installed')"
           header="Динамика установки расходных материалов"
@@ -29,7 +37,7 @@ defineProps({
           chart-bg-color="#ef4444"
         />
       </div>
-      <div class="col-span bg-white shadow rounded p-4 grid content-center">
+      <div class="bg-white shadow rounded p-5 flex flex-col justify-center min-w-0 overflow-hidden">
         <Chart
           class="w-full"
           :url="route('chart.last-added')"

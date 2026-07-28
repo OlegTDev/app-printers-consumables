@@ -1,89 +1,44 @@
 <script setup>
 import Layout from '@/Shared/Layout.vue';
-import { watch, reactive, ref } from 'vue';
+import { ref } from 'vue';
 import Breadcrumbs from '@/Shared/Breadcrumbs.vue';
-import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import Button from 'primevue/button';
-import { Head, Link, router } from '@inertiajs/vue3';
-import InputText from 'primevue/inputtext';
-import pickBy from 'lodash/pickBy';
-import throttle from 'lodash/throttle';
-import IconField from 'primevue/iconfield';
-import InputIcon from 'primevue/inputicon';
-import { useConfig } from '@/Composables/useConfig';
+import { Head, router } from '@inertiajs/vue3';
 import Card from '@/Shared/Card.vue';
 import Title from '@/Shared/Title.vue';
 import { useAuth } from '@/Composables/useAuth';
 import Author from '@/Shared/DataTable/Author.vue';
 import Timestamps from '@/Shared/DataTable/Timestamps.vue';
+import RemoteDataTable from '@/Shared/DataTable/RemoteDataTable.vue';
 
-const props = defineProps({
-  consumables: Object,
+defineProps({
+  items: Object,
   labels: Object,
-  filters: Object,
   consumableTypes: Object,
   cartridgeColors: Object,
-  totalRecords: Number,
-  currentPage: Number,
-  firstPage: Number,
 });
 
 defineOptions({
   layout: Layout
 });
 
-const title = 'Расходные материалы (справочник)';
-const { urls } = useConfig();
+const title = 'Расходные материалы';
 const { can } = useAuth();
-
-const loading = ref(false);
-const selectedRow = ref({});
-const filters = reactive(props.filters);
-const form = reactive({
-  search: filters.search,
-  page: 1,
-  sortField: null,
-  sortOrder: null,
-});
-
-const updateFilters = () => {
-  router.get(urls.dictionary.consumables.index(), pickBy(form), {
-    preserveState: true,
-    replace: true,
-    onStart: () => loading.value = true,
-    onFinish: () => loading.value = false,
-  });
-};
-
-watch(
-  () => form.search,
-  throttle(() => {
-    form.page = 1;
-    updateFilters();
-  }, 150)
-);
-
 const onRowSelect = (event) => {
-  router.get(urls.dictionary.consumables.show(event.data.id));
+  const url = route('dictionary.consumables.show', { consumable: event.data.id });
+  router.get(url);
 };
-
 const refTableConsumablesDic = ref(null);
-
-const onLazyChange = (event) => {
-  form.page = event.page + 1;
-  form.sortField = event.sortField;
-  form.sortOrder = event.sortOrder;
-  updateFilters();
-};
 
 </script>
 <template>
   <Head :title="title" />
 
   <Breadcrumbs
-    :home="{ label: 'Главная', url: '/' }"
+    :home="{ label: 'Главная', url: route('dashboard') }"
     :items="[
+      { label: 'Справочники' },
       { label: title },
     ]"
   />
@@ -91,47 +46,24 @@ const onLazyChange = (event) => {
   <Card>
     <Title>{{ title }}</Title>
 
-    <DataTable
+    <RemoteDataTable
       ref="refTableConsumablesDic"
-      v-model:selection="selectedRow"
-      lazy
-      :loading="loading"
-      :value="consumables.data"
-      paginator
-      :rows="consumables.per_page"
-      :total-records="consumables.total"
-      :first="(consumables.current_page - 1) * consumables.per_page"
-      data-key="id"
-      :meta-key-selection="false"
-      table-style="min-width: 50rem"
+      :model="items"
+      :url="route('dictionary.consumables.index')"
       selection-mode="single"
       @row-select="onRowSelect"
-      @page="onLazyChange($event)"
-      @sort="onLazyChange($event)"
     >
       <template #header>
-        <div class="flex justify-between">
-          <div>
-            <Link v-if="can('admin', 'editor-dictionary')" :href="urls.dictionary.consumables.create()">
-              <Button type="button" severity="info">
-                Добавить расходный материал
-              </Button>
-            </Link>
-          </div>
-
-          <IconField icon-position="left" class="w-72">
-            <InputIcon>
-              <i class="pi pi-search" />
-            </InputIcon>
-            <InputText v-model="form.search" placeholder="Поиск" />
-          </IconField>
-        </div>
+        <Button
+          v-if="can('admin', 'editor-dictionary')"
+          type="button"
+          severity="info"
+          @click="router.get(route('dictionary.consumables.create'))"
+        >
+          Добавить расходный материал
+        </Button>
       </template>
-      <Column header="#" header-style="width:3rem">
-        <template #body="{ data }">
-          {{ data.id }}
-        </template>
-      </Column>
+      <Column header="#" field="id" header-style="width:3rem" sortable />
       <Column field="type" :header="labels.type" sortable>
         <template #body="{ data }">
           {{ consumableTypes[data.type] ?? data.type }}
@@ -157,7 +89,7 @@ const onLazyChange = (event) => {
       <Column field="description" :header="labels.description" sortable />
       <Column field="created_at" header="Дата" sortable>
         <template #body="{ data }">
-          <Timestamps :created_at="data.created_at" :updated_at="data.updated_at" />
+          <Timestamps :created-at="data.created_at" :updated-at="data.updated_at" />
         </template>
       </Column>
       <Column header="Автор">
@@ -169,6 +101,6 @@ const onLazyChange = (event) => {
       <template #empty>
         Нет данных
       </template>
-    </DataTable>
+    </RemoteDataTable>
   </Card>
 </template>

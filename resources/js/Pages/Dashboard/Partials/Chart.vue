@@ -30,9 +30,6 @@ const notification = useNotification();
 const loadingChart = ref(false);
 const loadedChart = ref(false);
 const chartOptions = ref({
-  title: {
-    text: props.header,
-  },
   xaxis: {
     type: 'date',
     labels: {
@@ -41,6 +38,20 @@ const chartOptions = ref({
       },
     },
   },
+  chart: {
+    type: 'area',
+    width: '100%',
+    height: 350,
+    redrawOnParentResize: true,
+    redrawOnWindowResize: true,
+    sparkline: {
+      enabled: false,
+    }
+  },
+  stroke: {
+    curve: 'smooth',
+    width: 3
+  }
 });
 const chartSeries = ref([]);
 
@@ -78,15 +89,24 @@ onMounted(() => {
 
 </script>
 <template>
-  <progress-spinner
-    v-if="loadingChart"
-    style="width: 50px; height: 50px"
-    animation-duration=".5s"
-    stroke-width="8"
-    fill="transparent"
-    aria-label="Custom ProgressSpinner"
-  />
-  <div v-else>
-    <ApexChart v-if="loadedChart" :chart-options="chartOptions" :chart-series="chartSeries" :title="header" />
+  <div v-if="loadingChart" class="flex justify-center items-center w-full">
+    <ProgressSpinner style="width: 50px; height: 50px" stroke-width="4" />
+  </div>
+
+  <div v-else class="w-full flex flex-col min-w-0 overflow-hidden">
+    <h3 v-if="header" class="text-base font-semibold text-surface-700 dark:text-surface-300 mb-4 px-2">
+      {{ header }}
+    </h3>
+
+    <div class="w-full min-w-0 overflow-hidden">
+      <ApexChart
+        v-if="loadedChart"
+        title
+        :chart-options="chartOptions"
+        :chart-series="chartSeries"
+        type="area"
+        height="350"
+      />
+    </div>
   </div>
 </template>

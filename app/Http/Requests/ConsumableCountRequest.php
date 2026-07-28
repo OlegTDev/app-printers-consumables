@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests;
 
-use App\Models\Consumable\ConsumableCount;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
@@ -32,6 +31,7 @@ class ConsumableCountRequest extends FormRequest
                 'integer',
                 'min:1',
             ],
+            'selectedOrganizations' => 'array',
         ];
         if ($this->isMethod('post')) {
             $rules['selectedOrganizations'] = 'required';
@@ -40,11 +40,8 @@ class ConsumableCountRequest extends FormRequest
         return $rules;
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    public function attributes()
+    public function attributes(): array
     {
-        return ConsumableCount::labels();
+        return config('labels.consumable_count');
     }
 }

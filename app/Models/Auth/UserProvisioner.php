@@ -42,7 +42,7 @@ class UserProvisioner
             'email' => $attributes['userPrincipalName'],
             'password' => $this->generateUserPassword(),
             'domain' => $domain,
-            'org_code' => User::getOrgCodeFromUsername($username),
+            'org_code' => $this->getOrgCodeFromUsername($username),
             'company' => $attributes['company'],
             'fio' => $attributes['cn'],
             'department' => $attributes['department'],
@@ -70,6 +70,14 @@ class UserProvisioner
     private function generateUserPassword(): string
     {
         return Str::password(16);
+    }
+
+    private function getOrgCodeFromUsername(string $username, string $defaultCode = '0000'): string
+    {
+        if (preg_match('/^n?\d{4}/i', $username, $matches) === 1) {
+            return $matches[0];
+        }
+        return $defaultCode;
     }
 
 }

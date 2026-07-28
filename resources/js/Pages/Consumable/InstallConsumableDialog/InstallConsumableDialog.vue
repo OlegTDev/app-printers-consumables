@@ -8,9 +8,6 @@ import Message from 'primevue/message';
 import PrintersWorkplaceDropdown from './Partials/PrintersWorkplaceDropdown.vue';
 import ConsumablesDropDown from './Partials/ConsumablesDropDown.vue';
 
-/** @type {typeof import('@/config/urls').urls} */
-const urls = inject('urls');
-
 const dialogRef = inject('dialogRef');
 const step = ref(0);
 
@@ -44,20 +41,18 @@ const save = () => {
     return;
   }
   const { id: idConsumable, id_consumable: idConsumableCount } = consumableSelected.value;
-  const url = urls.consumables.counts.subtract(idConsumable, idConsumableCount);
+  const url = route('consumables.counts.installed.store', { consumable: idConsumable, count: idConsumableCount });
   form.post(url, {
-    onSuccess: () => {
-      dialogRef.value.close({ updated: true });
-    },
+    onSuccess: () => dialogRef.value.close({ updated: true }),
   });
 };
 
 </script>
 <template>
   <form @submit.prevent="save">
-    <div :class="$style.dialog">
+    <div class="dialog">
       <PrintersWorkplaceDropdown
-        :url="urls.printers.all()"
+        :url="route('workplace.all')"
         :error="form.errors?.id_printer_workplace"
         @update:selected="onChangePrinterWorkplace"
       />
@@ -65,7 +60,7 @@ const save = () => {
       <ConsumablesDropDown
         v-if="printersWorkplacesSelected"
         :key="printersWorkplacesSelected.id"
-        :url="urls.consumables.counts.listByPrinter(printersWorkplacesSelected.id_printer)"
+        :url="route('consumables.counts.list-by-printer', { printer: printersWorkplacesSelected.id_printer })"
         @update:selected="onChangeConsumables"
       />
 
@@ -88,10 +83,9 @@ const save = () => {
     </div>
   </form>
 </template>
-<style module>
+<style scoped>
   .dialog {
     display: grid;
     gap: 1rem;
   }
 </style>
-S

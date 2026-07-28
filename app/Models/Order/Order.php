@@ -9,7 +9,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 
 /**
  * @property int $id
@@ -23,9 +22,9 @@ use Illuminate\Support\Facades\DB;
  * @property string $created_at
  * @property string $updated_at
  *
- * @property \App\Models\User $requested
- * @property \App\Models\Order\OrderStatusHistory $statusHistory
- * @property \App\Models\Organization $organization
+ * @property User $requested
+ * @property OrderStatusHistory $statusHistory
+ * @property Organization $organization
  */
 final class Order extends Model
 {
@@ -54,44 +53,12 @@ final class Order extends Model
 
     public function statusHistory(): HasMany
     {
-        return $this->hasMany(OrderStatusHistory::class, 'id_order');
+        return $this->hasMany(OrderStatusHistory::class, 'id_order')->orderByDesc('created_at');
     }
 
     public function organization(): BelongsTo
     {
         return $this->belongsTo(Organization::class, 'org_code');
-    }
-
-    public static function createWithChildOrder(Model $subOrder, ?string $comment, ?string $service_request_number, ?string $service_request_date, int $quantity = 1)
-    {
-        DB::transaction(function () use ($subOrder, $comment, $service_request_number, $service_request_date, $quantity) {
-            $order = self::create([
-                'org_code' => auth()->user()->org_code,
-                'status' => OrderStatusEnum::default(),
-                'comment' => $comment,
-                'requested_by' => auth()->user()->id,
-                'service_request_number' => $service_request_number,
-                'service_request_date' => $service_request_date,
-                'quantity' => $quantity,
-            ]);
-
-            $subOrder->order()->associate($order);
-            $subOrder->save();
-        });
-    }
-
-    public static function getStatusLabelByStatus(string $status): string
-    {
-        return self::$statusLabels[$status] ?? $status;
-    }
-
-    public function getLastEditor()
-    {
-        $lastAuthor = $this->statusHistory()->orderBy('created_at','desc')->first();
-        if ($lastAuthor) {
-            return $lastAuthor->author;
-        }
-        return null;
     }
 
     public function setStatus(string $status, string $comment = null)

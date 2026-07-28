@@ -3,7 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Support\Facades\Auth;
+
 
 /**
  * Пользователь
@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Auth;
  * @property string $name
  * @property string $domain
  */
-class UserRequest extends FormRequest
+class UserCreateRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -20,7 +20,7 @@ class UserRequest extends FormRequest
      */
     public function authorize()
     {
-        return Auth::check() && Auth::user()->hasRole('admin');
+        return auth()->check() && auth()->user()->hasRole('admin');
     }
 
     /**
@@ -32,7 +32,6 @@ class UserRequest extends FormRequest
     {
         return [
             'name' => ['required', 'max:50', 'unique:users'],
-            'domain' => ['string', 'max:50'],
         ];
     }
 
@@ -43,7 +42,6 @@ class UserRequest extends FormRequest
     {
         return [
             'name' => 'Учетная запись',
-            'domain' => 'Имя домена',
         ];
     }
 }

@@ -6,11 +6,13 @@ defineProps({
     type: Object,
     default: () => ({
       location: '',
-      vendor: '',
-      model: '',
-      is_color_print: false,
       inventory_number: '',
       serial_number: '',
+      printer: {
+        vendor: '',
+        model: '',
+        is_color_print: false,
+      },
     }),
   },
 });
@@ -22,8 +24,8 @@ defineProps({
       {{ values.location }} каб.
     </div>
     <div class="flex gap-x-4">
-      {{ `${values.vendor} ${values.model}` }}
-      <span v-if="values.is_color_print">
+      {{ `${values.printer?.vendor} ${values.printer?.model}` }}
+      <span v-if="values.printer?.is_color_print">
         <IconColorPrint class="h-4 w-4" />
       </span>
     </div>

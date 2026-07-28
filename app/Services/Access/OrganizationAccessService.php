@@ -14,7 +14,7 @@ class OrganizationAccessService
 
     public function isAvailableByOrgCode(string $orgCode, bool $isAdmin, int $userId): bool
     {
-        return in_array($orgCode, $this->getUserAvailableCodes($isAdmin, $userId));
+        return \in_array($orgCode, $this->getUserAvailableCodes($isAdmin, $userId));
     }
 
     public function getUserAvailableCodes(bool $isAdmin, int $userId): array

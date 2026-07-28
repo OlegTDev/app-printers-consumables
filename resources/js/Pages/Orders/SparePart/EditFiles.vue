@@ -2,11 +2,10 @@
 import Layout from '@/Shared/Layout.vue';
 import { Head, useForm, router } from '@inertiajs/vue3';
 import Breadcrumbs from '@/Shared/Breadcrumbs.vue';
-import { computed, ref } from 'vue';
+import { ref } from 'vue';
 import Label from '@/Shared/Label.vue';
 import Button from 'primevue/button';
 import { useConfirm } from 'primevue/useconfirm';
-import { useConfig } from '@/Composables/useConfig';
 import Card from '@/Shared/Card.vue';
 import Title from '@/Shared/Title.vue';
 import { FileUpload } from 'primevue';
@@ -22,24 +21,24 @@ const props = defineProps({
   labels: Object,
 });
 
-const { urls } = useConfig();
 const { formatDate } = useDate();
+const confirm = useConfirm();
+const uploadFilesRef = ref(null);
+
 const title = 'Изменение файлов';
 
 const form = useForm({
   files: [],
 });
-const confirm = useConfirm();
-
-const orderSparePartDetailData = computed(() => props.orderSparePartDetail?.data || {});
-const uploadFilesRef = ref({});
 
 const uploadFiles = () => {
-  form.post(urls.orders.spareParts.uploadFile(orderSparePartDetailData.value.id), {
+  form.post(route('orders.spare-parts.files.upload', { orderSparePartDetails: props.orderSparePartDetail.id }), {
     forceFormData: true,
-    onFinish: () => {
+    onSuccess: () => {
       form.reset('files');
-      uploadFilesRef.value.clear();
+      if (uploadFilesRef.value) {
+        uploadFilesRef.value.clear();
+      }
     },
     preserveScroll: true,
   });
@@ -50,7 +49,10 @@ const deleteFile = (idFile) => {
     message: 'Вы уверены, что хотите удалить файл?',
     header: 'Удаление файла',
     accept: () => {
-      const url = urls.orders.spareParts.deleteFile(orderSparePartDetailData.value.id, idFile);
+      const url = route('orders.spare-parts.files.delete', {
+        orderSparePartDetails: props.orderSparePartDetail.id,
+        orderSparePartDetailsFile: idFile,
+      });
       router.delete(url, {
         preserveScroll: true,
       });
@@ -59,7 +61,7 @@ const deleteFile = (idFile) => {
 };
 
 const home = () => {
-  router.get(urls.orders.spareParts.show(orderSparePartDetailData.value.id));
+  router.get(route('orders.spare-parts.show', { orderSparePartDetails: props.orderSparePartDetail.id }));
 };
 
 const select = (event) => {
@@ -70,12 +72,12 @@ const select = (event) => {
   <Head :title="title" />
 
   <Breadcrumbs
-    :home="{ label: 'Главная', url: '/' }"
+    :home="{ label: 'Главная', url: route('home') }"
     :items="[
-      { label: 'Заказ запчастей', url: urls.orders.spareParts.index() },
+      { label: 'Заказ запчастей', url: route('orders.spare-parts.index') },
       {
-        label: `Заказ № ${orderSparePartDetailData.order.id} от ${formatDate(orderSparePartDetailData.order.created_at, 'L')}`,
-        url: urls.orders.spareParts.show(orderSparePartDetailData.id),
+        label: `Заказ № ${orderSparePartDetail.order.id} от ${formatDate(orderSparePartDetail.order.created_at, 'L')}`,
+        url: route('orders.spare-parts.show', { orderSparePartDetails: orderSparePartDetail.id }),
       },
       { label: title },
     ]"
@@ -103,7 +105,7 @@ const select = (event) => {
           </div>
           <div v-if="form.progress" class="w-full bg-gray-100 rounded-full mt-4">
             <div
-              class="bg-primary-500 text-xs font-medium text-white text-center p-0.5 leading-none rounded-full h-4 flex items-center justify-center"
+              class="bg-primary text-xs font-medium text-white text-center p-0.5 leading-none rounded-full h-4 flex items-center justify-center"
               :style="{ width: (form.progress?.percentage ?? 0) + '%' }"
             >
               {{ form.progress?.percentage ?? 0 }}%
@@ -111,13 +113,13 @@ const select = (event) => {
           </div>
         </template>
       </FieldRowVertical>
-      <Card v-if="orderSparePartDetailData.files?.length > 0" class="mt-6" padding-body-classes="p-4">
+      <Card v-if="orderSparePartDetail.files?.length > 0" class="mt-6" padding-body-classes="p-4">
         <Title :h="3">
           Загруженные файлы
         </Title>
 
         <div class="grid gap-y-2">
-          <template v-for="item in orderSparePartDetailData.files" :key="item.id">
+          <template v-for="item in orderSparePartDetail.files" :key="item.id">
             <div class="flex gap-3 items-center">
               <Button
                 v-tooltip="`Удалить`"

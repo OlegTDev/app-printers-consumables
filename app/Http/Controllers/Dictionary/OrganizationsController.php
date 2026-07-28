@@ -3,127 +3,105 @@
 namespace App\Http\Controllers\Dictionary;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Traits\BuildsListQuery;
 use App\Http\Requests\Dictionary\OrganizationRequest;
+use App\Http\Resources\OrganizationResource;
 use App\Models\Organization;
-use Illuminate\Support\Facades\Redirect;
+use App\Services\Query\OrganizationQueryService;
 use Inertia\Inertia;
+use Illuminate\Http\Request;
 
 /**
  * Управление организациями
  */
 class OrganizationsController extends Controller
 {
-
-    private function getOrganizationsTree($parent = null)
-    {
-        $items = Organization::where('parent', '=',  $parent)->get();
-        $result = [];
-        foreach($items as $item) {
-            $result[] = [
-                'key' => $item->code,
-                'data' => [
-                    'code' => $item->code,
-                    'parent' => $item->parent,
-                    'name' => $item->name,
-                    'created_at' => $item->created_at,
-                    'updated_at' => $item->updated_at,
-                ],
-                'children' => $this->getOrganizationsTree($item->code),
-            ];
-        }
-        return $result;
-    }
-
+    use BuildsListQuery;
 
     /**
-     * Список организаций
-     * @return \Inertia\Response
+     * @route GET /dictionary/organizations
      */
-    public function index()
-    {             
+    public function index(OrganizationQueryService $queryService, Request $request): \Inertia\Response
+    {
+        $organizations = $queryService->getAllOrganizationsQuery();
+        $paginatedData = $this->getPaginatedData(
+            request: $request,
+            query: $organizations,
+            transformCallback: function($data) use ($queryService) {
+                $data['data'] = $queryService->getOrganizationsTree($data['data']);
+                return $data;
+            },
+        );
+
         return Inertia::render('Dictionary/Organizations/Index', [
-            'organizations' => $this->getOrganizationsTree(),
-            'labels' => Organization::labels(),
+            ...$paginatedData,
+            'labels' => config('labels.organization'),
         ]);
     }
 
     /**
-     * Добавление организации
-     * @return \Inertia\Response
+     * @route GET /dictionary/organizations/create
      */
-    public function create()
+    public function create(): \Inertia\Response
     {
         return Inertia::render('Dictionary/Organizations/Create', [
-            'labels' => Organization::labels(),
+            'labels' => config('labels.organization'),
         ]);
     }
 
     /**
-     * Сохранение новой организации
-     * @param OrganizationRequest $request
-     * @return \Illuminate\Http\RedirectResponse
+     * @route POST /dictionary/organizations
      */
-    public function store(OrganizationRequest $request)
+    public function store(OrganizationRequest $request): \Illuminate\Http\RedirectResponse
     {
-        $organization = Organization::create($request->only(['code', 'name']));
-        if (!$organization) {
-            return redirect()->back();
-        }
-        return redirect()->route('dictionary.organizations.index')
+        Organization::create($request->validated());
+
+        return to_route('dictionary.organizations.index')
             ->with('success', 'Запись успешно добавлена!');
     }
 
     /**
-     * Детальная информация об организации $organization
-     * @param Organization $organization
-     * @return \Inertia\Response
+     * @route GET /dictionary/organizations/{organization}
      */
-    public function show(Organization $organization)
+    public function show(Organization $organization): \Inertia\Response
     {
         return Inertia::render('Dictionary/Organizations/Show', [
-            'organization' => $organization,
-            'labels' => Organization::labels(),
+            'organization' => new OrganizationResource($organization),
+            'labels' => config('labels.organization'),
         ]);
     }
 
     /**
-     * Редактирование организации $organization
-     * @param Organization $organization
-     * @return \Inertia\Response
+     * @route GET /dictionary/organizations/{organization}/edit
      */
-    public function edit(Organization $organization)
-    {        
-        return Inertia::render('Dictionary/Organizations/Edit', [
-            'organization' => $organization,
-            'labels' => Organization::labels(),
-        ]);
-    }
-
-    /**
-     * Сохранение отредактированной организации $organization
-     * @param Organization $organization
-     * @param OrganizationRequest $request
-     * @return \Illuminate\Http\RedirectResponse
-     */
-    public function update(OrganizationRequest $request, Organization $organization)
+    public function edit(Organization $organization): \Inertia\Response
     {
-        $organizationUpdate = $organization->update($request->all());        
-        if (!$organizationUpdate) {
-            return redirect()->back();
-        }        
-        return redirect()->route('dictionary.organizations.index')
+        return Inertia::render('Dictionary/Organizations/Edit', [
+            'organization' => new OrganizationResource($organization),
+            'labels' => config('labels.organization'),
+        ]);
+    }
+
+    /**
+     * @route PUT /dictionary/organizations/{organization}
+     */
+    public function update(OrganizationRequest $request, Organization $organization): \Illuminate\Http\RedirectResponse
+    {
+        $organization->update($request->validated());
+
+        return to_route('dictionary.organizations.index')
             ->with('success', 'Запись успешно обновлена!');
     }
 
     /**
-     * Удаление организации $organization
-     * @param Organization $organization
-     * @return \Illuminate\Http\RedirectResponse
+     * @route DELETE /dictionary/organizations/{organization}
      */
-    public function destroy(Organization $organization)
+    public function destroy(Organization $organization): \Illuminate\Http\RedirectResponse
     {
         $organization->delete();
-        return Redirect::back()->with('success', 'Organization deleted.');
+
+        return to_route('dictionary.organizations.index')
+            ->with('success', 'Запись успешно удалена.');
     }
 
 }

@@ -3,85 +3,66 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ConsumableCountInstalledRequest;
-use App\Models\Consumable\CartridgeColors;
+use App\Http\Resources\ConsumableCountInstalledResource;
 use App\Models\Consumable\Consumable;
 use App\Models\Consumable\ConsumableCount;
 use App\Models\Consumable\ConsumableCountInstalled;
-use App\Models\Consumable\ConsumableTypesEnum;
-use Illuminate\Auth\Access\AuthorizationException;
+use App\Services\Consumables\ConsumableCountService;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Gate;
 
 class ConsumablesCountsInstalledController extends Controller
 {
 
     /**
-     * {@inheritDoc}
+     * @route GET /consumables/{consumable}/counts/{count}/installed
      */
-    public function __construct()
+    public function index(Consumable $consumable, ConsumableCount $count): JsonResource
     {
-        $this->middleware('role:admin,subtract-consumable')->only(['store']);
-        $this->middleware('role:admin')->only('destroy');
+        $count->load('consumablesInstalled.author');
+        return ConsumableCountInstalledResource::collection($count->consumablesInstalled);
     }
 
     /**
-     * Список количества добавленных расходных материалов
-     * @param Consumable $consumable расходный материал
-     * @param ConsumableCount $count общее количество
-     * @return \Illuminate\Database\Eloquent\Collection
+     * @route POST /consumables/{consumable}/counts/{count}/installed
      */
-    public function index(Consumable $consumable, ConsumableCount $count)
+    public function store(
+        Consumable $consumable,
+        ConsumableCount $count,
+        ConsumableCountInstalledRequest $request,
+        ConsumableCountService $consumableCountService,
+    ): RedirectResponse
     {
-        return $count->consumablesInstalled()->with('author')->get();
-    }
+        Gate::authorize('store', ConsumableCountInstalled::class);
 
-    /**
-     * Последние установленные расходные материалы
-     * @return array
-     */
-    public function last($limit = 30)
-    {
-        return [
-            'data' => ConsumableCountInstalled::with([
-                'consumableCount' => fn($query) => $query->with('consumable'),
-                'printerWorkplace' => fn($query) => $query->with('printer'),
-                'author',
-            ])
-                ->whereHas('printerWorkplace', fn($query) => $query->where('org_code', Auth::user()->org_code))
-                ->limit($limit)
-                ->orderByDesc('created_at')->get(),
-            'cartridgeColors' => CartridgeColors::get(),
-            'consumableTypes' => ConsumableTypesEnum::array(),
-        ];
-    }
+        $validated = $request->safe();
 
-    /**
-     * Сохранение установленного расходного материала
-     * @param Consumable $consumable
-     * @param ConsumableCount $count
-     * @param ConsumableCountInstalledRequest $request
-     * @return \Illuminate\Http\RedirectResponse
-     */
-    public function store(Consumable $consumable, ConsumableCount $count, ConsumableCountInstalledRequest $request)
-    {
-        $consumableCountInstalled = new ConsumableCountInstalled($request->only(['id_consumable_count', 'id_printer_workplace', 'count']));
-        if (!$consumableCountInstalled->save()) {
-            return redirect()->back()->with('error', 'Возникла ошибка при сохранении!');
-        }
-        return redirect()->back()->with('success', 'Данные успешно сохранены!');
+        $consumableCountService->install(
+            idConsumableCount: $count->id,
+            idPrinterWorkplace: $validated->integer('id_printer_workplace'),
+            count: $validated->integer('count'),
+            idUser: auth()->id(),
+        );
+
+        return back()->with('success', 'Данные успешно сохранены!');
     }
 
     /**
      * @route /consumables/{consumable}/counts/{count}/installed/{installed}
      */
-    public function destroy(Consumable $consumable, ConsumableCount $count, ConsumableCountInstalled $installed): RedirectResponse
+    public function destroy(
+        Consumable $consumable,
+        ConsumableCount $count,
+        ConsumableCountInstalled $installed,
+        ConsumableCountService $consumableCountService,
+    ): RedirectResponse
     {
-        if (Auth::user()->hasRole('admin') || $installed->id_author !== Auth::user()->id) {
-            $installed->delete();
-            return redirect()->back()
-                ->with('success', 'Запись удалена');
-        }
-        throw new AuthorizationException();
+        Gate::authorize('delete', $installed);
+
+        $consumableCountService->removeConsumableCountInstalled($installed);
+
+        return back()->with('success', 'Запись удалена');
     }
 
 }

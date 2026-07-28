@@ -7,7 +7,6 @@ import { markRaw } from 'vue';
 import TabPrinterWorkplace from './TabPrinterWorkplace.vue';
 import TabConsumableCount from './TabConsumableCount.vue';
 import TabConsumableCountInstalled from './TabConsumableCountInstalled.vue';
-import { useConfig } from '@/Composables/useConfig';
 import Tabs from 'primevue/tabs';
 import TabList from 'primevue/tablist';
 import Tab from 'primevue/tab';
@@ -16,8 +15,6 @@ import TabPanels from 'primevue/tabpanels';
 defineOptions({
   layout: Layout
 });
-
-const { urls } = useConfig();
 
 defineProps({
   organizations: Object,
@@ -41,19 +38,19 @@ const tabs = [
     id: 0,
     name: 'Принтеры на местах',
     component: markRaw(TabPrinterWorkplace),
-    url: urls.reports.exportPrintersWorkplace(),
+    url: route('reports.export-printers-workplace'),
   },
   {
     id: 1,
     name: 'Остатки расходных материалов',
     component: markRaw(TabConsumableCount),
-    url: urls.reports.exportConsumableCount(),
+    url: route('reports.export-consumable-count'),
   },
    {
     id: 2,
     name: 'Количество установленных расходных материалов',
     component: markRaw(TabConsumableCountInstalled),
-    url: urls.reports.exportConsumableInstalledCount(),
+    url: route('reports.export-consumable-installed-count'),
   },
 ];
 </script>
@@ -61,7 +58,7 @@ const tabs = [
   <Head :title="title" />
 
   <Breadcrumbs
-    :home="{ label: 'Главная', url: '/' }"
+    :home="{ label: 'Главная', url: route('home') }"
     :items="[{ label: title }]"
   />
 

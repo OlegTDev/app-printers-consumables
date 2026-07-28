@@ -12,9 +12,7 @@ use Inertia\Inertia;
 class AuthenticatedSessionController extends Controller
 {
     /**
-     * Display the login view.
-     *
-     * @return \Inertia\Response
+     * @route GET /login
      */
     public function create(Request $request)
     {
@@ -24,9 +22,7 @@ class AuthenticatedSessionController extends Controller
     }
 
     /**
-     * Handle an incoming authentication request.
-     *
-     * @return \Illuminate\Http\RedirectResponse
+     * @route POST /login
      */
     public function store(LoginRequest $request)
     {
@@ -38,9 +34,7 @@ class AuthenticatedSessionController extends Controller
     }
 
     /**
-     * Destroy an authenticated session.
-     *
-     * @return \Illuminate\Http\RedirectResponse
+     * @route DELETE /logout
      */
     public function destroy(Request $request)
     {

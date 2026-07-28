@@ -6,28 +6,26 @@ import { useConfirm } from 'primevue/useconfirm';
 import { useAuth } from '@/Composables/useAuth';
 import { computed } from 'vue';
 import Title from '@/Shared/Title.vue';
-import { useConfig } from '@/Composables/useConfig';
+import Timestamps from '@/Shared/DataTable/Timestamps.vue';
+import Author from '@/Shared/DataTable/Author.vue';
 
 const props = defineProps({
   title: String,
   printerLabels: Object,
-  printer: Object,
   printerWorkplaceLabels: Object,
   printerWorkplace: Object,
-  organization: Object,
 });
 
 const confirm = useConfirm();
 const { can } = useAuth();
-const { urls } = useConfig();
 
 const actions = {
-  edit: () => router.get(urls.printers.edit(props.printerWorkplace.id)),
+  edit: () => router.get(route('workplace.edit', { workplace: props.printerWorkplace.id })),
   delete: () => confirm.require({
     message: 'Вы уверены, что хотите удалить?',
     header: 'Удаление',
     accept: () => {
-      const url = urls.printers.delete(props.printerWorkplace.id);
+      const url = route('workplace.destroy', { workplace: props.printerWorkplace.id });
       router.delete(url);
     },
   }),
@@ -36,19 +34,19 @@ const actions = {
 const items = computed(() => [
   {
     label: props.printerLabels.vendor,
-    value: props.printer.vendor
+    value: props.printerWorkplace.printer.vendor
   },
   {
     label: props.printerLabels.model,
-    value: props.printer.model
+    value: props.printerWorkplace.printer.model
   },
   {
     label: props.printerLabels.is_color_print,
-    value: props.printer.is_color_print ? 'Да' : 'Нет',
+    value: props.printerWorkplace.printer.is_color_print ? 'Да' : 'Нет',
   },
   {
     label: props.printerWorkplaceLabels.org_code,
-    value: `${props.organization.name} (${props.organization.code})`,
+    value: `${props.printerWorkplace.organization.name} (${props.printerWorkplace.organization.code})`,
   },
   {
     label: props.printerWorkplaceLabels.location,
@@ -62,22 +60,9 @@ const items = computed(() => [
     label: props.printerWorkplaceLabels.inventory_number,
     value: props.printerWorkplace.inventory_number,
   },
-  {
-    label: props.printerWorkplaceLabels.author,
-    value: props.printerWorkplace.author.fio ?? props.printerWorkplace.author.name,
-  },
-  {
-    label: props.printerWorkplaceLabels.created_at,
-    value: props.printerWorkplace.created_at,
-    is_date: true,
-    icon: 'far fa-calendar',
-  },
-  {
-    label: props.printerWorkplaceLabels.updated_at,
-    value: props.printerWorkplace.updated_at,
-    is_date: true,
-    icon: 'far fa-calendar-alt',
-  },
+  { label: props.printerWorkplaceLabels.author, keySlot: 'author' },
+  { label: props.printerWorkplaceLabels.updated_at, keySlot: 'dateCreated' },
+  { label: props.printerWorkplaceLabels.updated_at, keySlot: 'dateUpdated' },
 ]);
 
 </script>
@@ -86,7 +71,17 @@ const items = computed(() => [
     {{ title }}
   </Title>
 
-  <DetailViewer :items="items" />
+  <DetailViewer :items="items">
+    <template #author>
+      <Author :user="props.printerWorkplace.author || {}" />
+    </template>
+    <template #dateCreated>
+      <Timestamps :created-at="printerWorkplace.created_at" />
+    </template>
+    <template #dateUpdated>
+      <Timestamps :updated-at="printerWorkplace.updated_at" />
+    </template>
+  </DetailViewer>
 
   <div v-if="can('admin', 'editor-printer-workplace')" class="flex justify-between mt-10 font-bold">
     <Button @click="actions.edit">

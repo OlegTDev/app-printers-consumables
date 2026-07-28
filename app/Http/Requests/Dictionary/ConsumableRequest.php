@@ -45,9 +45,9 @@ class ConsumableRequest extends FormRequest
                 'required',
                 'max:255',
                 Rule::unique('consumables')->where(function (Builder $query) {
-                    $query->where('type', $this?->type)
-                            ->where('name', $this?->name)
-                            ->where('id', '<>', $this?->_consumable?->id ?? null);
+                    $query->where('type', $this->type)
+                            ->where('name', $this->name)
+                            ->where('id', '<>', $this->_consumable?->id);
                 }),
             ],
             'color' => new RequiredIf($this->type == 'cartridge'),

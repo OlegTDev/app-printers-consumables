@@ -6,23 +6,14 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Orders\CommentRequired;
 use App\Models\Order\Order;
 use App\Models\Order\OrderStatusEnum;
-use App\Models\Order\Roles;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 class OrderController extends Controller
 {
 
-    public function __construct()
-    {
-        $this->middleware('role:' . implode(',', ['admin', Roles::ORDER_APPROVER->value]))
-            ->only(['agreed', 'reject', 'ordered', 'completed']);
-        $this->middleware('role:' . implode(',', ['admin', Roles::ORDER_APPROVER->value, Roles::ORDER_EXECUTOR->value]))
-            ->only(['ordered', 'completed']);
-    }
-
     /**
-     * @route PUT orders/{order}/agree
+     * @route PUT /orders/{order}/agree
      */
     public function agree(Order $order, Request $request)
     {
@@ -34,7 +25,7 @@ class OrderController extends Controller
     }
 
     /**
-     * @route PUT orders/{order}/reject
+     * @route PUT /orders/{order}/reject
      */
     public function reject(Order $order, CommentRequired $request)
     {
@@ -46,7 +37,7 @@ class OrderController extends Controller
     }
 
     /**
-     * @route PUT orders/{order}/ordered
+     * @route PUT /orders/{order}/ordered
      */
     public function ordered(Order $order, Request $request)
     {
@@ -58,11 +49,12 @@ class OrderController extends Controller
     }
 
     /**
-     * @route PUT orders/{order}/receive
+     * @route PUT /orders/{order}/receive
      */
     public function receive(Order $order, Request $request)
     {
         $this->authorize('update', $order);
+
         $this->validateStatusOrFail($order, OrderStatusEnum::STATUS_ORDERED);
         $this->saveOrder($order, OrderStatusEnum::STATUS_RECEIVED, $request->input('comment'));
 
@@ -71,7 +63,7 @@ class OrderController extends Controller
     }
 
     /**
-     * @route PUT orders/{order}/complete
+     * @route PUT /orders/{order}/complete
      */
     public function complete(Order $order, Request $request)
     {
@@ -83,48 +75,47 @@ class OrderController extends Controller
     }
 
     /**
-     * @route PUT orders/{order}/cancel
+     * @route PUT /orders/{order}/cancel
      */
     public function cancel(Order $order, Request $request)
     {
-        if (auth()->user()->isAdmin() || auth()->user()->id == $order->requested_by) {
-            $order->setStatus(OrderStatusEnum::STATUS_CANCELLED);
-            return $this->createRoute($request, 'index')
-                ->with('success', 'Заявка отменена!');
-        }
-        abort(403);
+        $this->authorize('cancel', $order);
+
+        $order->setStatus(OrderStatusEnum::STATUS_CANCELLED);
+
+        return $this->createRoute($request, 'index')
+            ->with('success', 'Заявка отменена!');
     }
 
     /**
-     * @route DELETE orders/{order}
+     * @route DELETE /orders/{order}
      */
     public function destroy(Order $order, Request $request)
     {
-        if (!auth()->user()->isAdmin()) {
-            if (auth()->user()->id != $order->requested_by) {
-                abort(403);
-            }
-            if ($order->status == OrderStatusEnum::STATUS_COMPLETED) {
-                abort(500, "Невозможно удалить со статусом {$order->status}.");
-            }
+        $this->authorize('delete', $order);
+
+        if ($order->status == OrderStatusEnum::STATUS_COMPLETED) {
+            abort(422, "Невозможно удалить со статусом {$order->status}.");
         }
+
         $order->delete();
+
         return $this->createRoute($request, 'index')
             ->with('success', value: 'Заявка была удалена!');
     }
 
     private function createRoute(Request $request, string $action): RedirectResponse
     {
-        $context = $request->get('context');
+        $context = $request->input('context');
         $route = $context ? "$context.$action" : $action;
-        return redirect()->route($route);
+        return to_route("orders.$route");
     }
 
 
     private function validateStatusOrFail(Order $order, string $correctStatus)
     {
-        if ($order->status != $correctStatus) {
-            abort(500, "Согласование возможно только со статусом $correctStatus, текущий статус $order->status!");
+        if ($order->status !== $correctStatus) {
+            abort(422, "Действие возможно только со статусом $correctStatus, текущий статус $order->status!");
         }
     }
 

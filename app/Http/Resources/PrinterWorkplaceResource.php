@@ -5,6 +5,9 @@ namespace App\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+/**
+ * @mixin \App\Models\Printer\PrinterWorkplace
+ */
 class PrinterWorkplaceResource extends JsonResource
 {
     /**
@@ -14,9 +17,9 @@ class PrinterWorkplaceResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        /** @var \App\Models\Printer\PrinterWorkplace $this */        
-        return [            
+        return [
             'id' => $this->id,
+            'id_printer' => $this->id_printer,
             'org_code' => $this->org_code,
             'location' => $this->location,
             'serial_number' => $this->serial_number,
@@ -24,7 +27,9 @@ class PrinterWorkplaceResource extends JsonResource
             'created_at' => $this->created_at,
             'updated_at'=> $this->updated_at,
 
-            'printer' => new PrinterResource($this->printer),
+            'printer' => new PrinterResource($this->whenLoaded('printer')),
+            'organization' => $this->whenLoaded('organization', fn() => OrganizationResource::make($this->organization)),
+            'author' => $this->whenLoaded('author', fn() => UserResourceShort::make($this->author)),
         ];
     }
 }

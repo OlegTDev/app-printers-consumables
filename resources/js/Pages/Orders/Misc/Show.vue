@@ -8,7 +8,6 @@ import OrderStatus from '../Shared/OrderStatus.vue';
 import Author from '@/Shared/DataTable/Author.vue';
 import Button from 'primevue/button';
 import OrderStatusHistory from '../Shared/OrderStatusHistory.vue';
-import { useConfig } from '@/Composables/useConfig';
 import { useDate } from '@/Composables/useDate';
 import Title from '@/Shared/Title.vue';
 import DetailViewer from '@/Shared/DetailViewer.vue';
@@ -28,12 +27,10 @@ const props = defineProps({
   statuses: Object,
 });
 
-const { urls } = useConfig();
 const { formatDate } = useDate();
 
-const orderMiscDetail = computed(() => props.orderMiscDetail?.data || { order: {} });
-const orderId = computed(() => orderMiscDetail.value.order.id);
-const title = `Заказ № ${orderMiscDetail.value.order.id} от ${formatDate(orderMiscDetail.value.order.created_at, 'L')}`;
+const orderId = computed(() => props.orderMiscDetail.order.id);
+const title = `Заказ № ${props.orderMiscDetail.order.id} от ${formatDate(props.orderMiscDetail.order.created_at, 'L')}`;
 const ConfirmDialog = defineAsyncComponent(() => import('../Shared/ConfirmDialog.vue'));
 const {
   agree,
@@ -46,28 +43,23 @@ const {
 } = useActions('misc', ConfirmDialog, orderId, props.labels.order?.comment || '');
 
 const actions = {
-  edit: () => {
-    router.get(urls.orders.misc.edit(orderMiscDetail.value.id));
-  },
-  editFiles: () => {
-    router.get(urls.orders.misc.editFiles(orderMiscDetail.value.id));
-  },
-  delete: () => remove(urls.orders.delete(orderId.value)),
-  cancel: () => cancel(urls.orders.cancel(orderId.value)),
-  agree: () => agree(urls.orders.agree(orderId.value)),
-  reject: () => reject(urls.orders.reject(orderId.value)),
-  ordered: () => ordered(urls.orders.ordered(orderId.value)),
-  receive: () => receive(urls.orders.receive(orderId.value)),
-  complete: () => complete(urls.orders.complete(orderId.value)),
+  edit: () => router.get(route('orders.misc.edit', { orderMiscDetails: props.orderMiscDetail.id })),
+  delete: () => remove(route('orders.destroy', { order: orderId.value })),
+  cancel: () => cancel(route('orders.cancel', { order: orderId.value })),
+  agree: () => agree(route('orders.agree', { order: orderId.value })),
+  reject: () => reject(route('orders.reject', { order: orderId.value })),
+  ordered: () => ordered(route('orders.ordered', { order: orderId.value })),
+  receive: () => receive(route('orders.receive', { order: orderId.value })),
+  complete: () => complete(route('orders.complete', { order: orderId.value })),
 };
 </script>
 <template>
   <Head :title="title" />
 
   <Breadcrumbs
-    :home="{ label: 'Главная', url: '/' }"
+    :home="{ label: 'Главная', url: route('home') }"
     :items="[
-      { label: 'Заказ мелочей', url: urls.orders.misc.index() },
+      { label: 'Заказ мелочей', url: route('orders.misc.index') },
       { label: title },
     ]"
   />

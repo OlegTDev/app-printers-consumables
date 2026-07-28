@@ -2,10 +2,10 @@
 import { ref } from 'vue';
 import axios from 'axios';
 import Panel from 'primevue/panel';
-import Checkbox from 'primevue/checkbox';
 import Message from 'primevue/message';
 import Button from 'primevue/button';
 import { useReportError } from './Composables/useReportErrors';
+import TreeSelectOrganizations from './TreeSelectOrganizations.vue';
 
 const props = defineProps({
   url: String,
@@ -16,8 +16,8 @@ const emit = defineEmits(['downloadFile']);
 const { handleError, displayErrors } = useReportError();
 
 const form = ref({
-  selectedOrganizations: Object.values(props.organizations).map((item) => item.code),
-}, );
+  selectedOrganizations: [],
+});
 
 const loading = ref(false);
 
@@ -26,7 +26,10 @@ const exportToExcel = async() => {
   displayErrors.value = [];
 
   try {
-    const response = await axios.post(props.url, form.value, { responseType: 'blob' });
+    const response = await axios.get(props.url, {
+      params: form.value,
+      responseType: 'blob',
+    });
     emit('downloadFile', response.data, 'consumable-count.xlsx');
   }
   catch (error) {
@@ -41,17 +44,11 @@ const exportToExcel = async() => {
 <template>
   <form @submit.prevent="exportToExcel">
     <Panel header="Список организаций">
-      <div v-for="organization in organizations" :key="organization.code" class="flex items-center mt-2">
-        <Checkbox
-          :id="organization.code"
-          v-model="form.selectedOrganizations"
-          name="organizations"
-          :value="organization.code"
-        />
-        <label :for="organization.code" class="ml-2 cursor-pointer">
-          {{ organization.label }}
-        </label>
-      </div>
+      <TreeSelectOrganizations
+        :list-organizations="organizations"
+        :default-selected-organizations="organizations"
+        @update:selected-orgs="(orgs) => form.selectedOrganizations = orgs"
+      />
     </Panel>
 
     <Message v-if="displayErrors.length > 0" severity="error" :closable="false">

@@ -6,7 +6,6 @@ import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import Button from 'primevue/button';
 import { useConfirm } from 'primevue/useconfirm';
-import { useConfig } from '@/Composables/useConfig';
 import Card from '@/Shared/Card.vue';
 import Title from '@/Shared/Title.vue';
 import DetailViewer from '@/Shared/DetailViewer.vue';
@@ -28,7 +27,6 @@ const props = defineProps({
   printerLabels: Object,
 });
 
-const { urls } = useConfig();
 const { can } = useAuth();
 const confirm = useConfirm();
 const consumable = props.consumable;
@@ -38,7 +36,8 @@ const cartridgeColors = props.cartridgeColors;
 const title = `${props.consumableTypeValue} ${consumable.name}`;
 
 const createRelation = () => {
-  router.get(urls.dictionary.consumables.printers.index(consumable.id));
+  const url = route('dictionary.consumables.printers.index', { consumable: consumable.id });
+  router.get(url);
 };
 
 const deleteRelation = (id) => {
@@ -46,21 +45,21 @@ const deleteRelation = (id) => {
     message: 'Вы уверены, что хотите удалить связь?',
     header: 'Удаление связи',
     accept: () => {
-      const url = urls.dictionary.consumables.printers.delete(consumable.id, id);
+      const url = route('dictionary.consumables.printers.destroy', { consumable: consumable.id, printer: id });
       router.delete(url);
     },
   });
 };
 
 const goToEdit = () =>
-  router.get(urls.dictionary.consumables.edit(consumable.id));
+  router.get(route('dictionary.consumables.edit', { consumable: consumable.id }));
 
 const deleteConsumable = () => {
   confirm.require({
     message: 'Вы уверены, что хотите удалить запись?',
     header: 'Удаление записи',
     accept: () => {
-      const url = urls.dictionary.consumables.delete(consumable.id);
+      const url = route('dictionary.consumables.destroy', { consumable: consumable.id });
       router.delete(url);
     },
   });
@@ -70,11 +69,12 @@ const deleteConsumable = () => {
   <Head :title="title" />
 
   <Breadcrumbs
-    :home="{ label: 'Главная', url: urls.home }"
+    :home="{ label: 'Главная', url: route('dashboard') }"
     :items="[
+      { label: 'Справочники' },
       {
-        label: 'Расходные материалы (справочник)',
-        url: urls.dictionary.consumables.index(),
+        label: 'Расходные материалы',
+        url: route('dictionary.consumables.index'),
       },
       { label: title },
     ]"

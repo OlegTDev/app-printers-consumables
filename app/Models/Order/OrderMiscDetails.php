@@ -4,7 +4,6 @@ namespace App\Models\Order;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
@@ -18,7 +17,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  *
  * @property Order $order
  */
-class OrderMiscDetails extends Model
+class OrderMiscDetails extends SubOrderContract
 {
     use HasFactory, OrderOrgCodeFilterable;
 

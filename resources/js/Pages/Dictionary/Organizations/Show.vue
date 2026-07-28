@@ -4,7 +4,6 @@ import { Head, router } from '@inertiajs/vue3';
 import Breadcrumbs from '@/Shared/Breadcrumbs.vue';
 import { useConfirm } from "primevue/useconfirm";
 import Button from 'primevue/button';
-import { useConfig } from '@/Composables/useConfig';
 import Card from '@/Shared/Card.vue';
 import Title from '@/Shared/Title.vue';
 import Timestamps from '@/Shared/DataTable/Timestamps.vue';
@@ -14,23 +13,22 @@ defineOptions({
   layout: Layout,
 });
 
-const props = defineProps({
+const { organization, labels } = defineProps({
   organization: Object,
   labels: Object,
 });
 
-const { urls } = useConfig();
 const confirm = useConfirm();
 
-const title = `${props.organization.name} (${props.organization.code})`;
-const goToEdit = () => router.get(urls.dictionary.organizations.edit(props.organization.code));
+const title = `${organization.name} (${organization.code})`;
+const goToEdit = () => router.get(route('dictionary.organizations.edit', { organization: organization.code }));
 
 const deleteOrganization = () => {
     confirm.require({
         message: 'Вы уверены, что хотите удалить запись?',
         header: 'Удаление записи',
         accept: () => {
-            const url = urls.dictionary.organizations.delete(props.organization.code);
+            const url = route('dictionary.organizations.destroy', { organization: organization.code });
             router.delete(url);
         },
     });
@@ -40,10 +38,10 @@ const deleteOrganization = () => {
   <Head :title="title" />
 
   <Breadcrumbs
-    :home="{ label: 'Главная', url: urls.home }"
+    :home="{ label: 'Главная', url: route('dashboard') }"
     :items="[
       { label: 'Справочники' },
-      { label: 'Организации', url: urls.dictionary.organizations.index() },
+      { label: 'Организации', url: route('dictionary.organizations.index') },
       { label: title },
     ]"
   />

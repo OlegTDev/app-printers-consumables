@@ -5,7 +5,6 @@ import { useForm, router } from '@inertiajs/vue3';
 import Button from 'primevue/button';
 import { useConfirm } from "primevue/useconfirm";
 import Card from '@/Shared/Card.vue';
-import { useConfig } from '@/Composables/useConfig';
 import Title from '@/Shared/Title.vue';
 import FieldRowVertical from '@/Shared/Form/FieldRowVertical.vue';
 import Message from 'primevue/message';
@@ -33,7 +32,6 @@ const props = defineProps({
   },
 });
 
-const { urls } = useConfig();
 const confirm = useConfirm();
 
 const form = useForm({
@@ -44,11 +42,11 @@ const form = useForm({
 
 const save = () => {
   if (props.isNew) {
-    const url = urls.dictionary.organizations.store();
+    const url = route('dictionary.organizations.store');
     form.post(url);
   }
   else {
-    const url = urls.dictionary.organizations.update(props.organization.code);
+    const url = route('dictionary.organizations.update', { organization: props.organization.code });
     form.put(url);
   }
 };
@@ -60,7 +58,7 @@ const destroy = () => {
     message: 'Вы уверены, что хотите удалить?',
     header: 'Удаление',
     accept: () => {
-      const url = urls.dictionary.organizations.delete(props.organization.code);
+      const url = route('dictionary.organizations.destroy', { organization: props.organization.code });
       router.delete(url);
     },
   });

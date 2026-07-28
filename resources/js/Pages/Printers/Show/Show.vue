@@ -6,7 +6,6 @@ import TabPanel from 'primevue/tabpanel';
 import TabPrinterInfo from './TabPrinterInfo.vue';
 import TabConsumables from './TabConsumables.vue';
 import TabConsumablesInstalled from './TabConsumablesInstalled.vue';
-import { useConfig } from '@/Composables/useConfig';
 import TabList from 'primevue/tablist';
 import Tab from 'primevue/tab';
 import Tabs from 'primevue/tabs';
@@ -17,7 +16,6 @@ defineOptions({
   layout: Layout,
 });
 
-const { urls } = useConfig();
 const props = defineProps({
   printerWorkplace: Object,
   printerLabels: Object,
@@ -42,9 +40,9 @@ const activeTab = ref("0");
   <Head :title="title" />
 
   <Breadcrumbs
-    :home="{ label: 'Главная', url: urls.home }"
+    :home="{ label: 'Главная', url: route('home') }"
     :items="[
-      { label: 'Принтеры', url: urls.printers.index() },
+      { label: 'Принтеры', url: route('workplace.index') },
       { label: title },
     ]"
   />
@@ -65,16 +63,14 @@ const activeTab = ref("0");
       <TabPanel value="0">
         <TabPrinterInfo
           :title="title"
-          :printer="printer"
           :printer-labels="printerLabels"
           :printer-workplace-labels="printerWorkplaceLabels"
           :printer-workplace="printerWorkplace"
-          :organization="organization"
         />
       </TabPanel>
       <TabPanel value="1">
         <TabConsumables
-          :consumables="consumables"
+          :consumables="printerWorkplace.printer.consumables"
           :consumable-labels="consumableLabels"
           :cartridge-colors="cartridgeColors"
           :consumable-count-labels="consumableCountLabels"

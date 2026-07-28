@@ -6,7 +6,6 @@ import Label from '@/Shared/Label.vue';
 import consumablesService from '@/Services/consumablesService';
 import InputNumber from 'primevue/inputnumber';
 import Textarea from 'primevue/textarea';
-import { useConfig } from '@/Composables/useConfig';
 import { useNotification } from '@/Composables/useNotification';
 import Card from '@/Shared/Card.vue';
 import Title from '@/Shared/Title.vue';
@@ -49,7 +48,7 @@ const props = defineProps({
     required: true,
   },
 });
-const { urls } = useConfig();
+
 const { showError } = useNotification();
 
 const form = useForm({
@@ -69,7 +68,7 @@ const loadingConsumables = ref(false);
 onMounted(async () => {
   try {
     loadingConsumables.value = true;
-    consumablesData.value = await consumablesService.fetch(urls.dictionary.consumables.notOther());
+    consumablesData.value = await consumablesService.fetch(route('dictionary.consumables.not-other'));
     consumableSelected.value = consumablesData.value.find((item) => item.id == form.id_consumable);
   } catch (error) {
     showError(error.message);
@@ -84,15 +83,15 @@ const onConsumableChange = (event) => {
 
 const save = () => {
   if (props.isNew) {
-    form.post(urls.orders.consumables.store());
+    form.post(route('orders.consumables.store'));
   } else {
-    form.put(urls.orders.consumables.update(form.id));
+    form.put(route('orders.consumables.update', { orderConsumableDetails: form.id }));
   }
 };
 
 const home = () => {
-  const url = props.isNew ? urls.orders.consumables.index()
-    : urls.orders.consumables.show(form.id);
+  const url = props.isNew ? route('orders.consumables.index')
+    : route('orders.consumables.show', { orderConsumableDetails: form.id });
   router.get(url);
 };
 

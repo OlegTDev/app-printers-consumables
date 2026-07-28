@@ -15,12 +15,8 @@ enum ConsumableTypesEnum: string
     case wasteContainer = 'Контейнер для отработанного тонера';
     case other = 'Другое';
 
-    /**
-     * Описание расходного материала по его имени
-     * @param string $name
-     * @return string
-     */
-    public static function getValueByName($name)
+
+    public static function getValueByName(string $name): string
     {
         return self::array()[$name] ?? $name;
     }

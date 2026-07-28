@@ -3,18 +3,16 @@ import { Head } from '@inertiajs/vue3';
 import Layout from '@/Shared/Layout.vue';
 import Form from './Form.vue';
 import Breadcrumbs from '@/Shared/Breadcrumbs.vue';
-import { useConfig } from '@/Composables/useConfig';
 
 defineOptions({
-    layout: Layout
+  layout: Layout
 });
 
 defineProps({
-    labels: Object,
-    manufacturers: Array,
+  labels: Object,
+  manufacturers: Array,
 });
 const title = 'Добавление принтера';
-const { urls } = useConfig();
 
 </script>
 
@@ -22,9 +20,9 @@ const { urls } = useConfig();
   <Head :title="title" />
 
   <Breadcrumbs
-    :home="{ label: 'Главная', url: urls.home }"
+    :home="{ label: 'Главная', url: route('home') }"
     :items="[
-      { label: 'Принтеры (справочник)', url: urls.dictionary.printers.index() },
+      { label: 'Принтеры (справочник)', url: route('dictionary.printers.index') },
       { label: title },
     ]"
   />

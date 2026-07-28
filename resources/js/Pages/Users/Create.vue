@@ -6,21 +6,18 @@ import Breadcrumbs from '@/Shared/Breadcrumbs.vue';
 import Panel from 'primevue/panel';
 import Label from '@/Shared/Label.vue';
 import InputText from 'primevue/inputtext';
-import { useConfig } from '@/Composables/useConfig';
 import Message from 'primevue/message';
 
 defineOptions({
   layout: Layout,
 });
 
-const { urls } = useConfig();
-
 const form = useForm({
   name: null,
 });
 
 const save = () => {
-  form.post(urls.users.store());
+  form.post(route('users.store'));
 };
 </script>
 <template>
@@ -28,9 +25,9 @@ const save = () => {
     <Head title="Добавление пользователя" />
 
     <Breadcrumbs
-      :home="{ label: 'Главная', url: urls.home }"
+      :home="{ label: 'Главная', url: route('home') }"
       :items="[
-        { label: 'Пользователи', url: urls.users.index() },
+        { label: 'Пользователи', url: route('users.index') },
         { label: form.name }
       ]"
     />

@@ -1,11 +1,10 @@
 import { useToast } from "primevue/usetoast";
-import { inject } from "vue";
+import { useConfig } from "./useConfig";
 
 export function useNotification() {
 
   const toast = useToast();
-  /** @type {typeof import('@/config/config').config} */
-  const config = inject('config');
+  const { config } = useConfig();
 
   const showError = (errorMessage, timeLifeParam = null) => {
     const timeLife = timeLifeParam || config.toast.timeLife || 3000;

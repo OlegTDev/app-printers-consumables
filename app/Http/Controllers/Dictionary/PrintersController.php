@@ -3,13 +3,16 @@
 namespace App\Http\Controllers\Dictionary;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Traits\BuildsListQuery;
 use App\Http\Requests\Dictionary\PrinterRequest;
+use App\Http\Resources\ConsumableResource;
+use App\Http\Resources\PrinterResource;
 use App\Models\Consumable\CartridgeColors;
-use App\Models\Consumable\Consumable;
 use App\Models\Consumable\ConsumableTypesEnum;
 use App\Models\Manufacturer;
 use App\Models\Printer\Printer;
-use Illuminate\Support\Facades\Request;
+use App\Services\Query\ManufacturerQueryService;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 /**
@@ -17,85 +20,58 @@ use Inertia\Inertia;
  */
 class PrintersController extends Controller
 {
+    use BuildsListQuery;
 
     /**
-     * {@inheritDoc}
+     * @route GET /dictionary/printers
      */
-    public function __construct()
+    public function index(Request $request): \Inertia\Response
     {
-        // настройка прав доступа
-        $this->middleware('role:admin,editor-dictionary')
-            ->only(['create', 'store', 'edit', 'update', 'destroy']);
-    }
+        $params = $this->getPaginatedData(
+            request: $request,
+            query: Printer::query(),
+            allowSortFields: ['id', 'vendor', 'model', 'created_at'],
+            resourceClass: PrinterResource::class,
+        );
 
-    private function manufacturersList()
-    {
-        return Manufacturer::query()->get()->transform(fn(Manufacturer $item) => [
-            'label' => $item->name,
-            'value' => $item->name,
-        ]);
-    }
-
-    /**
-     * Список принтеров
-     * @return \Inertia\Response
-     */
-    public function index()
-    {
-        return Inertia::render('Dictionary/Printers/Index', [
-            'printers' => Printer::filter(Request::only(['search']))->get(),
-            'filters' => Request::all(['search']),
-        ]);
+        return Inertia::render('Dictionary/Printers/Index', $params);
     }
 
     /**
-     * Добавление принтера
-     * @return \Inertia\Response
+     * @route GET /dictionary/printers/create
      */
-    public function create()
+    public function create(ManufacturerQueryService $manufacturerQueryService): \Inertia\Response
     {
+        $manufacturers = $this->manufacturers($manufacturerQueryService);
+
         return Inertia::render('Dictionary/Printers/Create', [
-            'labels' => Printer::labels(),
-            'manufacturers' => $this->manufacturersList(),
+            'labels' => config('labels.printer'),
+            'manufacturers' => $manufacturers,
         ]);
     }
 
     /**
-     * Сохранение нового принтера
-     * @param PrinterRequest $request
-     * @return \Illuminate\Http\RedirectResponse
+     * @route POST /dictionary/printers
      */
-    public function store(PrinterRequest $request)
+    public function store(PrinterRequest $request): \Illuminate\Http\RedirectResponse
     {
-        $printer = Printer::create($request->only(['vendor', 'model', 'color_print']));
-        if (!$printer) {
-            return redirect()->back();
-        }
-        return redirect()->route('dictionary.printers.index')
+        Printer::create($request->validated());
+
+        return to_route('dictionary.printers.index')
             ->with('success', 'Запись успешно добавлена!');
     }
 
     /**
-     * Детальная информация о принтере $printer
-     * @param Printer $printer
-     * @return \Inertia\Response
+     * @route GET /dictionary/printers/{printer}
      */
-    public function show(Printer $printer)
+    public function show(Printer $printer): \Inertia\Response
     {
+        $printer->load(['author', 'consumables']);
         return Inertia::render('Dictionary/Printers/Show', [
-            'printer' => [
-                'id' => $printer->id,
-                'vendor' => $printer->vendor,
-                'model' => $printer->model,
-                'is_color_print' => $printer->is_color_print,
-                'author' => $printer->author,
-                'created_at' => $printer->created_at,
-                'updated_at' => $printer->updated_at,
-            ],
-            'printerLabels' => Printer::labels(),
+            'printer' => new PrinterResource($printer),
+            'printerLabels' => config('labels.printer'),
 
-            'consumables' => $printer->consumables,
-            'consumablesNotIn' => $printer->consumablesNotIn()->get(),
+            'consumables' => ConsumableResource::collection($printer->consumables),
             'cartridgeColors' => CartridgeColors::get(),
             'consumableTypes' => ConsumableTypesEnum::array(),
             'consumableLabels' => config('labels.consumable'),
@@ -103,44 +79,46 @@ class PrintersController extends Controller
     }
 
     /**
-     * Редактирование принтера $printer
-     * @param Printer $printer
-     * @return \Inertia\Response
+     * @route GET /dictionary/printers/{printer}/edit
      */
-    public function edit(Printer $printer)
+    public function edit(Printer $printer, ManufacturerQueryService $manufacturerQueryService): \Inertia\Response
     {
+        $manufacturers = $this->manufacturers($manufacturerQueryService);
+
         return Inertia::render('Dictionary/Printers/Edit', [
-            'printer' => $printer->toArray(),
-            'labels' => Printer::labels(),
-            'manufacturers' => $this->manufacturersList(),
+            'printer' => new PrinterResource($printer),
+            'labels' => config('labels.printer'),
+            'manufacturers' => $manufacturers,
         ]);
     }
 
     /**
-     * Сохранение отредактированного принтера $printer
-     * @param Printer $printer
-     * @param PrinterRequest $request
-     * @return \Illuminate\Http\RedirectResponse
+     * @route PUT /dictionary/printers/{printer}
      */
-    public function update(PrinterRequest $request, Printer $printer)
+    public function update(PrinterRequest $request, Printer $printer): \Illuminate\Http\RedirectResponse
     {
-        $printerUpdate = $printer->update($request->only(['vendor', 'model', 'is_color_print']));
-        if (!$printerUpdate) {
-            return redirect()->back();
-        }
-        return redirect()->route('dictionary.printers.index')
+        $printer->update($request->validated());
+
+        return to_route('dictionary.printers.index')
             ->with('success', 'Запись успешно обновлена!');
     }
 
     /**
-     * Удаление принтера $printer
-     * @param Printer $printer
-     * @return \Illuminate\Http\RedirectResponse
+     * @route DELETE /dictionary/printers/{printer}
      */
-    public function destroy(Printer $printer)
+    public function destroy(Printer $printer): \Illuminate\Http\RedirectResponse
     {
         $printer->delete();
-        return redirect()->route('dictionary.printers.index')
+
+        return to_route('dictionary.printers.index')
             ->with('success', 'Запись успешно удалена!');
+    }
+
+    private function manufacturers(ManufacturerQueryService $manufacturerQueryService): \Illuminate\Database\Eloquent\Collection
+    {
+        return $manufacturerQueryService->getAll()->transform(fn(Manufacturer $item) => [
+            'label' => $item->name,
+            'value' => $item->name,
+        ]);
     }
 }

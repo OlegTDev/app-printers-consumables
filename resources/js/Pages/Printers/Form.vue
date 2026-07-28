@@ -5,12 +5,13 @@ import { onMounted, ref, watch } from 'vue';
 import { useForm } from '@inertiajs/vue3';
 import Button from 'primevue/button';
 import TreeSelect from 'primevue/treeselect';
-import { useConfig } from '@/Composables/useConfig';
 import { useAuth } from '@/Composables/useAuth';
 import Select from 'primevue/select';
 import Card from '@/Shared/Card.vue';
 import FieldRowVertical from '@/Shared/Form/FieldRowVertical.vue';
 import Message from 'primevue/message';
+import { computed } from 'vue';
+import Title from '@/Shared/Title.vue';
 
 const { user } = useAuth();
 
@@ -42,8 +43,11 @@ const props = defineProps({
       org_code: null,
     }),
   },
+  title: {
+    type: String,
+    default: '',
+  }
 });
-const { urls } = useConfig();
 
 const form = useForm({
   id: props.printerWorkplace.id,
@@ -52,6 +56,13 @@ const form = useForm({
   serial_number: props.printerWorkplace.serial_number,
   inventory_number: props.printerWorkplace.inventory_number,
   org_code: props.printerWorkplace.org_code ?? user.value?.org_code,
+});
+
+const printersList = computed(() => {
+  return props.printers.map((printer) => ({
+    id: printer.id,
+    name: `${printer.vendor} ${printer.model}`,
+  }));
 });
 
 const organizationSelected = ref({});
@@ -68,10 +79,10 @@ const organizationChange = (value) => {
 
 const save = () => {
   if (props.isNew) {
-    form.post(urls.printers.store());
+    form.post(route('workplace.store'));
   }
   else {
-    form.put(urls.printers.update(props.printerWorkplace.id));
+    form.put(route('workplace.update', { workplace: props.printerWorkplace.id }));
   }
 };
 
@@ -91,6 +102,7 @@ watch(
   <form @submit.prevent="save">
     <Card class="mb-4">
       <template #default>
+        <Title>{{ title }}</Title>
         <div class="w-1/2 grid gap-y-10">
           <FieldRowVertical>
             <template #label>
@@ -101,7 +113,7 @@ watch(
                 id="id_printer"
                 v-model="form.id_printer"
                 filter
-                :options="printers"
+                :options="printersList"
                 option-label="name"
                 option-value="id"
                 placeholder="Выберите принтер"

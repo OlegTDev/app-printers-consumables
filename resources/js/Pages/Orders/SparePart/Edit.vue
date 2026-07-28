@@ -2,44 +2,40 @@
 import Layout from '@/Shared/Layout.vue';
 import { Head } from '@inertiajs/vue3';
 import Breadcrumbs from '@/Shared/Breadcrumbs.vue';
-import { computed, inject } from 'vue';
 import Form from './Form.vue';
+import { useDate } from '@/Composables/useDate';
 
 defineOptions({
   layout: Layout,
 });
 
-const urls = inject('urls');
-const moment = inject('moment');
+const { formatDate } = useDate();
 
-const props = defineProps({
+defineProps({
   orderSparePartDetail: Object,
-  spareParts: Object,
   labels: Object,
 });
 
-const sparePartsData = computed(() => props.spareParts?.data || []);
-const orderSparePartDetailData = computed(() => props.orderSparePartDetail?.data || {});
 const title = 'Изменение заказа';
 </script>
 <template>
   <Head :title="title" />
 
   <Breadcrumbs
-    :home="{ label: 'Главная', url: '/' }"
+    :home="{ label: 'Главная', url: route('home') }"
     :items="[
-      { label: 'Заказ запчастей', url: urls.orders.spareParts.index() },
+      { label: 'Заказ запчастей', url: route('orders.spare-parts.index') },
       {
-        label: `Заказ № ${orderSparePartDetailData.order.id} от ${moment(orderSparePartDetailData.order.created_at).format('L')}`,
-        url: urls.orders.spareParts.show(orderSparePartDetailData.id),
+        label: `Заказ № ${orderSparePartDetail.order.id} от ${formatDate(orderSparePartDetail.order.created_at, 'L')}`,
+        url: route('orders.spare-parts.show', { orderSparePartDetails: orderSparePartDetail.id }),
       },
       { label: title },
     ]"
   />
 
   <Form
-    :spare-parts="sparePartsData"
     :labels="labels"
-    :order-spare-part="orderSparePartDetailData"
+    :title
+    :order-spare-part="orderSparePartDetail"
   />
 </template>

@@ -22,26 +22,20 @@ defineOptions({
 });
 
 const {
-  consumable,
   consumableCount,
-  consumableTitle,
   consumableCountLabels,
-  organizations,
   organizationLabels,
-  allOrganizations,
+  organizations,
 } = defineProps({
-  consumable: Object,
   consumableCount: Object,
-  consumableTitle: String,
   consumableCountLabels: Object,
-  organizations: Array,
   organizationLabels: Object,
-  allOrganizations: Array,
+  organizations: Array,
 });
 
 const { can } = useAuth();
 const dialog = useDialog();
-const title = ref(consumableTitle);
+const title = ref(consumableCount?.consumable?.title);
 
 const AddDialog = defineAsyncComponent(() => import('./Dialogs/Add.vue'));
 
@@ -78,7 +72,7 @@ const actions = {
   },
   subtract: () => {
     openDialog(SubtractDialog, 'Вычесть', {
-      idConsumable: consumable.id,
+      idConsumable: consumableCount.consumable?.id,
       idConsumableCount: consumableCount.id,
     });
   },
@@ -101,9 +95,9 @@ const bgColor = computed(() =>
 
 const visibleOrganizationsEdit = ref(false);
 const form = useForm({
-  id_consumable: consumable.id,
+  id_consumable: consumableCount.consumable.id,
   count: 1,
-  selectedOrganizations: organizations.map((item) => item.code),
+  selectedOrganizations: consumableCount.organizations.map((item) => item.code),
 });
 
 const saveOrganizations = () => {
@@ -151,6 +145,7 @@ const activeTab = ref("0");
         </Tab>
       </TabList>
       <TabPanels>
+        <!-- Главная -->
         <TabPanel value="0">
           <div class="flex items-center justify-between bg-gray-50 p-2 rounded-xl border border-gray-100 shadow-sm w-fit gap-x-8">
             <div class="flex items-center gap-x-4">
@@ -191,15 +186,17 @@ const activeTab = ref("0");
           </div>
           <Timestamps class="mt-6" :created-at="consumableCount.created_at" :updated-at="consumableCount.updated_at" />
         </TabPanel>
+        <!-- Журнал -->
         <TabPanel value="1">
           <KeepAlive>
             <ConsumablesJournals
               v-if="activeTab == 1"
-              :consumable="consumable"
+              :consumable="consumableCount.consumable"
               :consumable-count="consumableCount"
             />
           </KeepAlive>
         </TabPanel>
+        <!-- Организации -->
         <TabPanel value="2">
           <div v-if="visibleOrganizationsEdit">
             <div>
@@ -209,6 +206,7 @@ const activeTab = ref("0");
                     <Button
                       severity="secondary"
                       size="small"
+                      icon="pi pi-arrow-left"
                       label="Назад"
                       @click="visibleOrganizationsEdit = false"
                     />
@@ -224,7 +222,7 @@ const activeTab = ref("0");
                   <div class="w-1/3">
                     <div id="organizations" class="w-full">
                       <div
-                        v-for="organization in allOrganizations"
+                        v-for="organization in organizations"
                         :key="organization.code"
                         class="flex items-center mt-2"
                       >
@@ -254,7 +252,7 @@ const activeTab = ref("0");
 
           <DataTable
             v-else
-            :value="organizations"
+            :value="consumableCount.organizations"
             data-key="code"
             class="w-full md:w-2/3 lg:w-2/5"
             selection-mode="single"

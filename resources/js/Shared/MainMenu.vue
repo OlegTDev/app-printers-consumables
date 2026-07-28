@@ -3,15 +3,25 @@ import { Link } from '@inertiajs/vue3';
 import { computed, onMounted, ref } from 'vue';
 import { useNavigation } from '@/Composables/useNavigation';
 import { useAuth } from '@/Composables/useAuth';
-import { useConfig } from '@/Composables/useConfig';
+import HomeIcon from '~icons/fa7-regular/home.vue';
+import UsersIcon from '~icons/tabler/users.vue';
+import PrinterIcon from '~icons/system-uicons/printer.vue';
+import CounterIcon from '~icons/fluent/counter-24-regular.vue';
+import DictionaryIcon from '~icons/material-symbols-light/dictionary-outline-sharp.vue';
+import DropletsIcon from '~icons/lucide/droplets.vue';
+import OrganizationIcon from '~icons/fluent/organization-16-regular.vue';
+import OrderIcon from '~icons/mdi/cart-outline.vue';
+import PrinterWrenchIcon from '~icons/mdi/printer-pos-wrench-outline.vue';
+import InkColorIcon from '~icons/mdi/ink-color.vue';
+import MiscIcon from '~icons/mdi/toy-brick-outline.vue';
+import ReportIcon from '~icons/ix/report-text.vue';
 
-const { urls } = useConfig();
-const { isActiveUrl, isActive } = useNavigation();
+const { isActive } = useNavigation();
 const { isAdmin } = useAuth();
 
-const classIsActive = `text-white`;
-const classIsInactive = `text-indigo-300 group-hover:text-white`;
-const classLink = `flex items-center p-2 rounded-lg hover:bg-white hover:text-indigo-700 group`;
+const classIsActive = `text-white bg-indigo-800`;
+const classIsInactive = `text-indigo-300 hover:bg-white hover:text-indigo-700 group-hover:text-white`;
+const classLink = `flex items-center p-2 rounded-lg group transition-colors`;
 
 const openMenus = ref([]);
 
@@ -32,44 +42,43 @@ const menu = computed(() => [
   {
     id: '01',
     name: 'Главная',
-    icon: 'fas fa-home me-3 w-5 h-5',
-    href: urls.home,
+    icon: HomeIcon,
+    href: route('home'),
     show: true,
-    // active: isActiveUrl(urls.home),
-    active: isActive('dashboard'),
+    active: isActive('dashboard') || isActive('home'),
     dropdown: false,
   },
   {
     id: '02',
     name: 'Пользователи',
-    icon: 'fas fa-user me-3 w-5 h-5',
-    href: urls.users.index(),
+    icon: UsersIcon,
+    href: route('users.index'),
     show: isAdmin.value,
-    active: isActiveUrl(urls.users.index()),
+    active: isActive('users'),
     dropdown: false,
   },
   {
     id: '03',
-    name: 'Принтеры',
-    icon: 'fas fa-print me-3 w-5 h-5',
-    href: urls.printers.index(),
+    name: 'Принтеры на рабочих местах',
+    icon: PrinterIcon,
+    href: route('workplace.index'),
     show: true,
-    active: isActiveUrl(urls.printers.index()),
+    active: isActive('workplace'),
     dropdown: false,
   },
   {
     id: '04',
     name: 'Количество расходных материалов',
-    icon: 'fas fa-list-ol me-3 w-5 h-5',
-    href: urls.consumables.counts.index(),
+    icon: CounterIcon,
+    href: route('consumables.counts.index'),
     show: true,
-    active: isActiveUrl(urls.consumables.counts.index()),
+    active: isActive('consumables.counts'),
     dropdown: false,
   },
   {
     id: '05',
     name: 'Справочники',
-    icon: 'fas fa-cube me-3 w-5 h-5',
+    icon: DictionaryIcon,
     show: true,
     active: isActive('dictionary'),
     dropdown: true,
@@ -77,70 +86,69 @@ const menu = computed(() => [
       {
         id: '05-01',
         name: 'Принтеры',
-        icon: 'fas fa-print me-3 w-5 h-5',
-        // href: urls.dictionary.printers.index(),
+        icon: PrinterIcon,
         href: route('dictionary.printers.index'),
         show: true,
-        active: isActiveUrl(urls.dictionary.printers.index()),
+        active: isActive('dictionary.printers'),
       },
       {
         id: '05-02',
         name: 'Расходные материалы',
-        icon: 'fas fa-box me-3 w-5 h-5',
-        href: urls.dictionary.consumables.index(),
+        icon: DropletsIcon,
+        href: route('dictionary.consumables.index'),
         show: true,
-        active: isActiveUrl(urls.dictionary.consumables.index()),
+        active: isActive('dictionary.consumables'),
       },
       {
         id: '05-03',
         name: 'Организации',
-        icon: 'fas fa-sitemap me-3 w-5 h-5',
-        href: urls.dictionary.organizations.index(),
+        icon: OrganizationIcon,
+        href: route('dictionary.organizations.index'),
         show: isAdmin.value,
-        active: isActiveUrl(urls.dictionary.organizations.index()),
+        active: isActive('dictionary.organizations'),
       },
     ],
   },
   {
     id: '06',
     name: 'Заказы',
-    icon: 'fas fa-dolly me-3 w-5 h-5',
+    icon: OrderIcon,
     show: true,
-    active: isActiveUrl('/order'),
+    active: isActive('orders'),
     dropdown: true,
     children: [
       {
         id: '06-01',
         name: 'Запчасти для принтера',
-        icon: 'fas fa-gears me-3 w-5 h-5',
-        href: urls.orders.spareParts.index(),
+        icon: PrinterWrenchIcon,
+        href: route('orders.spare-parts.index'),
         show: true,
-        active: isActiveUrl(urls.orders.spareParts.index()),
+        active: isActive('orders.spare-parts'),
       },
       {
         id: '06-02',
         name: 'Картриджи',
-        icon: 'fas fa-box me-3 w-5 h-5',
-        href: urls.orders.consumables.index(),
+        icon: InkColorIcon,
+        href: route('orders.consumables.index'),
         show: true,
-        active: isActiveUrl(urls.orders.consumables.index()),
+        active: isActive('orders.consumables'),
       },
       {
         id: '06-03',
         name: 'Мелочи',
-        icon: 'fas fa-puzzle-piece me-3 w-5 h-5',
-        href: urls.orders.misc.index(),
+        icon: MiscIcon,
+        href: route('orders.misc.index'),
         show: true,
-        active: isActiveUrl(urls.orders.misc.index()),
+        active: isActive('orders.misc'),
       },
     ],
   },
   {
     id: '07',
     name: 'Отчеты',
-    icon: 'far fa-file-excel me-3 w-5 h-5',
-    href: urls.reports.index(),
-    active: isActiveUrl(urls.reports.index()),
+    icon: ReportIcon,
+    href: route('reports.index'),
+    active: isActive('reports'),
     show: true,
     dropdown: false,
   },
@@ -161,7 +169,10 @@ onMounted(() => {
         <li v-if="item.show">
           <template v-if="!item.dropdown">
             <Link :href="item.href" :class="[item.active ? classIsActive : classIsInactive, classLink]">
-              <i :class="item.icon" />
+              <component
+                :is="item.icon"
+                class="me-3 w-5 h-5 shrink-0"
+              />
               {{ item.name }}
             </Link>
           </template>
@@ -172,7 +183,10 @@ onMounted(() => {
               :class="[item.active ? classIsActive : classIsInactive, `w-full text-indigo-300 transition duration-75 cursor-pointer`, classLink]"
               @click="toggleMenu(item.id)"
             >
-              <i :class="item.icon" />
+              <component
+                :is="item.icon"
+                class="me-3 w-5 h-5 shrink-0"
+              />
               {{ item.name }}
               <svg
                 :class="['w-3 h-3 ms-3 transition-transform duration-200', isOpen(item.id) ? 'rotate-180' : '']"
@@ -195,7 +209,10 @@ onMounted(() => {
                 <template v-for="subItem in item.children" :key="subItem.href">
                   <li v-if="subItem.show">
                     <Link :href="subItem.href" :class="[subItem.active ? classIsActive : classIsInactive, classLink, 'pl-11']">
-                      <i :class="subItem.icon" />
+                      <component
+                        :is="subItem.icon"
+                        class="me-3 w-5 h-5 shrink-0"
+                      />
                       {{ subItem.name }}
                     </Link>
                   </li>
@@ -208,7 +225,7 @@ onMounted(() => {
     </ul>
   </div>
 </template>
-<style>
+<style scoped>
 .dropdown-enter-active,
 .dropdown-leave-active {
   transition: all 0.1s ease-out;

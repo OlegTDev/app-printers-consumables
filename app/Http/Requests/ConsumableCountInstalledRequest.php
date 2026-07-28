@@ -2,24 +2,21 @@
 
 namespace App\Http\Requests;
 
-use App\Models\Consumable\ConsumableCountInstalled;
+use App\Models\Consumable\ConsumableCount;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Route;
 
 class ConsumableCountInstalledRequest extends FormRequest
 {
-    
-    /**
-     * @var \App\Models\Consumable\ConsumableCount|null
-     */
-    private $_consumableCount;
+
+    private ?ConsumableCount $_consumableCount;
 
     /**
      * Determine if the user is authorized to make this request.
      */
     public function authorize(): bool
-    {        
-        $this->_consumableCount = Route::input('count');        
+    {
+        $this->_consumableCount = Route::input('count');
         return true;
     }
 
@@ -38,25 +35,21 @@ class ConsumableCountInstalledRequest extends FormRequest
                 'integer',
                 'min:1',
                 'max:' . $this->getMaxCount(),
-            ],            
+            ],
         ];
     }
 
     /**
      * Максимально возможное количество, которое можно вычесть
-     * @return int
      */
-    private function getMaxCount()
+    private function getMaxCount(): int
     {
-        return $this->_consumableCount?->count ?? 0;
+        return $this->_consumableCount->count ?? 0;
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    public function attributes()
+    public function attributes(): array
     {
-        return ConsumableCountInstalled::labels();
+        return config('labels.consumable_count_installed');
     }
 
 }
