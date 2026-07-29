@@ -82,7 +82,7 @@ class ConsumablesCountsController extends Controller
             idConsumable: $validated->integer('id_consumable'),
             count: $validated->integer('count'),
             idUser: auth()->id(),
-            changeOrganization: true,
+            findOrgCode: auth()->user()->org_code,
             organizations: $validated->array('selectedOrganizations'),
         );
 
@@ -93,14 +93,20 @@ class ConsumablesCountsController extends Controller
     /**
      * @route GET /consumables/counts/{count}
      */
-    public function show(ConsumableCount $count): \Inertia\Response
+    public function show(int $id): \Inertia\Response
     {
-        Gate::authorize('show', $count);
-        $count->load(['consumable', 'organizations']);
+        $consumableCount = ConsumableCount::query()
+            ->forCurrentUser()
+            ->with(['consumable', 'organizations'])
+            ->where('id', $id)
+            ->firstOrFail();
+
+        Gate::authorize('show', $consumableCount);
+
         $organizations = Organization::select(['code', 'name'])->get();
 
         return Inertia::render('Consumable/Count/Show', [
-            'consumableCount' => ConsumableCountResource::make($count),
+            'consumableCount' => ConsumableCountResource::make($consumableCount),
             'consumableCountLabels' => config('labels.consumable_count'),
             'organizationLabels' => config('labels.organization'),
             'organizations' => OrganizationResource::collection($organizations),
@@ -116,9 +122,8 @@ class ConsumablesCountsController extends Controller
         ConsumableCountService $consumablesCountsAddService,
     ): RedirectResponse
     {
-        $consumablesCountsAddService->add(
-            idConsumable: $count->id_consumable,
-            changeOrganization: false,
+        $consumablesCountsAddService->update(
+            idConsumableCount: $count->id,
             count: $request->safe()->integer('count'),
             idUser: auth()->id(),
         );

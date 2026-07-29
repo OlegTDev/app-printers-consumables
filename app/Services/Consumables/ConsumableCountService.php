@@ -11,15 +11,27 @@ use Illuminate\Support\Facades\DB;
 class ConsumableCountService
 {
 
-    public function add(int $idConsumable, int $count, int $idUser, bool $changeOrganization, array $organizations = []): int
+    public function add(int $idConsumable, int $count, int $idUser, string $findOrgCode, array $organizations = []): int
     {
-        return DB::transaction(function() use ($idConsumable, $changeOrganization, $organizations, $count, $idUser) {
-            $consumableCount = $this->firstOrCreateConsumableCount($idConsumable);
+        return DB::transaction(function() use ($idConsumable, $findOrgCode, $organizations, $count, $idUser) {
+            $consumableCount = $this->firstOrCreateConsumableCount(
+                idConsumable: $idConsumable,
+                findOrgCode: $findOrgCode,
+                changeOrgCodes: $organizations,
+            );
 
-            if ($consumableCount->wasRecentlyCreated || $changeOrganization) {
-                $consumableCount->organizations()->sync($organizations);
-            }
+            $consumableCount->organizations()->sync($organizations);
 
+            $this->createConsumableCountAdded($consumableCount, $count, $idUser);
+            $this->incrementBalance($consumableCount, $count);
+            return $consumableCount->id;
+        });
+    }
+
+    public function update(int $idConsumableCount, int $count, int $idUser): int
+    {
+        return DB::transaction(function() use ($idConsumableCount, $count, $idUser) {
+            $consumableCount = $this->fistOrFailConsumableCount($idConsumableCount);
             $this->createConsumableCountAdded($consumableCount, $count, $idUser);
             $this->incrementBalance($consumableCount, $count);
             return $consumableCount->id;
@@ -69,9 +81,38 @@ class ConsumableCountService
         $consumableCount->update(['count' => $count]);
     }
 
-    private function firstOrCreateConsumableCount(int $idConsumable, int $count = 0): ConsumableCount
+    private function firstOrCreateConsumableCount(int $idConsumable, string $findOrgCode, array $changeOrgCodes, int $count = 0): ConsumableCount
     {
-        return ConsumableCount::firstOrCreate(['id_consumable' => $idConsumable], ['count' => $count]);
+        $consumableCount = ConsumableCount::query()
+            ->where('id_consumable', $idConsumable)
+            ->whereHas('organizations', fn($query) => $query->where('org_code', $findOrgCode))
+            ->first();
+
+        if ($consumableCount !== null) {
+            return $consumableCount;
+        }
+
+        return DB::transaction(function() use ($idConsumable, $changeOrgCodes, $count) {
+            $newConsumableCount = ConsumableCount::create([
+                'id_consumable' => $idConsumable,
+                'count' => $count,
+            ]);
+
+            $this->createOrganizationsInConsumableCount($newConsumableCount->id, $changeOrgCodes);
+
+            return $newConsumableCount;
+        });
+    }
+
+    private function createOrganizationsInConsumableCount(int $idConsumableCount, array $organizations): void
+    {
+        $insert = array_map(static fn ($code) => [
+            'id_consumable_count' => $idConsumableCount,
+            'org_code' => $code,
+        ], $organizations);
+
+        DB::table('consumables_counts_organizations')
+            ->insert($insert);
     }
 
     private function fistOrFailConsumableCount(int $idConsumableCount): ConsumableCount
