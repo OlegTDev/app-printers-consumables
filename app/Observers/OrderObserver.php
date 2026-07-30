@@ -28,8 +28,8 @@ class OrderObserver
             $this->createStatusHistory($order);
         }
 
-        if ($orderOriginal['status'] !== OrderStatusEnum::STATUS_COMPLETED
-            && $order->status === OrderStatusEnum::STATUS_COMPLETED) {
+        if ($orderOriginal['status'] !== OrderStatusEnum::STATUS_COMPLETED->value
+            && $order->status === OrderStatusEnum::STATUS_COMPLETED->value) {
             event(new OrderCompleted($order));
         }
     }
