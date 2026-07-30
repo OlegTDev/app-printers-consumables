@@ -28,3 +28,4 @@ _ide_helper.php
 resources/js/ziggy.d.ts
 components.d.ts
 .phpstorm.meta.php
+coverage.xml
