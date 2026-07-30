@@ -3,12 +3,14 @@
 namespace App\Models\Printer;
 
 use App\Models\Auth\User;
+use App\Models\Consumable\Consumable;
 use App\Models\Consumable\ConsumableCountInstalled;
 use App\Models\Organization;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
@@ -28,6 +30,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property-read Organization $organization
  * @property-read User $author
  * @property-read ConsumableCountInstalled[] $consumableCountInstalled
+ * @property-read Consumable[] $consumables
  */
 class PrinterWorkplace extends Model
 {
@@ -74,6 +77,11 @@ class PrinterWorkplace extends Model
     public function consumableCountInstalled(): HasMany
     {
         return $this->hasMany(ConsumableCountInstalled::class, 'id_printer_workplace');
+    }
+
+    public function consumables(): BelongsToMany
+    {
+        return $this->belongsToMany(Consumable::class, 'printers_consumables', 'id_printer', 'id_consumable', 'id_printer');
     }
 
 

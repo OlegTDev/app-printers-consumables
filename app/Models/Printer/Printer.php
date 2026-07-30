@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * Принтер (справочник)
@@ -25,6 +25,7 @@ use Illuminate\Support\Facades\Auth;
  * @property User $author
  * @property Consumable[] $consumables
  * @property Consumable[] $consumablesDeep
+ * @property PrinterWorkplace[] $printersWorkplaces
  */
 class Printer extends Model
 {
@@ -54,7 +55,7 @@ class Printer extends Model
 
     public function consumables(): BelongsToMany
     {
-        return $this->belongsToMany(Consumable::class, 'printers_consumables', 'id_printer', 'id_consumable');
+        return $this->belongsToMany(Consumable::class, 'printers_consumables', 'id_printer', 'id_consumable')->withPivot('id_author');
     }
 
     public function author(): BelongsTo
@@ -69,6 +70,11 @@ class Printer extends Model
             $subQuery->where('printers.id', $this->id)
         );
         return $query;
+    }
+
+    public function printersWorkplaces(): HasMany
+    {
+        return $this->hasMany(PrinterWorkplace::class, 'id_printer');
     }
 
     public function scopeFilter(Builder $query, array $filters)
