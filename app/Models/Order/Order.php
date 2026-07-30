@@ -42,7 +42,9 @@ final class Order extends Model
     {
         parent::boot();
         self::creating(function(self $model) {
-            $model->requested_by = Auth::id();
+            if (auth()->check()) {
+                $model->requested_by = auth()->user()->id;
+            }
         });
     }
 
