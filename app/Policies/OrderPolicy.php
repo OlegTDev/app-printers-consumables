@@ -19,7 +19,7 @@ class OrderPolicy
             return true;
         }
         return $user->id === $order->requested_by
-            && $order->status !== OrderStatusEnum::STATUS_COMPLETED;
+            && $order->status !== OrderStatusEnum::STATUS_COMPLETED->value;
     }
 
     public function update(User $user, Order $order): bool
@@ -27,7 +27,7 @@ class OrderPolicy
         // редактирование документа не возможно, так как заказ уже прошел процедуру согласования
         return $user->hasRole('admin') || (
             $order->requested_by == $user->id
-            && \in_array($order->status, [OrderStatusEnum::STATUS_PENDING, OrderStatusEnum::STATUS_ORDERED]));
+            && \in_array($order->status, [OrderStatusEnum::STATUS_PENDING->value, OrderStatusEnum::STATUS_ORDERED->value]));
     }
 
 }
