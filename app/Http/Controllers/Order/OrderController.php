@@ -17,8 +17,8 @@ class OrderController extends Controller
      */
     public function agree(Order $order, Request $request)
     {
-        $this->validateStatusOrFail($order, OrderStatusEnum::STATUS_PENDING);
-        $this->saveOrder($order, OrderStatusEnum::STATUS_AGREED, $request->input('comment'));
+        $this->validateStatusOrFail($order, OrderStatusEnum::STATUS_PENDING->value);
+        $this->saveOrder($order, OrderStatusEnum::STATUS_AGREED->value, $request->input('comment'));
 
         return $this->createRoute($request, 'index')
             ->with('success', 'Заявка успешно согласована!');
@@ -29,8 +29,8 @@ class OrderController extends Controller
      */
     public function reject(Order $order, CommentRequired $request)
     {
-        $this->validateStatusOrFail($order, OrderStatusEnum::STATUS_PENDING);
-        $this->saveOrder($order, OrderStatusEnum::STATUS_REJECTED, $request->input('comment'));
+        $this->validateStatusOrFail($order, OrderStatusEnum::STATUS_PENDING->value);
+        $this->saveOrder($order, OrderStatusEnum::STATUS_REJECTED->value, $request->input('comment'));
 
         return $this->createRoute($request, 'index')
             ->with('success', 'Заявка отказана!');
@@ -41,8 +41,8 @@ class OrderController extends Controller
      */
     public function ordered(Order $order, Request $request)
     {
-        $this->validateStatusOrFail($order, OrderStatusEnum::STATUS_AGREED);
-        $this->saveOrder($order, OrderStatusEnum::STATUS_ORDERED, $request->input('comment'));
+        $this->validateStatusOrFail($order, OrderStatusEnum::STATUS_AGREED->value);
+        $this->saveOrder($order, OrderStatusEnum::STATUS_ORDERED->value, $request->input('comment'));
 
         return $this->createRoute($request, 'index')
             ->with('success', "Статус заявки изменен на заказан!");
@@ -55,8 +55,8 @@ class OrderController extends Controller
     {
         $this->authorize('update', $order);
 
-        $this->validateStatusOrFail($order, OrderStatusEnum::STATUS_ORDERED);
-        $this->saveOrder($order, OrderStatusEnum::STATUS_RECEIVED, $request->input('comment'));
+        $this->validateStatusOrFail($order, OrderStatusEnum::STATUS_ORDERED->value);
+        $this->saveOrder($order, OrderStatusEnum::STATUS_RECEIVED->value, $request->input('comment'));
 
         return $this->createRoute($request, 'index')
             ->with('success', "Статус заявки изменен на получен!");
@@ -67,8 +67,8 @@ class OrderController extends Controller
      */
     public function complete(Order $order, Request $request)
     {
-        $this->validateStatusOrFail($order, OrderStatusEnum::STATUS_RECEIVED);
-        $this->saveOrder($order, OrderStatusEnum::STATUS_COMPLETED, $request->input('comment'));
+        $this->validateStatusOrFail($order, OrderStatusEnum::STATUS_RECEIVED->value);
+        $this->saveOrder($order, OrderStatusEnum::STATUS_COMPLETED->value, $request->input('comment'));
 
         return $this->createRoute($request, 'index')
             ->with('success', 'Исполнение заявки завершено!');
@@ -81,7 +81,7 @@ class OrderController extends Controller
     {
         $this->authorize('cancel', $order);
 
-        $order->setStatus(OrderStatusEnum::STATUS_CANCELLED);
+        $order->setStatus(OrderStatusEnum::STATUS_CANCELLED->value);
 
         return $this->createRoute($request, 'index')
             ->with('success', 'Заявка отменена!');
@@ -94,7 +94,7 @@ class OrderController extends Controller
     {
         $this->authorize('delete', $order);
 
-        if ($order->status == OrderStatusEnum::STATUS_COMPLETED) {
+        if ($order->status == OrderStatusEnum::STATUS_COMPLETED->value) {
             return back()->with('error', "Невозможно удалить со статусом {$order->status}.");
         }
 
