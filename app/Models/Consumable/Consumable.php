@@ -40,7 +40,9 @@ class Consumable extends Model
     {
         parent::boot();
         self::creating(function(Consumable $model) {
-            $model->id_author = auth()->id();
+            if (auth()->check()) {
+                $model->id_author = auth()->id();
+            }
         });
     }
 
@@ -61,7 +63,7 @@ class Consumable extends Model
 
     public function printers(): BelongsToMany
     {
-        return $this->belongsToMany(Printer::class, 'printers_consumables', 'id_consumable', 'id_printer');
+        return $this->belongsToMany(Printer::class, 'printers_consumables', 'id_consumable', 'id_printer')->withPivot('id_author');
     }
 
     public function printersWorkplaces(): BelongsToMany
