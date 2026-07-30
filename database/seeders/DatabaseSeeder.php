@@ -2,6 +2,9 @@
 
 namespace Database\Seeders;
 
+use Database\Seeders\Main\ManufacturersSeeder;
+use Database\Seeders\Main\RolesSeeder;
+use Database\Seeders\Main\UsersSeeder;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -12,14 +15,11 @@ class DatabaseSeeder extends Seeder
      * @return void
      */
     public function run()
-    {        
+    {
         $this->call([
-            RolesSeeder::class,            
-            OrganizationSeeder::class,
+            RolesSeeder::class,
             UsersSeeder::class,
-            DictionarySeeder::class,
-            PrinterWorkplaceSeeder::class,
-            ConsumablesCountSeeder::class,
-        ]);        
+            ManufacturersSeeder::class,
+        ]);
     }
 }

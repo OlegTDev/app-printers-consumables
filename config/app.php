@@ -233,4 +233,5 @@ return [
 
     ],
 
+    'region_code' => env('REGION_CODE'),
 ];
