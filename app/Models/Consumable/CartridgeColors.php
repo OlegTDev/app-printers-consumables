@@ -8,7 +8,7 @@ class CartridgeColors
 {
 
     /**
-     * @var array
+     * @var array<string, array{name: string, color: string, bg: string}>
      */
     private static $_colors = [
         'black' => [
@@ -28,15 +28,15 @@ class CartridgeColors
         ],
         'magenta' => [
             'name' => 'Пурпурный (magenta)',
-            'color' => 'purple',
+            'color' => 'magenta',
             'bg' => 'bg-purple-500',
-        ],        
+        ],
     ];
 
     /**
      * @return array
      */
-    public static function get()
+    public static function get(): array
     {
         return self::$_colors;
     }
@@ -46,7 +46,7 @@ class CartridgeColors
      * @param string $color
      * @return string|null
      */
-    public static function getNameByColor(string|null $color)
+    public static function getNameByColor(string|null $color): null|string
     {
         if (empty($color)) {
             return null;
