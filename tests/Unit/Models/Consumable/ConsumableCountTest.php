@@ -44,17 +44,11 @@ class ConsumableCountTest extends TestCase
 
     public function test_it_belongs_to_a_consumable(): void
     {
-        /** @var Consumable */
-        $consumable = Consumable::factory()->create([
-            'type' => ConsumableTypesEnum::cartridge->name,
-            'name' => ConsumableTypesEnum::cartridge->value,
-            'color' => 'black',
-            'id_author' => $this->adminUser->id,
-        ]);
+        $consumable = $this->createConsumable();
         /** @var ConsumableCount */
         $consumableCount = ConsumableCount::factory()->for($consumable)->create(['count' => 5]);
 
-        $this->assertEquals($consumableCount->id, $consumableCount->consumable->id);
+        $this->assertTrue($consumable->is($consumableCount->consumable));
     }
 
     public function test_it_has_many_consumable_count_added_records(): void
@@ -82,7 +76,6 @@ class ConsumableCountTest extends TestCase
 
         $printer = Printer::factory()->create(['vendor' => 'HP', 'model' => 'Model 1', 'is_color_print' => true, 'id_author' => $this->adminUser->id]);
         $wsPrinter = PrinterWorkplace::factory()->for($printer)->create([
-            'id_printer' => 1,
             'id_author' => $this->adminUser->id,
             'org_code' => 'T0001',
             'location' => '111',
