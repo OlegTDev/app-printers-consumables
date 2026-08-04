@@ -2,6 +2,7 @@
 
 namespace Tests\Unit\Models\Order;
 
+use App\Models\Auth\Role;
 use Auth;
 use App\Models\Auth\User;
 use App\Models\Order\Order;
@@ -22,8 +23,12 @@ class OrderOrgCodeFilterableTest extends TestCase
         $org3 = Organization::factory()->create(['code' => '03', 'name' => 'Org 3']);
 
 
+        $roleAdmin = Role::factory()->create(['name' => 'admin', 'description' => 'Administrator']);
         $user1 = User::factory()->create(['name' => 'user1', 'email' => 'user1@test.com', 'org_code' => $org1]);
         $user2 = User::factory()->create(['name' => 'user2', 'email' => 'user2@test.com', 'org_code' => $org3]);
+        /** @var User */
+        $userAdmin = User::factory()->create(['name' => 'admin', 'email' => 'admin@test.com', 'org_code' => $org1]);
+        $userAdmin->roles()->attach($roleAdmin);
 
         $count1 = 10;
         $idsOrg2 = $this->generateOrderMiscDetails($count1, $user1, $org1);
@@ -41,6 +46,10 @@ class OrderOrgCodeFilterableTest extends TestCase
         Auth::login($user2);
         $filterOrg3 = OrderMiscDetails::query()->filterByOrgCode()->get();
         $this->assertCount($count2, $filterOrg3);
+
+        Auth::login($userAdmin);
+        $filterWithAdmin = OrderMiscDetails::query()->filterByOrgCode()->get();
+        $this->assertCount($count1 + $count2, $filterWithAdmin);
     }
 
     private function generateOrderMiscDetails(int $count, User $user, Organization $org): array
