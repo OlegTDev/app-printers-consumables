@@ -29,11 +29,11 @@ class OrderConsumableDetailsTest extends TestCase
         Auth::login($this->adminUser);
     }
 
-    private function createOrder(string $status = null): Order
+    private function createOrder(string $status = null, int $quantity = 1): Order
     {
         return Order::factory()
             ->for($this->organization)
-            ->create(['status' => $status ?? OrderStatusEnum::default()]);
+            ->create(['status' => $status ?? OrderStatusEnum::default(), 'quantity' => $quantity]);
     }
 
     private function createConsumable(array $attributes = []): Consumable
@@ -137,5 +137,32 @@ class OrderConsumableDetailsTest extends TestCase
         $resultFilter2 = OrderConsumableDetails::query()->filter(['organizations' => [$this->organization->code, $organization2->code]])->get();
         $this->assertCount(2, $resultFilter2);
         $this->assertEqualsCanonicalizing([$orderConsumableDetails1->id, $orderConsumableDetails2->id], $resultFilter2->pluck('id')->all());
+    }
+
+    public function test_it_added_consumable_quantity_on_finish_status_order(): void
+    {
+        Auth::login($this->adminUser);
+
+        $quantity = 20;
+
+        $order = $this->createOrder(quantity: $quantity);
+        /** @var Consumable */
+        $consumable = Consumable::factory()->create([
+            'type' => ConsumableTypesEnum::other->name,
+            'name' => 'Some consumable',
+            'description' => 'Description consumable',
+        ]);
+
+        /** @var OrderConsumableDetails */
+        $orderConsumableDetails = OrderConsumableDetails::factory()
+            ->for($order)
+            ->for($consumable)
+            ->create(['quantity' => 1, 'id_author' => $this->adminUser]);
+
+        $order->setStatus(OrderStatusEnum::STATUS_COMPLETED->value);
+
+        $consumablesAdded = $consumable->consumablesCount->first()->consumablesAdded;
+        $this->assertCount(1, $consumablesAdded);
+        $this->assertEquals($quantity, $consumablesAdded->first()->count);
     }
 }
