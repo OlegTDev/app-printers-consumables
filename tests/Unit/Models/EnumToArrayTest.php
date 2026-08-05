@@ -2,10 +2,7 @@
 
 namespace Tests\Unit\Models;
 
-use App\Models\Auth\User;
 use App\Models\EnumToArrayTrait;
-use App\Models\Organization;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 enum TestEnum: int
