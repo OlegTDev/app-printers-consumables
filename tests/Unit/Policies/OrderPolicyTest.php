@@ -128,7 +128,7 @@ class OrderPolicyTest extends TestCase
         $order = Order::withoutEvents(static fn () =>
             Order::factory()
                 ->for($author, 'requested')
-                ->create()
+                ->create(['status' => OrderStatusEnum::default()])
         );
 
         $this->assertTrue(
