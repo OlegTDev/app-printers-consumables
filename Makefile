@@ -28,6 +28,9 @@ docker-prod-down:
 docker-exec:
 	docker compose --env-file .env --env-file .env.docker exec php-fpm sh
 
+docker-run-cli:
+	docker compose --env-file .env --env-file .env.docker run --rm php-cli sh
+
 
 
 #################### IMAGES BEGIN ######################
