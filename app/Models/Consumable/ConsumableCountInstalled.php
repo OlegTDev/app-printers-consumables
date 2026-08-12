@@ -18,10 +18,21 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $count
  * @property string $created_at
  * @property string $updated_at
- *
  * @property-read ConsumableCount $consumableCount
  * @property-read PrinterWorkplace $printerWorkplace
  * @property-read User $author
+ * @method static \Database\Factories\Consumable\ConsumableCountInstalledFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ConsumableCountInstalled newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ConsumableCountInstalled newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ConsumableCountInstalled query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ConsumableCountInstalled whereCount($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ConsumableCountInstalled whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ConsumableCountInstalled whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ConsumableCountInstalled whereIdAuthor($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ConsumableCountInstalled whereIdConsumableCount($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ConsumableCountInstalled whereIdPrinterWorkplace($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ConsumableCountInstalled whereUpdatedAt($value)
+ * @mixin \Eloquent
  */
 class ConsumableCountInstalled extends Model
 {

@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Printer\Printer;
 use App\Models\Printer\PrinterWorkplace;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -22,12 +23,36 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  * @property string $color
  * @property string $description
  * @property bool $arch
- * @property string $created_at
- * @property string $updated_at
- *
+ * @property \Carbon\CarbonInterface $created_at
+ * @property \Carbon\CarbonInterface $updated_at
  * @property User $author
  * @property Printer[] $printers
  * @property PrinterWorkplace[] $printersWorkplaces
+ * @property-read \Illuminate\Support\Collection<ConsumableCount> $consumablesCount
+ * @property-read ConsumableCount|null $consumableCountCurrentOrganization
+ * @property string|null $deleted_at
+ * @property-read int|null $consumables_count_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Consumable\ConsumableCount> $counts
+ * @property-read int|null $counts_count
+ * @property-read int|null $printers_count
+ * @property-read int|null $printers_workplaces_count
+ * @method static \Database\Factories\Consumable\ConsumableFactory factory($count = null, $state = [])
+ * @method static Builder<static>|Consumable filter(array $filters)
+ * @method static Builder<static>|Consumable newModelQuery()
+ * @method static Builder<static>|Consumable newQuery()
+ * @method static Builder<static>|Consumable query()
+ * @method static Builder<static>|Consumable whereColor($value)
+ * @method static Builder<static>|Consumable whereCreatedAt($value)
+ * @method static Builder<static>|Consumable whereDeletedAt($value)
+ * @method static Builder<static>|Consumable whereDescription($value)
+ * @method static Builder<static>|Consumable whereId($value)
+ * @method static Builder<static>|Consumable whereIdAuthor($value)
+ * @method static Builder<static>|Consumable whereName($value)
+ * @method static Builder<static>|Consumable whereType($value)
+ * @method static Builder<static>|Consumable whereUpdatedAt($value)
+ * @method static Builder<static>|Consumable withOtherTypesByPrinter(int $idPrinter)
+ * @method static Builder<static>|Consumable withoutOtherTypesByPrinter()
+ * @mixin \Eloquent
  */
 class Consumable extends Model
 {
@@ -36,10 +61,9 @@ class Consumable extends Model
     /**
      * {@inheritDoc}
      */
-    public static function boot()
+    public static function booted()
     {
-        parent::boot();
-        self::creating(function(Consumable $model) {
+        static::creating(function(Consumable $model) {
             if (auth()->check()) {
                 $model->id_author = auth()->id();
             }
@@ -56,9 +80,14 @@ class Consumable extends Model
         'arch',
     ];
 
-    public function author(): HasOne
+    protected $casts = [
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+    ];
+
+    public function author(): BelongsTo
     {
-        return $this->hasOne(User::class, 'id', 'id_author');
+        return $this->belongsTo(User::class, 'id_author', 'id');
     }
 
     public function printers(): BelongsToMany
@@ -121,16 +150,19 @@ class Consumable extends Model
         ->where('type', ConsumableTypesEnum::other->name);
     }
 
-    public static function queryWithoutOtherTypesByPrinter(): Builder
+    public function scopeWithoutOtherTypesByPrinter(Builder $query): void
     {
-        return static::query()->where('type', '<>', ConsumableTypesEnum::other->name);
+        $query->where('type', '<>', ConsumableTypesEnum::other->name);
     }
 
     public function title(): string
     {
         $title = ConsumableTypesEnum::getValueByName($this->type) . ' ' . $this->name;
         if ($this->type === 'cartridge') {
-            $title .= ' (' . (CartridgeColors::get()[$this->color]['name'] ?? $this->color) . ')';
+            $colorName = data_get(CartridgeColors::get(), "{$this->color}.name");
+            if ($colorName) {
+                $title .= " ({$colorName})";
+            }
         }
         return $title;
     }

@@ -25,12 +25,29 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string $inventory_number
  * @property string $created_at
  * @property string $updated_at
- *
  * @property-read Printer $printer
  * @property-read Organization $organization
  * @property-read User $author
- * @property-read ConsumableCountInstalled[] $consumableCountInstalled
- * @property-read Consumable[] $consumables
+ * @property-read \Illuminate\Support\Collection<ConsumableCountInstalled> $consumableCountInstalled
+ * @property-read \Illuminate\Support\Collection<Consumable> $consumables
+ * @property-read int|null $consumable_count_installed_count
+ * @property-read int|null $consumables_count
+ * @method static \Database\Factories\Printer\PrinterWorkplaceFactory factory($count = null, $state = [])
+ * @method static Builder<static>|PrinterWorkplace filter(array $filters)
+ * @method static Builder<static>|PrinterWorkplace forCurrentUser()
+ * @method static Builder<static>|PrinterWorkplace newModelQuery()
+ * @method static Builder<static>|PrinterWorkplace newQuery()
+ * @method static Builder<static>|PrinterWorkplace query()
+ * @method static Builder<static>|PrinterWorkplace whereCreatedAt($value)
+ * @method static Builder<static>|PrinterWorkplace whereId($value)
+ * @method static Builder<static>|PrinterWorkplace whereIdAuthor($value)
+ * @method static Builder<static>|PrinterWorkplace whereIdPrinter($value)
+ * @method static Builder<static>|PrinterWorkplace whereInventoryNumber($value)
+ * @method static Builder<static>|PrinterWorkplace whereLocation($value)
+ * @method static Builder<static>|PrinterWorkplace whereOrgCode($value)
+ * @method static Builder<static>|PrinterWorkplace whereSerialNumber($value)
+ * @method static Builder<static>|PrinterWorkplace whereUpdatedAt($value)
+ * @mixin \Eloquent
  */
 class PrinterWorkplace extends Model
 {
@@ -49,10 +66,9 @@ class PrinterWorkplace extends Model
     /**
      * {@inheritDoc}
      */
-    public static function boot()
+    public static function booted()
     {
-        parent::boot();
-        self::creating(function(self $model) {
+        static::creating(function(self $model) {
             if (auth()->check()) {
                 $model->id_author = auth()->id();
             }

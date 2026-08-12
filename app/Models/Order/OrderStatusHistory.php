@@ -14,9 +14,19 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string $comment
  * @property int $id_author
  * @property string $created_at
- * 
  * @property Order $order
  * @property User $author
+ * @method static \Database\Factories\Order\OrderStatusHistoryFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|OrderStatusHistory newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|OrderStatusHistory newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|OrderStatusHistory query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|OrderStatusHistory whereComment($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|OrderStatusHistory whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|OrderStatusHistory whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|OrderStatusHistory whereIdAuthor($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|OrderStatusHistory whereIdOrder($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|OrderStatusHistory whereStatus($value)
+ * @mixin \Eloquent
  */
 class OrderStatusHistory extends Model
 {
