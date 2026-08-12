@@ -2,10 +2,12 @@
 
 namespace Database\Factories;
 
+use App\Models\Organization;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends Factory<\App\Models\Organization>
+ * @extends Factory<Organization>
+ * @mixin Organization
  */
 class OrganizationFactory extends Factory
 {
@@ -17,7 +19,8 @@ class OrganizationFactory extends Factory
     public function definition(): array
     {
         return [
-
+            'code' => $this->faker->unique()->randomNumber(5),
+            'name'=> $this->faker->company(),
         ];
     }
 }

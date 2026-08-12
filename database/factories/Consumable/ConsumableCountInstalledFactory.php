@@ -2,6 +2,9 @@
 
 namespace Database\Factories\Consumable;
 
+use App\Models\Auth\User;
+use App\Models\Consumable\ConsumableCount;
+use App\Models\Printer\PrinterWorkplace;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -17,7 +20,10 @@ class ConsumableCountInstalledFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'id_consumable_count' => ConsumableCount::factory(),
+            'id_printer_workplace' => PrinterWorkplace::factory(),
+            'count' => $this->faker->numberBetween(1, 10),
+            'id_author' => static fn() => User::factory()->create(),
         ];
     }
 }

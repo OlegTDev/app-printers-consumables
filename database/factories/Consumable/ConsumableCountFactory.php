@@ -2,6 +2,8 @@
 
 namespace Database\Factories\Consumable;
 
+use App\Models\Consumable\Consumable;
+use App\Models\Organization;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -17,7 +19,17 @@ class ConsumableCountFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'id_consumable' => Consumable::factory(),
+            'count' => $this->faker->numberBetween(1, 10),
         ];
+    }
+
+    public function withOrganization(Organization $organization): Factory
+    {
+        return $this->state(function (array $attributes) use($organization) {
+            return [
+                'id_consumable' => Consumable::factory()->withOrganization($organization),
+            ];
+        });
     }
 }
