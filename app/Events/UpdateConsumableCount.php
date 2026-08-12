@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace App\Events;
 
 use App\Models\Order\OrderConsumableDetails;
-use App\Services\Order\OrderConsumableCountAddedService;
+use App\Services\Consumables\ConsumableCountService;
 
 class UpdateConsumableCount
 {
     public function __construct(
-        private OrderConsumableCountAddedService $orderConsumableCountAddedService,
+        private ConsumableCountService $consumableCountService,
     )
     {}
 
@@ -19,9 +19,13 @@ class UpdateConsumableCount
         $order = $event->order;
         $orderConsumable = OrderConsumableDetails::where('id_order', $order->id)->first();
         if ($orderConsumable) {
-            $orgCode = auth()->user()->org_code;
             $idAuthor = auth()->user()->id;
-            $this->orderConsumableCountAddedService->pushCount($orderConsumable->id_consumable, $orgCode, $order->quantity, $idAuthor);
+            $this->consumableCountService->add(
+                idConsumable: $orderConsumable->id_consumable,
+                count: $order->quantity,
+                idUser: $idAuthor,
+                findOrgCode: $order->org_code,
+            );
         }
     }
 }
