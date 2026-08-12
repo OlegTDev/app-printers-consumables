@@ -7,13 +7,11 @@ use App\Http\Requests\PrinterWorkplaceRequest;
 use App\Http\Resources\PrinterResource;
 use App\Http\Resources\PrinterWorkplaceResource;
 use App\Models\Consumable\CartridgeColors;
-use App\Models\Consumable\ConsumableCount;
 use App\Models\Consumable\ConsumableTypesEnum;
 use App\Models\Printer\Printer;
 use App\Models\Printer\PrinterWorkplace;
 use App\Services\Query\OrganizationQueryService;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -92,7 +90,7 @@ class PrintersWorkplaceController extends Controller
             'consumableTypes' => ConsumableTypesEnum::array(),
             'cartridgeColors' => CartridgeColors::get(),
             'consumableLabels' => config('labels.consumable'),
-            'consumableCountLabels' => ConsumableCount::labels(),
+            'consumableCountLabels' => config('labels.consumable_count'),
         ]);
     }
 
