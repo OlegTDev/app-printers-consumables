@@ -39,7 +39,7 @@ class OrderObserver
         $orderStatusHistory = new OrderStatusHistory([
             'status' => $order->status,
             'comment' => $order->comment,
-            'id_author' => auth()->user()->id,
+            'id_author' => auth()->id(),
         ]);
         $orderStatusHistory->order()->associate($order);
         $orderStatusHistory->save();
