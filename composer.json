@@ -49,6 +49,8 @@
         "fix": "php-cs-fixer fix",
         "analyse": "phpstan analyse",
         "lint": ["@lint-cs", "@analyse"],
+        "test-cover-xml": "php artisan test --coverage-clover=coverage.xml",
+        "test-cover": "php artisan test --coverage",
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
             "@php artisan package:discover --ansi",
