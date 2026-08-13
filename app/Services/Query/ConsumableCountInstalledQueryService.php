@@ -3,13 +3,14 @@ declare(strict_types=1);
 
 namespace App\Services\Query;
 
+use Illuminate\Database\Query\Builder as QueryBuilder;
+use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
 use App\Models\Consumable\Consumable;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 
 class ConsumableCountInstalledQueryService
 {
-    public function buildCountInstalled(array $organizations, ?string $dateFrom, ?string $dateTo): Builder
+    public function buildCountInstalled(array $organizations, ?string $dateFrom, ?string $dateTo): QueryBuilder|EloquentBuilder
     {
         $installedSubQuery = DB::table('consumables_counts_installed AS cci')
             ->select([

@@ -5,7 +5,7 @@ namespace App\Services\Order;
 class OrderSparePartDetailUploadFilesService
 {
 
-    public function __construct(private $files, private string $uploadPath = 'orders')
+    public function __construct(private array $files, private string $uploadPath = 'orders')
     {
     }
 
