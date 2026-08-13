@@ -18,10 +18,29 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property int $count
  * @property string $created_at
  * @property string $updated_at
- *
  * @property-read Consumable $consumable
- * @property-read \Illuminate\Database\Eloquent\Collection|ConsumableCountAdded[] $consumablesAdded
- * @property-read \Illuminate\Database\Eloquent\Collection|Organization[] $organizations
+ * @property-read \Illuminate\Database\Eloquent\Collection<ConsumableCountAdded> $consumablesAdded
+ * @property-read \Illuminate\Database\Eloquent\Collection<ConsumableCountInstalled> $consumablesInstalled
+ * @property-read \Illuminate\Database\Eloquent\Collection<Organization> $organizations
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Consumable\ConsumableCountAdded> $addeds
+ * @property-read int|null $addeds_count
+ * @property-read int|null $consumables_added_count
+ * @property-read int|null $consumables_installed_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Consumable\ConsumableCountInstalled> $installeds
+ * @property-read int|null $installeds_count
+ * @property-read int|null $organizations_count
+ * @method static \Database\Factories\Consumable\ConsumableCountFactory factory($count = null, $state = [])
+ * @method static Builder<static>|ConsumableCount filter(array $filters)
+ * @method static Builder<static>|ConsumableCount forCurrentUser()
+ * @method static Builder<static>|ConsumableCount newModelQuery()
+ * @method static Builder<static>|ConsumableCount newQuery()
+ * @method static Builder<static>|ConsumableCount query()
+ * @method static Builder<static>|ConsumableCount whereCount($value)
+ * @method static Builder<static>|ConsumableCount whereCreatedAt($value)
+ * @method static Builder<static>|ConsumableCount whereId($value)
+ * @method static Builder<static>|ConsumableCount whereIdConsumable($value)
+ * @method static Builder<static>|ConsumableCount whereUpdatedAt($value)
+ * @mixin \Eloquent
  */
 class ConsumableCount extends Model
 {
@@ -69,21 +88,6 @@ class ConsumableCount extends Model
         return $this->consumablesInstalled();
     }
 
-    /**
-     * Описание атрибутов
-     * @return array
-     */
-    public static function labels()
-    {
-        return [
-            'id_consumable' => 'Расходный материал',
-            'count' => 'Количество',
-            'selectedOrganizations' => 'Организации',
-            'created_at' => 'Дата создания',
-            'updated_at' => 'Дата обновления',
-        ];
-    }
-
     public function scopeForCurrentUser(Builder $query)
     {
         return $query->whereHas('organizations', function(Builder $q) {
@@ -112,11 +116,6 @@ class ConsumableCount extends Model
     public function organizations(): BelongsToMany
     {
         return $this->belongsToMany(Organization::class, 'consumables_counts_organizations', 'id_consumable_count', 'org_code');
-    }
-
-    public function organizationsCodes(): \Illuminate\Support\Collection
-    {
-        return $this->organizations->pluck("code");
     }
 
 }

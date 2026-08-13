@@ -31,7 +31,7 @@ class ConsumableApiController
      */
     public function notOtherConsumablesForPrinter()
     {
-        $items = Consumable::queryWithoutOtherTypesByPrinter()->get();
+        $items = Consumable::withoutOtherTypesByPrinter()->get();
         return ConsumableResource::collection($items);
     }
 

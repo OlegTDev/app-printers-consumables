@@ -1,8 +1,12 @@
 <?php
 namespace App\Models\Order;
 
+use App\Models\EnumToArrayTrait;
+
 enum OrderStatusEnum: string
 {
+    use EnumToArrayTrait;
+
     case STATUS_PENDING = 'pending';
 
     case STATUS_REJECTED = 'rejected';
