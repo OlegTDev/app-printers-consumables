@@ -8,7 +8,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Support\Facades\Auth;
 
 /**
  * @property int $id
@@ -21,10 +20,25 @@ use Illuminate\Support\Facades\Auth;
  * @property string $service_request_date
  * @property string $created_at
  * @property string $updated_at
- *
- * @property User $requested
- * @property OrderStatusHistory $statusHistory
- * @property Organization $organization
+ * @property-read User $requested
+ * @property-read \Illuminate\Support\Collection<OrderStatusHistory> $statusHistory
+ * @property-read Organization $organization
+ * @property-read int|null $status_history_count
+ * @method static \Database\Factories\Order\OrderFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereComment($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereOrgCode($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereQuantity($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereRequestedBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereServiceRequestDate($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereServiceRequestNumber($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereStatus($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereUpdatedAt($value)
+ * @mixin \Eloquent
  */
 final class Order extends Model
 {
@@ -38,12 +52,11 @@ final class Order extends Model
         'service_request_date',
     ];
 
-    public static function boot()
+    public static function booted()
     {
-        parent::boot();
-        self::creating(function(self $model) {
+        static::creating(function(self $model) {
             if (auth()->check()) {
-                $model->requested_by = auth()->user()->id;
+                $model->requested_by = auth()->id();
             }
         });
     }
@@ -63,11 +76,9 @@ final class Order extends Model
         return $this->belongsTo(Organization::class, 'org_code');
     }
 
-    public function setStatus(string $status, string $comment = null)
+    public function setStatus(string $status): void
     {
-        $this->status = $status;
-        $this->comment = $comment;
-        $this->save();
+        $this->update(['status' => $status]);
     }
 
 }

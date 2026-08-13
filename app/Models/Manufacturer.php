@@ -10,6 +10,14 @@ use Illuminate\Database\Eloquent\Model;
  * @property string $name
  * @property mixed $created_at
  * @property mixed $updated_at
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Manufacturer newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Manufacturer newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Manufacturer query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Manufacturer whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Manufacturer whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Manufacturer whereName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Manufacturer whereUpdatedAt($value)
+ * @mixin \Eloquent
  */
 class Manufacturer extends Model
 {

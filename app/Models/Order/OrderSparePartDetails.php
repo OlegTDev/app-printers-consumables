@@ -7,21 +7,35 @@ use App\Models\Consumable\ConsumableTypesEnum;
 use App\Models\Printer\PrinterWorkplace;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 /**
  * Заказы запчастей для принтера
+ *
  * @property int $id
  * @property int $id_order
  * @property int $id_printers_workplace
  * @property int $id_spare_part
  * @property bool $call_specialist
- *
- * @property Order $order
- * @property PrinterWorkplace $printerWorkplace
- * @property Consumable $sparePart
- * @property OrderSparePartDetailsFile $files
+ * @property-read Order $order
+ * @property-read PrinterWorkplace $printerWorkplace
+ * @property-read ?Consumable $sparePart
+ * @property-read \Illuminate\Support\Collection<OrderSparePartDetailsFile> $files
+ * @property-read int|null $files_count
+ * @method static \Database\Factories\Order\OrderSparePartDetailsFactory factory($count = null, $state = [])
+ * @method static Builder<static>|OrderSparePartDetails filter(array $filters)
+ * @method static Builder<static>|OrderSparePartDetails filterByOrgCode()
+ * @method static Builder<static>|OrderSparePartDetails newModelQuery()
+ * @method static Builder<static>|OrderSparePartDetails newQuery()
+ * @method static Builder<static>|OrderSparePartDetails query()
+ * @method static Builder<static>|OrderSparePartDetails whereCallSpecialist($value)
+ * @method static Builder<static>|OrderSparePartDetails whereId($value)
+ * @method static Builder<static>|OrderSparePartDetails whereIdOrder($value)
+ * @method static Builder<static>|OrderSparePartDetails whereIdPrintersWorkplace($value)
+ * @method static Builder<static>|OrderSparePartDetails whereIdSparePart($value)
+ * @mixin \Eloquent
  */
 class OrderSparePartDetails extends SubOrderContract
 {
@@ -42,23 +56,23 @@ class OrderSparePartDetails extends SubOrderContract
         return $this->belongsTo(Order::class, 'id_order');
     }
 
-    public function printerWorkplace()
+    public function printerWorkplace(): BelongsTo
     {
-        return $this->hasOne(PrinterWorkplace::class, 'id', 'id_printers_workplace');
+        return $this->belongsTo(PrinterWorkplace::class, 'id_printers_workplace');
     }
 
-    public function sparePart()
+    public function sparePart(): ?BelongsTo
     {
-        return $this->hasOne(Consumable::class, 'id', 'id_spare_part')
+        return $this->belongsTo(Consumable::class, 'id_spare_part')
             ->where('type', ConsumableTypesEnum::other->name);
     }
 
-    public function files()
+    public function files(): HasMany
     {
         return $this->hasMany(OrderSparePartDetailsFile::class, 'id_spare_part_order_detail');
     }
 
-    public function scopeFilter(Builder $query, array $filters)
+    public function scopeFilter(Builder $query, array $filters): void
     {
         $query->when($filters['search'] ?? null, function (Builder $query, $search) {
             $searchTerm = "%$search%";

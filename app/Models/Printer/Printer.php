@@ -21,11 +21,26 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property int $id_author
  * @property string $created_at
  * @property string $updated_at
- *
- * @property User $author
- * @property Consumable[] $consumables
- * @property Consumable[] $consumablesDeep
- * @property PrinterWorkplace[] $printersWorkplaces
+ * @property-read User $author
+ * @property-read \Illuminate\Support\Collection<Consumable> $consumables
+ * @property-read \Illuminate\Support\Collection<PrinterWorkplace> $printersWorkplaces
+ * @property string|null $deleted_at
+ * @property-read int|null $consumables_count
+ * @property-read int|null $printers_workplaces_count
+ * @method static \Database\Factories\Printer\PrinterFactory factory($count = null, $state = [])
+ * @method static Builder<static>|Printer filter(array $filters)
+ * @method static Builder<static>|Printer newModelQuery()
+ * @method static Builder<static>|Printer newQuery()
+ * @method static Builder<static>|Printer query()
+ * @method static Builder<static>|Printer whereCreatedAt($value)
+ * @method static Builder<static>|Printer whereDeletedAt($value)
+ * @method static Builder<static>|Printer whereId($value)
+ * @method static Builder<static>|Printer whereIdAuthor($value)
+ * @method static Builder<static>|Printer whereIsColorPrint($value)
+ * @method static Builder<static>|Printer whereModel($value)
+ * @method static Builder<static>|Printer whereUpdatedAt($value)
+ * @method static Builder<static>|Printer whereVendor($value)
+ * @mixin \Eloquent
  */
 class Printer extends Model
 {
@@ -43,10 +58,9 @@ class Printer extends Model
         'is_color_print' => 'boolean',
     ];
 
-    public static function boot()
+    public static function booted()
     {
-        parent::boot();
-        self::creating(function(Printer $model) {
+        static::creating(function(Printer $model) {
             if (auth()->check()) {
                 $model->id_author = auth()->id();
             }

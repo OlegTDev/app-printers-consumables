@@ -9,13 +9,30 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * Заказы картриджей для принтера
+ *
  * @property int $id
  * @property int $id_order
  * @property int $id_consumable
  * @property int $id_author
  * @property int $quantity
- *
  * @property Order $order
+ * @property string|null $created_at
+ * @property string|null $updated_at
+ * @property-read Consumable $consumable
+ * @method static \Database\Factories\Order\OrderConsumableDetailsFactory factory($count = null, $state = [])
+ * @method static Builder<static>|OrderConsumableDetails filter(array $filters)
+ * @method static Builder<static>|OrderConsumableDetails filterByOrgCode()
+ * @method static Builder<static>|OrderConsumableDetails newModelQuery()
+ * @method static Builder<static>|OrderConsumableDetails newQuery()
+ * @method static Builder<static>|OrderConsumableDetails query()
+ * @method static Builder<static>|OrderConsumableDetails whereCreatedAt($value)
+ * @method static Builder<static>|OrderConsumableDetails whereId($value)
+ * @method static Builder<static>|OrderConsumableDetails whereIdAuthor($value)
+ * @method static Builder<static>|OrderConsumableDetails whereIdConsumable($value)
+ * @method static Builder<static>|OrderConsumableDetails whereIdOrder($value)
+ * @method static Builder<static>|OrderConsumableDetails whereQuantity($value)
+ * @method static Builder<static>|OrderConsumableDetails whereUpdatedAt($value)
+ * @mixin \Eloquent
  */
 class OrderConsumableDetails extends SubOrderContract
 {
