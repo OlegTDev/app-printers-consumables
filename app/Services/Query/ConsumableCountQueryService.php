@@ -4,12 +4,13 @@ declare(strict_types=1);
 namespace App\Services\Query;
 
 use App\Models\Consumable\ConsumableCount;
+use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
 use Illuminate\Support\Facades\DB;
 
 class ConsumableCountQueryService
 {
-    public function getConsumableCountByPrinterWorkplace(int $printerWorkplaceId, string $orgCode)
+    public function getConsumableCountByPrinterWorkplace(int $printerId, string $orgCode)
     {
         return DB::table('consumables_counts')
             ->select([
@@ -28,11 +29,11 @@ class ConsumableCountQueryService
             ->join('printers_workplace', 'printers_workplace.id_printer', '=', 'printers.id')
             ->where('printers_workplace.org_code', '=', $orgCode)
             ->where('consumables_counts_organizations.org_code', '=', $orgCode)
-            ->where('printers.id', '=', $printerWorkplaceId)
+            ->where('printers.id', '=', $printerId)
             ->get();
     }
 
-    public function buildConsumableCountByOrganizations(array $orgCodes): EloquentBuilder
+    public function buildConsumableCountByOrganizations(array $orgCodes): EloquentBuilder|QueryBuilder
     {
         return ConsumableCount::query()
             ->select([
