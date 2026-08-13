@@ -17,10 +17,12 @@ class ConsumableCountService
             $consumableCount = $this->firstOrCreateConsumableCount(
                 idConsumable: $idConsumable,
                 findOrgCode: $findOrgCode,
-                changeOrgCodes: $organizations,
+                organizations: $organizations,
             );
 
-            $consumableCount->organizations()->sync($organizations);
+            if (!empty($organizations)) {
+                $consumableCount->organizations()->sync($organizations);
+            }
 
             $this->createConsumableCountAdded($consumableCount, $count, $idUser);
             $this->incrementBalance($consumableCount, $count);
@@ -81,7 +83,7 @@ class ConsumableCountService
         $consumableCount->update(['count' => $count]);
     }
 
-    private function firstOrCreateConsumableCount(int $idConsumable, string $findOrgCode, array $changeOrgCodes, int $count = 0): ConsumableCount
+    private function firstOrCreateConsumableCount(int $idConsumable, string $findOrgCode, array $organizations, int $count = 0): ConsumableCount
     {
         $consumableCount = ConsumableCount::query()
             ->where('id_consumable', $idConsumable)
@@ -92,13 +94,13 @@ class ConsumableCountService
             return $consumableCount;
         }
 
-        return DB::transaction(function() use ($idConsumable, $changeOrgCodes, $count) {
+        return DB::transaction(function() use ($idConsumable, $organizations, $count) {
             $newConsumableCount = ConsumableCount::create([
                 'id_consumable' => $idConsumable,
                 'count' => $count,
             ]);
 
-            $this->createOrganizationsInConsumableCount($newConsumableCount->id, $changeOrgCodes);
+            $this->createOrganizationsInConsumableCount($newConsumableCount->id, $organizations);
 
             return $newConsumableCount;
         });
