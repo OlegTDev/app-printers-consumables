@@ -12,7 +12,7 @@ class ConsumableCountPolicy
         if ($user->isAdmin()) {
             return true;
         }
-        $orgCodes = $consumableCount->organizationsCodes()->toArray();
+        $orgCodes = $consumableCount->organizations->pluck('code')->all();
         $orgCode = $user->org_code;
         return \in_array($orgCode, $orgCodes);
     }
