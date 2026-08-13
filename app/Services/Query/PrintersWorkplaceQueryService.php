@@ -5,16 +5,21 @@ namespace App\Services\Query;
 
 use App\Models\Printer\PrinterWorkplace;
 use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
+use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Facades\DB;
 
 
 class PrintersWorkplaceQueryService
 {
-    public function buildPrintersWorkplaceInstalledConsumablesByOrganizationsAndPeriod(array $organizations, ?string $dateFrom, ?string $dateTo): EloquentBuilder
+    public function buildPrintersWorkplaceInstalledConsumablesByOrganizationsAndPeriod(
+        array $organizations,
+        ?string $dateFrom,
+        ?string $dateTo,
+    ): EloquentBuilder|QueryBuilder
     {
         $makeSubquery = function (array $types, bool $isExclude = false) use ($dateFrom, $dateTo) {
             $sub = DB::table("consumables_counts_installed AS cci")
-                ->selectRaw("COALESCE(COUNT(*), 0)")
+                ->selectRaw("COALESCE(SUM(cci.count), 0)")
                 ->join('consumables_counts AS cc_sub', 'cc_sub.id', '=', 'cci.id_consumable_count')
                 ->join('consumables AS c_c', 'c_c.id', '=', 'cc_sub.id_consumable')
                 ->whereColumn('pw.id', '=', 'cci.id_printer_workplace');
