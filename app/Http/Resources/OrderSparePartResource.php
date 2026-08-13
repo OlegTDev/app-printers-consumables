@@ -25,7 +25,6 @@ class OrderSparePartResource extends JsonResource
             'id_spare_part' => $this->id_spare_part,
             'call_specialist' => $this->call_specialist,
 
-            // @phpstan-ignore ternary.alwaysTrue
             'sparePart' => $this->sparePart ? new ConsumableResource($this->sparePart) : null,
             'printerWorkplace' => PrinterWorkplaceResource::make($this->whenLoaded('printerWorkplace')),
             'order' => OrderResource::make($this->whenLoaded('order')),
