@@ -5,6 +5,14 @@
 <img width="1918" height="957" alt="Main" src="https://github.com/user-attachments/assets/5a9569e2-225c-420b-a2ac-4dc5d11b9b7d" />
 
 
+### 🛠️ Технологический стек
+![PHP](https://shields.io)
+![Laravel](https://shields.io)
+![PostgreSQL](https://shields.io)
+![Docker](https://shields.io)
+![Vite](https://shields.io)
+![Vue.js](https://shields.io)
+
 
 ## Установка
 
@@ -119,6 +127,8 @@ php artisan test
 ```
 
 
+### Обновление моделей для IDE
 
-Для обновления моделей для IDE
+```sh
 php artisan ide-helper:models -W
+```
