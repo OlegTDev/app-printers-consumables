@@ -104,11 +104,21 @@ docker compose --env-file .env --env-file .env.docker logs -f
 make docker-exec
 или
 docker compose --env-file .env --env-file .env.docker exec php-fpm sh
+
+# создание и подключение к php-сli контейнеру
+make docker-run-cli
+или
+docker compose --env-file .env --env-file .env.docker run --rm php-cli sh
+```
+
+
+## Запуск тестов
+
+```sh
+php artisan test
 ```
 
 
 
-## Running tests
-
-В разработке...
-
+Для обновления моделей для IDE
+php artisan ide-helper:models -W
