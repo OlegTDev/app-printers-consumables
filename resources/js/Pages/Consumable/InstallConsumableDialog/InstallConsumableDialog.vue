@@ -40,7 +40,7 @@ const save = () => {
   if (!consumableSelected.value) {
     return;
   }
-  const { id: idConsumable, id_consumable: idConsumableCount } = consumableSelected.value;
+  const { id: idConsumableCount, id_consumable: idConsumable } = consumableSelected.value;
   const url = route('consumables.counts.installed.store', { consumable: idConsumable, count: idConsumableCount });
   form.post(url, {
     onSuccess: () => dialogRef.value.close({ updated: true }),
