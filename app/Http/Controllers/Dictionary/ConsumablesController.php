@@ -27,7 +27,7 @@ class ConsumablesController extends Controller
     {
         $params = $this->getPaginatedData(
             request: $request,
-            query: Consumable::with('author'),
+            query: Consumable::with(['author' => fn($query) => $query->withTrashed()]),
             allowSortFields: ['id', 'type', 'name', 'created_at'],
             resourceClass: ConsumableResource::class,
         );
