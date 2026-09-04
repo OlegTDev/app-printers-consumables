@@ -79,9 +79,9 @@ trait BuildsListQuery
         }
     }
 
-    private function applySort(Request $request, BuilderEloquent $buildQuery, ?array $allowedFields = null): void
+    private function applySort(Request $request, BuilderEloquent $buildQuery, ?array $allowedFields = []): void
     {
-        $allowedFields ??= $buildQuery->getModel()->getFillable();
+        $allowedFields = empty($allowedFields) ? $buildQuery->getModel()->getFillable() : $allowedFields;
 
         $field = $request->input(self::SORT_FIELD);
         $order = $request->input(self::SORT_ORDER, '1') == '1' ? 'asc' : 'desc';
