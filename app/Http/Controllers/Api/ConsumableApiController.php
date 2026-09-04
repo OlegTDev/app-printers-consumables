@@ -42,7 +42,11 @@ class ConsumableApiController
     {
         $limit = config('per_page.consumable_last_installed', 30);
 
-        $query = ConsumableCountInstalled::with(['consumableCount.consumable', 'printerWorkplace.printer', 'author'])
+        $query = ConsumableCountInstalled::with([
+                'consumableCount.consumable',
+                'printerWorkplace.printer',
+                'author' => fn($query) => $query->withTrashed(),
+            ])
             ->whereHas('printerWorkplace', fn(Builder $query) => $query->where('org_code', auth()->user()->org_code))
             ->orderByDesc('created_at')
             ->limit($limit);
