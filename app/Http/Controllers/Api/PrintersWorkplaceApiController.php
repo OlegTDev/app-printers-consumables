@@ -42,7 +42,7 @@ class PrintersWorkplaceApiController
     {
         $items = $workplace
             ->consumableCountInstalled()
-            ->with(['consumableCount.consumable', 'author'])
+            ->with(['consumableCount.consumable', 'author' => fn($query) => $query->withTrashed()])
             ->get();
 
         return ConsumableCountInstalledResource::collection($items);
