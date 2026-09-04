@@ -51,6 +51,7 @@ class ConsumableRequest extends FormRequest
                 }),
             ],
             'color' => new RequiredIf($this->type == 'cartridge'),
+            'description' => 'string',
         ];
     }
 
