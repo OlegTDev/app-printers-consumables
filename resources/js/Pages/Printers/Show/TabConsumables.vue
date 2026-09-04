@@ -54,12 +54,12 @@ defineProps({
     <Column :header="consumableCountLabels.count">
       <template #body="{ data }">
         <Badge
-          :value="data.consumable_count?.count ?? 0"
+          :value="data.consumableCountCurrentOrganization?.count ?? 0"
           size="large"
           :severity="
-            (data.consumable_count?.count ?? 0) <= 1
+            (data.consumableCountCurrentOrganization?.count ?? 0) <= 1
               ? 'danger'
-              : (data.consumable_count?.count ?? 0) < 10
+              : (data.consumableCountCurrentOrganization?.count ?? 0) < 10
                 ? 'warning'
                 : 'success'
           "
