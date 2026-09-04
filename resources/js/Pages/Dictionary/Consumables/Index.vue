@@ -87,7 +87,7 @@ const refTableConsumablesDic = ref(null);
         </template>
       </Column>
       <Column field="description" :header="labels.description" sortable />
-      <Column field="created_at" header="Дата" sortable>
+      <Column field="updated_at" header="Дата" sortable>
         <template #body="{ data }">
           <Timestamps :created-at="data.created_at" :updated-at="data.updated_at" />
         </template>

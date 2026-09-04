@@ -87,7 +87,7 @@ const toggleConsumable = (id) => {
         </div>
       </template>
       <Column header="#" field="id" header-style="width:3rem" />
-      <Column field="printer.vendor" :header="printerWorkplaceLabels.id_printer" sortable>
+      <Column field="printers.vendor" :header="printerWorkplaceLabels.id_printer" sortable>
         <template #body="{ data: { printer} }">
           <PrinterWorkplace
             :vendor="printer.vendor"
@@ -149,7 +149,7 @@ const toggleConsumable = (id) => {
       <Column field="location" :header="printerWorkplaceLabels.location" sortable />
       <Column field="serial_number" :header="printerWorkplaceLabels.serial_number" sortable />
       <Column field="inventory_number" :header="printerWorkplaceLabels.inventory_number" sortable />
-      <Column field="created_at" :header="printerWorkplaceLabels.date" sortable>
+      <Column field="printers_workplace.updated_at" :header="printerWorkplaceLabels.date" sortable>
         <template #body="{ data }">
           <Timestamps :created-at="data.created_at" :updated-at="data.updated_at" />
         </template>
