@@ -28,14 +28,17 @@ class PrintersWorkplaceController extends Controller
     public function index(Request $request): \Inertia\Response
     {
         $query = PrinterWorkplace::with(['printer.consumables.consumableCountCurrentOrganization'])
+            ->select(['printers_workplace.*'])
+            ->leftJoin('printers', 'printers_workplace.id_printer', '=', 'printers.id')
             ->forCurrentUser()
-            ->orderByDesc('created_at')
-            ->orderByDesc('updated_at');
+            ->orderByDesc('printers_workplace.created_at')
+            ->orderByDesc('printers_workplace.updated_at');
 
         $dataPaginated = $this->getPaginatedData(
             request: $request,
             query: $query,
             resourceClass: PrinterWorkplaceResource::class,
+            allowSortFields: ['printers.vendor', 'location', 'serial_number', 'inventory_number', 'printers_workplace.updated_at'],
         );
 
         return Inertia::render('Printers/Index', [
