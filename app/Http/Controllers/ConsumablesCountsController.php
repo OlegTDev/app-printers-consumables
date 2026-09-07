@@ -158,4 +158,15 @@ class ConsumablesCountsController extends Controller
             ->with('success', 'Данные успешно сохранены!');
     }
 
+    /**
+     * @route DELETE /consumables/counts/{count}
+     */
+    public function destroy(ConsumableCount $count): RedirectResponse
+    {
+        $count->delete();
+
+        return to_route('consumables.counts.index')
+            ->with('success', 'Запись успешно удалена!');
+    }
+
 }
