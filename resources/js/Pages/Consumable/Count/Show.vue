@@ -1,5 +1,5 @@
 <script setup>
-import { Head, useForm } from '@inertiajs/vue3';
+import { Head, router, useForm } from '@inertiajs/vue3';
 import Layout from '@/Shared/Layout.vue';
 import Breadcrumbs from '@/Shared/Breadcrumbs.vue';
 import { ref, defineAsyncComponent, computed } from 'vue';
@@ -13,7 +13,7 @@ import Checkbox from 'primevue/checkbox';
 import Panel from 'primevue/panel';
 import Card from '@/Shared/Card.vue';
 import Title from '@/Shared/Title.vue';
-import { Message, Tab, TabList, TabPanels, Tabs } from 'primevue';
+import { Message, Tab, TabList, TabPanels, Tabs, useConfirm } from 'primevue';
 import { useAuth } from '@/Composables/useAuth';
 import Timestamps from '@/Shared/DataTable/Timestamps.vue';
 
@@ -35,6 +35,7 @@ const {
 
 const { can } = useAuth();
 const dialog = useDialog();
+const confirm = useConfirm();
 const title = ref(consumableCount?.consumable?.title);
 
 const AddDialog = defineAsyncComponent(() => import('./Dialogs/Add.vue'));
@@ -82,6 +83,16 @@ const actions = {
       consumableCountValue: consumableCount.count,
       consumableCountLabels,
     });
+  },
+  remove: () => {
+    confirm.require({
+    message: 'Вы уверены, что хотите удалить запись?',
+    header: 'Удаление записи',
+    accept: () => {
+      const url = route('consumables.counts.destroy', { count: consumableCount.id });
+      router.delete(url);
+    },
+  });
   },
 };
 
@@ -185,6 +196,9 @@ const activeTab = ref("0");
             </div>
           </div>
           <Timestamps class="mt-6" :created-at="consumableCount.created_at" :updated-at="consumableCount.updated_at" />
+          <div v-if="can('admin') && consumableCount.count === 0" class="mt-4">
+            <Button type="button" severity="danger" label="Удалить" @click="actions.remove" />
+          </div>
         </TabPanel>
         <!-- Журнал -->
         <TabPanel value="1">

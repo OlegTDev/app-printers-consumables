@@ -30,6 +30,10 @@ Route::get('consumables/counts/{count}/journal-added', [ConsumablesCountsControl
 
 Route::get('consumables/counts/{count}/journal-installed', [ConsumablesCountsController::class, 'journalInstalled']);
 
+Route::delete('consumables/counts/{count}', [ConsumablesCountsController::class, 'destroy'])
+    ->middleware('role:admin')
+    ->name('consumables.counts.destroy');
+
 
 // Api start
 
