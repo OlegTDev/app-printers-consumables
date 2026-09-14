@@ -13,6 +13,9 @@ enum ConsumableTypesEnum: string
     case cartridge = 'Картридж';
     case drum = 'Драм-картридж';
     case wasteContainer = 'Контейнер для отработанного тонера';
+    case chip = 'Чип';
+    case fuser = 'Фьюзер';
+    case rollers = 'Ролики';
     case other = 'Другое';
 
 
