@@ -5,7 +5,7 @@ import Panel from 'primevue/panel';
 import Message from 'primevue/message';
 import Button from 'primevue/button';
 import { useReportError } from './Composables/useReportErrors';
-import TreeSelectOrganizations from './TreeSelectOrganizations.vue';
+import TreeOrganizations from './TreeOrganizations.vue';
 
 const props = defineProps({
   url: String,
@@ -44,14 +44,14 @@ const exportToExcel = async() => {
 <template>
   <form @submit.prevent="exportToExcel">
     <Panel header="Список организаций">
-      <TreeSelectOrganizations
+      <TreeOrganizations
         :list-organizations="organizations"
         :default-selected-organizations="organizations"
         @update:selected-orgs="(orgs) => form.selectedOrganizations = orgs"
       />
     </Panel>
 
-    <Message v-if="displayErrors.length > 0" severity="error" :closable="false">
+    <Message v-if="displayErrors.length > 0" severity="error" :closable="false" class="mt-4">
       <ul>
         <template v-for="errors of displayErrors">
           <li v-for="error of errors" :key="error">
