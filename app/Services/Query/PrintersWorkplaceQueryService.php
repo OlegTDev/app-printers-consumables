@@ -43,7 +43,10 @@ class PrintersWorkplaceQueryService
         $subQueryCountCartridge = $makeSubquery(['cartridge']);
         $subQueryCountDrum = $makeSubquery(['drum']);
         $subQueryCountWasteContainer = $makeSubquery(['wasteContainer']);
-        $subQueryCountOther = $makeSubquery(['cartridge', 'drum', 'wasteContainer'], true);
+        $subQueryCountChip = $makeSubquery(['chip']);
+        $subQueryCountFuser = $makeSubquery(['fuser']);
+        $subQueryCountRollers = $makeSubquery(['rollers']);
+        $subQueryCountOther = $makeSubquery(['other']);
 
 
         return PrinterWorkplace::query()
@@ -62,6 +65,9 @@ class PrintersWorkplaceQueryService
             ->selectSub($subQueryCountCartridge, 'count_cartridge')
             ->selectSub($subQueryCountDrum, 'count_drum')
             ->selectSub($subQueryCountWasteContainer, 'count_waste_container')
+            ->selectSub($subQueryCountChip, 'count_chip')
+            ->selectSub($subQueryCountFuser, 'count_fuser')
+            ->selectSub($subQueryCountRollers, 'count_rollers')
             ->selectSub($subQueryCountOther, 'count_other')
             ->join('printers AS pr', 'pr.id', '=', 'pw.id_printer')
             ->whereIn('pw.org_code', $organizations)
