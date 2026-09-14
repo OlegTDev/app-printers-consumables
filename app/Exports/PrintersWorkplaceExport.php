@@ -39,7 +39,11 @@ class PrintersWorkplaceExport implements FromQuery, WithMapping, WithHeadings, S
     }
 
     /**
-     * @param mixed $row
+     * @param object{
+     *   id: int, org_code: string, vendor: string, model: string, is_color_print: bool, location: string,
+     *   serial_number: string, inventory_number: string, count_cartridge: int, count_drum: int, count_waste_container: int,
+     *   count_chip: int, count_fuser: int, count_rollers: int, count_other: int
+     * } $row
      * @return array
      */
     public function map($row): array
@@ -56,6 +60,9 @@ class PrintersWorkplaceExport implements FromQuery, WithMapping, WithHeadings, S
             $row->count_cartridge,
             $row->count_drum,
             $row->count_waste_container,
+            $row->count_chip,
+            $row->count_fuser,
+            $row->count_rollers,
             $row->count_other,
         ];
     }
@@ -78,7 +85,10 @@ class PrintersWorkplaceExport implements FromQuery, WithMapping, WithHeadings, S
             'Количество установленных картриджей', // I
             'Количество установленных драм-картриджей', // J
             'Количество установленных контейнеров для отработанного тонера', // K
-            'Количество установленных других расходных материалов', // L
+            'Количество установленных чипов', // L
+            'Количество установленных фьюзеров', // M
+            'Количество установленных роликов', // N
+            'Количество установленных других расходных материалов', // O
         ];
     }
 
@@ -98,7 +108,7 @@ class PrintersWorkplaceExport implements FromQuery, WithMapping, WithHeadings, S
         ];
 
         // первая строка
-        $rangeHeaderRow = 'A1:L1';
+        $rangeHeaderRow = 'A1:O1';
         // применение стиля
         $sheet->getStyle($rangeHeaderRow)->applyFromArray($styleArray);
         // фильтр
