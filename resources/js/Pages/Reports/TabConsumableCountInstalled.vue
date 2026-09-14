@@ -10,7 +10,7 @@ import { useReportError } from './Composables/useReportErrors';
 import InputGroup from 'primevue/inputgroup';
 import InputGroupAddon from 'primevue/inputgroupaddon';
 import DatePicker from 'primevue/datepicker';
-import TreeSelectOrganizations from './TreeSelectOrganizations.vue';
+import TreeOrganizations from './TreeOrganizations.vue';
 
 
 const props = defineProps({
@@ -55,22 +55,11 @@ const exportToExcel = async () => {
 <template>
   <form @submit.prevent="exportToExcel">
     <Panel header="Список организаций">
-      <TreeSelectOrganizations
+      <TreeOrganizations
         :list-organizations="organizations"
         :default-selected-organizations="organizations"
         @update:selected-orgs="(orgs) => form.selectedOrganizations = orgs"
       />
-      <!-- <div v-for="organization in organizations" :key="organization.code" class="flex items-center mt-2">
-        <Checkbox
-          v-model="form.selectedOrganizations"
-          :input-id="`consumable_count_installed_${organization.code}`"
-          name="organizations"
-          :value="organization.code"
-        />
-        <label :for="`consumable_count_installed_${organization.code}`" class="ml-2 cursor-pointer">
-          {{ organization.label }}
-        </label>
-      </div> -->
     </Panel>
     <Panel header="Период" class="mt-4">
       <div class="flex items-center mt-2">
@@ -91,7 +80,7 @@ const exportToExcel = async () => {
         </InputGroup>
       </div>
     </Panel>
-    <Message v-if="displayErrors.length > 0" severity="error" :closable="false">
+    <Message v-if="displayErrors.length > 0" severity="error" :closable="false" class="mt-4">
       <ul>
         <template v-for="errors of displayErrors">
           <li v-for="error of errors" :key="error">
